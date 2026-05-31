@@ -1,0 +1,26 @@
+{
+  "skill_name": "scandit-design",
+  "evals": [
+    {
+      "id": 0,
+      "name": "pm-license-usage-dashboard",
+      "prompt": "hey can you mock up a 'License usage' page for me? it's a dashboard view where customers can see how many SDK licenses they're using vs their quota. think: page heading, then 3 stat cards across the top (total licenses, in use, available), then a table below listing each license with columns for license key, product, status, last used. status should have colored badges (active = green, expired = red, pending = yellow). just one standalone html file, nothing fancy. our design lead is going to look at it tomorrow so make sure it actually looks like scandit, not generic admin template",
+      "expected_output": "Standalone index.html file: Inter font, semantic tokens declared in :root (no raw hex in product UI), 3 stat cards on top, table with status badges using surface/{success,danger,warning}/soft equivalents, scandit-feeling dense layout",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "engineer-new-project-modal",
+      "prompt": "i'm prototyping a 'Create new project' modal. single-file React component (i'll paste it into a sandbox). modal should have: title 'New project', a text field for project name (required), a dropdown for 'Project type' (Inventory / Receiving / Search), a textarea for description (optional, max 280 chars with a counter), and at the bottom Cancel (secondary/ghost) + Create (primary) buttons. tab order should be sensible. file should compile standalone with tailwind via CDN. make sure all the colors and spacing match scandit dashboard please",
+      "expected_output": "Single React file: Inter, primary button uses surface/interactive (#1047A1) not background/brand (#141F2E), Cancel is ghost/secondary, required field markers, character counter, semantic tokens, rounded-2xl card / rounded-lg buttons / rounded inputs",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "pm-scan-results-page",
+      "prompt": "need a quick prototype of a 'Scan results' page for review tomorrow. standalone html. at the top there's an info callout that says 'Showing results from the last 24 hours.' then a table with columns: timestamp, barcode, product, location, status. status is 4 possible states — Success, Warning (low confidence), Failed, Pending — each should be visually distinct. above the table on the right there's a filter button and a refresh button. about 8-10 fake rows is fine. should feel dense like the real dashboard, not airy",
+      "files": [],
+      "expected_output": "Standalone html: info callout uses surface/info/soft + border/info, status uses 4 distinct semantic ramps (success/warning/danger/info or neutral), filter & refresh icons from approved set or Material Symbols Rounded, dense table, ambient shadows, Inter"
+    }
+  ]
+}

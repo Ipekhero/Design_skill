@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Button test — Primary, Secondary, Ghost · all states</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ───── Scandit semantic tokens — sourced from references/design.md ───── */
+    :root {
+      /* Surface */
+      --color-surface-default:                   #FFFFFF;
+      --color-surface-hover:                     #F3F5F8;
+      --color-surface-pressed:                   #E1E7ED;
+      --color-surface-disabled:                  #E1E7ED;
+
+      /* Primary action — blue per design.md (NOT Figma's #16191C — see button.md divergence note) */
+      --color-surface-interactive:               #1047A1;
+      --color-surface-interactive-hover:         #1660D9;
+      --color-surface-interactive-pressed:       #063073;
+
+      /* Danger — full ramp + button-specific hover/pressed for Primary */
+      --color-surface-danger-full:               #D92121;
+      --color-surface-button-danger-primary-hover:   #F24949;
+      --color-surface-button-danger-primary-pressed: #AD1111;
+      --color-surface-danger-softer:             #FFE8E8;   /* used by Secondary + Ghost Danger hover */
+      --color-surface-danger-soft:               #FFD9D9;   /* used by Secondary + Ghost Danger pressed */
+
+      /* Text */
+      --color-text-primary:                      #16191C;
+      --color-text-inverted:                     #FFFFFF;
+      --color-text-disabled:                     #ACB6BF;
+      --color-text-danger:                       #D92121;
+
+      /* Border */
+      --color-border-primary:                    #525A61;
+      --color-border-danger:                     #D92121;
+
+      /* Icon */
+      --color-icon-primary:                      #16191C;
+      --color-icon-on-color:                     #FFFFFF;
+      --color-icon-danger:                       #D92121;
+      --color-icon-disabled:                     #ACB6BF;
+
+      /* Button shape tokens */
+      --button-border-radius:                    8px;
+      --button-border-secondary-width:           1px;
+
+      /* Page chrome */
+      --color-background-secondary:              #F7F7F7;
+      --color-border-tertiary:                   #E1E7ED;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: #525A61; font-size: 14px; margin: 0 0 32px; max-width: 720px; line-height: 1.5; }
+
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+
+    .panel {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+
+    .row-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #525A61;
+      margin: 16px 0 8px;
+    }
+    .row-label:first-child { margin-top: 0; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 110px repeat(4, minmax(180px, 1fr));
+      gap: 12px 16px;
+      align-items: center;
+      padding: 8px 0;
+    }
+    .grid + .grid { border-top: 1px dashed var(--color-border-tertiary); }
+    .grid-head {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #525A61;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+    }
+    .grid-row-key {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #525A61;
+    }
+    .grid-cell {
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    /* ─────────────────────── Button base ─────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 0; cursor: pointer;
+      font-family: inherit;
+      font-weight: 500; letter-spacing: 0.25px;
+      transition: background-color 120ms;
+    }
+    .btn:focus-visible {
+      outline: 2px solid var(--color-surface-interactive);
+      outline-offset: 2px;
+    }
+
+    /* Sizes — height, font, radius */
+    .btn--md {
+      height: 40px;                                /* size/comp-height/xl */
+      border-radius: var(--button-border-radius);  /* 8px */
+      font-size: 16px; line-height: 24px;          /* label/large */
+    }
+    .btn--sm {
+      height: 32px;                                /* size/comp-height/l */
+      border-radius: 6px;                          /* size/cornerRadius/s */
+      font-size: 14px; line-height: 20px;          /* label/medium */
+    }
+
+    /* Icon sizes inside each size */
+    .btn__icon { display: inline-grid; place-items: center; }
+    .btn--md .btn__icon { width: 24px; height: 24px; }
+    .btn--sm .btn__icon { width: 20px; height: 20px; }
+
+    /* ──────── Primary + Secondary padding (Ghost has its own asymmetry) ──────── */
+    .btn--primary, .btn--secondary {
+      /* default: md, no icon */
+      padding: 0 24px;                             /* spacing/padding/xl */
+    }
+    .btn--primary.btn--md.btn--with-icon,
+    .btn--secondary.btn--md.btn--with-icon {
+      padding: 0 24px 0 16px;                      /* pl-l · pr-xl */
+      gap: 8px;                                    /* spacing/padding/s */
+    }
+    .btn--primary.btn--sm,
+    .btn--secondary.btn--sm {
+      padding: 0 12px;                             /* spacing/padding/m */
+    }
+    .btn--primary.btn--sm.btn--with-icon,
+    .btn--secondary.btn--sm.btn--with-icon {
+      padding: 0 12px 0 8px;                       /* pl-s · pr-m */
+      gap: 4px;                                    /* spacing/inline/xs */
+    }
+
+    /* ──────── Ghost padding — style-aware no-icon for md ──────── */
+    .btn--ghost.btn--md.btn--standard:not(.btn--with-icon) { padding: 0 16px; }   /* tighter */
+    .btn--ghost.btn--md.btn--danger:not(.btn--with-icon)   { padding: 0 24px; }   /* hesitation */
+    .btn--ghost.btn--sm:not(.btn--with-icon)               { padding: 0 12px; }
+    .btn--ghost.btn--md.btn--with-icon { padding: 0 24px 0 16px; gap: 8px; }
+    .btn--ghost.btn--sm.btn--with-icon { padding: 0 12px 0 8px;  gap: 4px; }
+
+    /* ═══════════════════════ PRIMARY ═══════════════════════ */
+    .btn--primary { color: var(--color-text-inverted); }
+    .btn--primary .btn__icon { color: var(--color-icon-on-color); }
+
+    .btn--primary.btn--standard           { background: var(--color-surface-interactive); }
+    .btn--primary.btn--standard:not([disabled]):not(.is-disabled):hover,
+    .btn--primary.btn--standard.is-hover  { background: var(--color-surface-interactive-hover); }
+    .btn--primary.btn--standard:not([disabled]):not(.is-disabled):active,
+    .btn--primary.btn--standard.is-pressed{ background: var(--color-surface-interactive-pressed); }
+
+    .btn--primary.btn--danger             { background: var(--color-surface-danger-full); }
+    .btn--primary.btn--danger:not([disabled]):not(.is-disabled):hover,
+    .btn--primary.btn--danger.is-hover    { background: var(--color-surface-button-danger-primary-hover); }
+    .btn--primary.btn--danger:not([disabled]):not(.is-disabled):active,
+    .btn--primary.btn--danger.is-pressed  { background: var(--color-surface-button-danger-primary-pressed); }
+
+    /* ═══════════════════════ SECONDARY ═══════════════════════ */
+    .btn--secondary.btn--standard {
+      background: var(--color-surface-default);
+      color: var(--color-text-primary);
+      border: var(--button-border-secondary-width) solid var(--color-border-primary);
+    }
+    .btn--secondary.btn--standard .btn__icon { color: var(--color-icon-primary); }
+    .btn--secondary.btn--standard:not([disabled]):not(.is-disabled):hover,
+    .btn--secondary.btn--standard.is-hover    { background: var(--color-surface-hover); }
+    .btn--secondary.btn--standard:not([disabled]):not(.is-disabled):active,
+    .btn--secondary.btn--standard.is-pressed  { background: var(--color-surface-pressed); }
+
+    .btn--secondary.btn--danger {
+      background: var(--color-surface-default);
+      color: var(--color-text-danger);
+      border: var(--button-border-secondary-width) solid var(--color-border-danger);
+    }
+    .btn--secondary.btn--danger .btn__icon { color: var(--color-icon-danger); }
+    .btn--secondary.btn--danger:not([disabled]):not(.is-disabled):hover,
+    .btn--secondary.btn--danger.is-hover      { background: var(--color-surface-danger-softer); }
+    .btn--secondary.btn--danger:not([disabled]):not(.is-disabled):active,
+    .btn--secondary.btn--danger.is-pressed    { background: var(--color-surface-danger-soft); }
+
+    /* Secondary disabled — border removed, surface flattens */
+    .btn--secondary[disabled],
+    .btn--secondary.is-disabled {
+      background: var(--color-surface-disabled);
+      color: var(--color-text-disabled);
+      border-color: transparent;
+      cursor: not-allowed;
+    }
+    .btn--secondary[disabled] .btn__icon,
+    .btn--secondary.is-disabled .btn__icon { color: var(--color-icon-disabled); }
+
+    /* ═══════════════════════ GHOST ═══════════════════════ */
+    .btn--ghost.btn--standard {
+      background: transparent;
+      color: var(--color-text-primary);
+    }
+    .btn--ghost.btn--standard .btn__icon { color: var(--color-icon-primary); }
+    .btn--ghost.btn--standard:not([disabled]):not(.is-disabled):hover,
+    .btn--ghost.btn--standard.is-hover    { background: var(--color-surface-hover); }
+    .btn--ghost.btn--standard:not([disabled]):not(.is-disabled):active,
+    .btn--ghost.btn--standard.is-pressed  { background: var(--color-surface-pressed); }
+
+    .btn--ghost.btn--danger {
+      background: transparent;
+      color: var(--color-text-danger);
+    }
+    .btn--ghost.btn--danger .btn__icon { color: var(--color-icon-danger); }
+    .btn--ghost.btn--danger:not([disabled]):not(.is-disabled):hover,
+    .btn--ghost.btn--danger.is-hover      { background: var(--color-surface-danger-softer); }
+    .btn--ghost.btn--danger:not([disabled]):not(.is-disabled):active,
+    .btn--ghost.btn--danger.is-pressed    { background: var(--color-surface-danger-soft); }
+
+    /* Ghost disabled — transparent surface, dimmed text/icon */
+    .btn--ghost[disabled],
+    .btn--ghost.is-disabled {
+      background: transparent;
+      color: var(--color-text-disabled);
+      cursor: not-allowed;
+    }
+    .btn--ghost[disabled] .btn__icon,
+    .btn--ghost.is-disabled .btn__icon { color: var(--color-icon-disabled); }
+
+    /* ──── Primary disabled (style-agnostic) ──── */
+    .btn--primary[disabled],
+    .btn--primary.is-disabled {
+      background: var(--color-surface-disabled);
+      color: var(--color-text-disabled);
+      cursor: not-allowed;
+    }
+    .btn--primary[disabled] .btn__icon,
+    .btn--primary.is-disabled .btn__icon { color: var(--color-icon-disabled); }
+  </style>
+</head>
+<body>
+  <h1>Button — all variations</h1>
+  <p class="lead">
+    Three variants × two styles × two sizes × four states × with/without icon.
+    Hover and pressed states are <em>force-rendered</em> using <code>.is-hover</code> and
+    <code>.is-pressed</code> modifier classes so every state is visible at once. The first
+    cell in each row uses the natural <code>:hover</code> / <code>:active</code> CSS — try
+    hovering it.
+  </p>
+
+  <!-- ═════════════════ PRIMARY ═════════════════ -->
+  <h2>Primary</h2>
+  <div class="panel">
+
+    <!-- STANDARD -->
+    <div class="row-label">Style: Standard · Size: md (40px)</div>
+    <div class="grid grid-head">
+      <div></div><div>default</div><div>hover</div><div>pressed</div><div>disabled</div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">no icon</div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--standard">Save</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--standard is-hover">Save</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--standard is-pressed">Save</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--standard" disabled>Save</button></div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">with icon</div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--standard btn--with-icon"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Save</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--standard btn--with-icon is-hover"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Save</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--standard btn--with-icon is-pressed"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Save</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--standard btn--with-icon" disabled><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Save</button></div>
+    </div>
+
+    <div class="row-label">Style: Standard · Size: sm (32px)</div>
+    <div class="grid">
+      <div class="grid-row-key">no icon</div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--standard">Save</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--standard is-hover">Save</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--standard is-pressed">Save</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--standard" disabled>Save</button></div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">with icon</div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--standard btn--with-icon"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Save</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--standard btn--with-icon is-hover"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Save</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--standard btn--with-icon is-pressed"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Save</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--standard btn--with-icon" disabled><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Save</button></div>
+    </div>
+
+    <!-- DANGER -->
+    <div class="row-label">Style: Danger · Size: md (40px)</div>
+    <div class="grid">
+      <div class="grid-row-key">no icon</div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--danger">Delete</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--danger is-hover">Delete</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--danger is-pressed">Delete</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--danger" disabled>Delete</button></div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">with icon</div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--danger btn--with-icon"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Delete</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--danger btn--with-icon is-hover"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Delete</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--danger btn--with-icon is-pressed"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Delete</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--primary btn--danger btn--with-icon" disabled><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Delete</button></div>
+    </div>
+
+    <div class="row-label">Style: Danger · Size: sm (32px)</div>
+    <div class="grid">
+      <div class="grid-row-key">no icon</div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--danger">Delete</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--danger is-hover">Delete</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--danger is-pressed">Delete</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--danger" disabled>Delete</button></div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">with icon</div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--danger btn--with-icon"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Delete</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--danger btn--with-icon is-hover"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Delete</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--danger btn--with-icon is-pressed"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Delete</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--primary btn--danger btn--with-icon" disabled><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Delete</button></div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ SECONDARY ═════════════════ -->
+  <h2>Secondary</h2>
+  <div class="panel">
+
+    <div class="row-label">Style: Standard · Size: md</div>
+    <div class="grid grid-head">
+      <div></div><div>default</div><div>hover</div><div>pressed</div><div>disabled</div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">no icon</div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--standard">Cancel</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--standard is-hover">Cancel</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--standard is-pressed">Cancel</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--standard" disabled>Cancel</button></div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">with icon</div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--standard btn--with-icon"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Cancel</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--standard btn--with-icon is-hover"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Cancel</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--standard btn--with-icon is-pressed"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Cancel</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--standard btn--with-icon" disabled><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Cancel</button></div>
+    </div>
+
+    <div class="row-label">Style: Standard · Size: sm</div>
+    <div class="grid">
+      <div class="grid-row-key">no icon</div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--standard">Cancel</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--standard is-hover">Cancel</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--standard is-pressed">Cancel</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--standard" disabled>Cancel</button></div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">with icon</div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--standard btn--with-icon"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Cancel</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--standard btn--with-icon is-hover"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Cancel</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--standard btn--with-icon is-pressed"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Cancel</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--standard btn--with-icon" disabled><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Cancel</button></div>
+    </div>
+
+    <div class="row-label">Style: Danger · Size: md</div>
+    <div class="grid">
+      <div class="grid-row-key">no icon</div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--danger">Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--danger is-hover">Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--danger is-pressed">Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--danger" disabled>Remove</button></div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">with icon</div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--danger btn--with-icon"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--danger btn--with-icon is-hover"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--danger btn--with-icon is-pressed"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--secondary btn--danger btn--with-icon" disabled><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+    </div>
+
+    <div class="row-label">Style: Danger · Size: sm</div>
+    <div class="grid">
+      <div class="grid-row-key">no icon</div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--danger">Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--danger is-hover">Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--danger is-pressed">Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--danger" disabled>Remove</button></div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">with icon</div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--danger btn--with-icon"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--danger btn--with-icon is-hover"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--danger btn--with-icon is-pressed"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--secondary btn--danger btn--with-icon" disabled><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ GHOST ═════════════════ -->
+  <h2>Ghost</h2>
+  <div class="panel">
+
+    <div class="row-label">Style: Standard · Size: md  ·  <span style="text-transform:none;color:#16191C">no-icon padding: 16px both sides (tighter)</span></div>
+    <div class="grid grid-head">
+      <div></div><div>default</div><div>hover</div><div>pressed</div><div>disabled</div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">no icon</div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--standard">Edit</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--standard is-hover">Edit</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--standard is-pressed">Edit</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--standard" disabled>Edit</button></div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">with icon</div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--standard btn--with-icon"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Edit</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--standard btn--with-icon is-hover"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Edit</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--standard btn--with-icon is-pressed"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Edit</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--standard btn--with-icon" disabled><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Edit</button></div>
+    </div>
+
+    <div class="row-label">Style: Standard · Size: sm</div>
+    <div class="grid">
+      <div class="grid-row-key">no icon</div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--standard">Edit</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--standard is-hover">Edit</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--standard is-pressed">Edit</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--standard" disabled>Edit</button></div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">with icon</div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--standard btn--with-icon"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Edit</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--standard btn--with-icon is-hover"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Edit</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--standard btn--with-icon is-pressed"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Edit</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--standard btn--with-icon" disabled><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg></span>Edit</button></div>
+    </div>
+
+    <div class="row-label">Style: Danger · Size: md  ·  <span style="text-transform:none;color:#16191C">no-icon padding: 24px both sides (hesitation hint)</span></div>
+    <div class="grid">
+      <div class="grid-row-key">no icon</div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--danger">Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--danger is-hover">Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--danger is-pressed">Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--danger" disabled>Remove</button></div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">with icon</div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--danger btn--with-icon"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--danger btn--with-icon is-hover"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--danger btn--with-icon is-pressed"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--md btn--ghost btn--danger btn--with-icon" disabled><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+    </div>
+
+    <div class="row-label">Style: Danger · Size: sm</div>
+    <div class="grid">
+      <div class="grid-row-key">no icon</div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--danger">Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--danger is-hover">Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--danger is-pressed">Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--danger" disabled>Remove</button></div>
+    </div>
+    <div class="grid">
+      <div class="grid-row-key">with icon</div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--danger btn--with-icon"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--danger btn--with-icon is-hover"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--danger btn--with-icon is-pressed"><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+      <div class="grid-cell"><button class="btn btn--sm btn--ghost btn--danger btn--with-icon" disabled><span class="btn__icon"><svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 21c-.55 0-1.02-.196-1.413-.588C5.196 20.02 5 19.55 5 19V6c-.283 0-.52-.096-.713-.288C4.096 5.521 4 5.283 4 5c0-.283.096-.521.288-.713C4.479 4.096 4.717 4 5 4h4c0-.283.096-.521.288-.713C9.479 3.096 9.717 3 10 3h4c.283 0 .521.096.713.288.191.191.287.43.287.712h4c.283 0 .521.096.713.288.191.191.287.43.287.712 0 .283-.096.521-.288.713C19.521 5.904 19.283 6 19 6v13c0 .55-.196 1.02-.588 1.413C18.02 20.804 17.55 21 17 21H7Zm10-15H7v13h10V6ZM10 17c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C10.521 8.096 10.283 8 10 8c-.283 0-.521.096-.713.288C9.096 8.479 9 8.717 9 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Zm4 0c.283 0 .521-.096.713-.288.191-.191.287-.43.287-.712V9c0-.283-.096-.521-.288-.713C14.521 8.096 14.283 8 14 8c-.283 0-.521.096-.713.288C13.096 8.479 13 8.717 13 9v7c0 .283.096.521.288.713.191.191.43.287.712.287Z"/></svg></span>Remove</button></div>
+    </div>
+  </div>
+
+</body>
+</html>

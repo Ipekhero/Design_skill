@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>License Usage</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <header class="bg-white border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <h1 class="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+      <nav class="flex gap-6 text-sm text-gray-600">
+        <a href="#" class="hover:text-gray-900">Overview</a>
+        <a href="#" class="text-blue-600 font-medium">Licenses</a>
+        <a href="#" class="hover:text-gray-900">Team</a>
+        <a href="#" class="hover:text-gray-900">Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8">
+
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h2 class="text-3xl font-bold text-gray-900">License usage</h2>
+        <p class="text-gray-500 mt-1">View your SDK license consumption.</p>
+      </div>
+      <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-md shadow-sm">
+        Issue License
+      </button>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="grid grid-cols-3 gap-6 mb-8">
+      <div class="bg-white rounded-lg shadow p-6">
+        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Licenses</p>
+        <p class="text-4xl font-bold text-gray-900 mt-2">1,000</p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-6">
+        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">In Use</p>
+        <p class="text-4xl font-bold text-gray-900 mt-2">742</p>
+        <p class="text-sm text-gray-500 mt-1">74% of quota</p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-6">
+        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Available</p>
+        <p class="text-4xl font-bold text-gray-900 mt-2">258</p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">All Licenses</h3>
+      </div>
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">License Key</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Used</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">sc_live_3a91…b47f</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Barcode Scanner</td>
+            <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full bg-green-100 text-green-800">Active</span></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2 minutes ago</td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">sc_live_71d2…0ea8</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">MatrixScan</td>
+            <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full bg-green-100 text-green-800">Active</span></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">14 minutes ago</td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">sc_live_d8a3…1f29</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">ID Capture</td>
+            <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full bg-green-100 text-green-800">Active</span></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">38 minutes ago</td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">sc_test_4b18…aa11</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Barcode Scanner</td>
+            <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full bg-yellow-100 text-yellow-800">Pending</span></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">—</td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">sc_live_88f5…dc6a</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Barcode Scanner</td>
+            <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full bg-red-100 text-red-800">Expired</span></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">11 days ago</td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">sc_live_a012…5d4e</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">MatrixScan Count</td>
+            <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full bg-green-100 text-green-800">Active</span></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">3 hours ago</td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">sc_test_e6b9…7c12</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">ID Capture</td>
+            <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full bg-yellow-100 text-yellow-800">Pending</span></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">—</td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">sc_live_55a8…4922</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Barcode Scanner</td>
+            <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full bg-green-100 text-green-800">Active</span></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Yesterday</td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">sc_live_19fd…b860</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">MatrixScan AR</td>
+            <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full bg-red-100 text-red-800">Expired</span></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">23 days ago</td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">sc_live_77c1…0f38</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Barcode Scanner</td>
+            <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full bg-green-100 text-green-800">Active</span></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2 days ago</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</body>
+</html>

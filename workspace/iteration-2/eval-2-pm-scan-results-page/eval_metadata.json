@@ -1,0 +1,17 @@
+{
+  "eval_id": 2,
+  "eval_name": "pm-scan-results-page",
+  "prompt": "need a quick prototype of a 'Scan results' page for review tomorrow. standalone html. at the top there's an info callout that says 'Showing results from the last 24 hours.' then a table with columns: timestamp, barcode, product, location, status. status is 4 possible states — Success, Warning (low confidence), Failed, Pending — each should be visually distinct. above the table on the right there's a filter button and a refresh button. about 8-10 fake rows is fine. should feel dense like the real dashboard, not airy",
+  "assertions": [
+    {"text": "Uses Inter font (loaded via CDN or @import)"},
+    {"text": "Info callout at top uses surface/info/soft tinting (light blue background) with an info icon, not a generic Tailwind blue-50/sky-100 etc."},
+    {"text": "Four status states are visually distinct AND use Scandit-aligned semantic colors: Success → green (~#0D853D), Warning → yellow/amber (~#FFD300 or yellow ramp), Failed → red (~#D92121), Pending → neutral gray or a 4th distinct semantic"},
+    {"text": "No raw hex colors in product UI markup (hex only appears inside a :root / token-definition block, never as inline styles or bg-[#...] arbitrary values)"},
+    {"text": "Filter and Refresh buttons use icons from Scandit approved set (filter.svg, refresh.svg) or Material Symbols Rounded — not generic icon fonts like Font Awesome or Bootstrap Icons"},
+    {"text": "Renders a table with columns: timestamp, barcode, product, location, status"},
+    {"text": "Has 8-10 realistic fake rows with plausible barcode-like strings"},
+    {"text": "Table feels dense (compact row padding, small-to-medium type) rather than airy with large vertical gaps"},
+    {"text": "Avoids pure #000000 / #FFFFFF as text or backgrounds — uses tinted neutrals like text/primary (#16191C)"},
+    {"text": "Shadows are ambient pure-vertical (low-opacity, no x/y offset), consistent with Scandit shadow tokens"}
+  ]
+}

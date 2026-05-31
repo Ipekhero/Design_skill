@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tooltip test — top + bottom positions + realistic triggers</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    :root {
+      --color-surface-default:       #FFFFFF;
+      --color-surface-formcomp:      #F3F5F8;
+      --color-surface-interactive:   #1047A1;
+      --color-border-tertiary:       #E1E7ED;
+      --color-border-secondary:      #C7CFD6;
+      --color-text-primary:          #16191C;
+      --color-text-secondary:        #525A61;
+      --color-text-inverted:         #FFFFFF;
+      --color-icon-primary:          #16191C;
+      --color-background-secondary-page: #F7F7F7;
+      --size-cornerradius-s: 6px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 32px; max-width: 800px; line-height: 1.5; }
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+      text-transform: none; letter-spacing: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+    .panel {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 20px 24px 24px;
+      margin-bottom: 16px;
+    }
+
+    .grid-positions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 80px 40px;
+      padding: 60px 24px;
+      justify-items: center;
+      align-items: center;
+    }
+    .grid-positions__label {
+      position: absolute;
+      transform: translateY(-44px);
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      white-space: nowrap;
+    }
+
+    .scenarios {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 440px));
+      gap: 32px 40px;
+      align-items: start;
+    }
+    .scenario__label {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 0 0 12px;
+    }
+    .scenario__shell {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 12px;
+      padding: 32px 24px;
+      min-height: 140px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .scenario__caption {
+      font-size: 12px; color: var(--color-text-secondary);
+      margin: 10px 0 0; line-height: 1.5;
+    }
+
+    /* ═══════════════════════ TRIGGERS (sample) ═══════════════════════ */
+    .demo-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      background: var(--color-surface-formcomp);
+      border: 1px solid var(--color-border-secondary);
+      border-radius: var(--size-cornerradius-s);
+      color: var(--color-icon-primary);
+      cursor: pointer;
+      padding: 0;
+      font-family: inherit;
+    }
+    .demo-btn svg { width: 20px; height: 20px; display: block; }
+    .demo-text-btn {
+      display: inline-flex; align-items: center;
+      padding: 6px 12px;
+      background: var(--color-surface-formcomp);
+      border: 1px solid var(--color-border-secondary);
+      border-radius: var(--size-cornerradius-s);
+      font-size: 14px; font-weight: 500;
+      color: var(--color-text-primary);
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .demo-badge {
+      display: inline-flex; align-items: center;
+      padding: 0 8px;
+      height: 20px;
+      background: #FFE8E8;
+      color: #D92121;
+      font-size: 12px; font-weight: 500;
+      border-radius: 999px;
+      cursor: help;
+    }
+
+    /* ═══════════════════════ TOOLTIP ═══════════════════════ */
+    .tooltip-trigger { position: relative; display: inline-block; }
+
+    .tooltip {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      pointer-events: none;
+      display: flex; flex-direction: column; align-items: center;
+      opacity: 0;
+      transition: opacity 120ms 500ms;   /* 500ms delay before show */
+    }
+    .tooltip-trigger:hover .tooltip,
+    .tooltip-trigger:focus-within .tooltip,
+    .tooltip.is-visible {
+      opacity: 1;
+      transition-delay: 500ms;
+    }
+
+    /* `tipPosition: top` — tooltip appears BELOW the trigger (tip on top of the label) */
+    .tooltip--top    { top:    100%; padding-top:    0; }
+    /* `tipPosition: bottom` — tooltip appears ABOVE the trigger (tip on bottom of the label) */
+    .tooltip--bottom { bottom: 100%; padding-bottom: 0; }
+
+    .tooltip__label {
+      background: var(--color-surface-interactive);
+      color: var(--color-text-inverted);
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 16px;
+      padding: 4px 8px;
+      border-radius: 0;
+      min-width: 120px;       /* keeps short labels from being a tight pill — encourages a horizontal read */
+      max-width: 320px;       /* long labels wrap only after ~50 chars */
+      text-align: center;
+      white-space: normal;
+    }
+
+    .tooltip__tip {
+      width: 0; height: 0;
+      border-left:  8px solid transparent;
+      border-right: 8px solid transparent;
+    }
+    .tooltip--bottom .tooltip__tip { border-top:    8px solid var(--color-surface-interactive); }
+    .tooltip--top    .tooltip__tip { border-bottom: 8px solid var(--color-surface-interactive); }
+
+    /* forced-visible variant for showing both positions side-by-side */
+    .tooltip--always-on { opacity: 1; transition: none; }
+  </style>
+</head>
+<body>
+  <!-- ───── Icon symbol defs ───── -->
+  <svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+      <symbol id="i-scan" viewBox="0 0 22 18">
+        <path d="M4 18C3.45 18 2.97917 17.8042 2.5875 17.4125C2.19583 17.0208 2 16.55 2 16V13C2 12.7167 2.09583 12.4792 2.2875 12.2875C2.47917 12.0958 2.71667 12 3 12C3.28333 12 3.52083 12.0958 3.7125 12.2875C3.90417 12.4792 4 12.7167 4 13V16H7C7.28333 16 7.52083 16.0958 7.7125 16.2875C7.90417 16.4792 8 16.7167 8 17C8 17.2833 7.90417 17.5208 7.7125 17.7125C7.52083 17.9042 7.28333 18 7 18H4ZM18 18H15C14.7167 18 14.4792 17.9042 14.2875 17.7125C14.0958 17.5208 14 17.2833 14 17C14 16.7167 14.0958 16.4792 14.2875 16.2875C14.4792 16.0958 14.7167 16 15 16H18V13C18 12.7167 18.0958 12.4792 18.2875 12.2875C18.4792 12.0958 18.7167 12 19 12C19.2833 12 19.5208 12.0958 19.7125 12.2875C19.9042 12.4792 20 12.7167 20 13V16C20 16.55 19.8042 17.0208 19.4125 17.4125C19.0208 17.8042 18.55 18 18 18ZM2 5V2C2 1.45 2.19583 0.979167 2.5875 0.5875C2.97917 0.195833 3.45 0 4 0H7C7.28333 0 7.52083 0.0958333 7.7125 0.2875C7.90417 0.479167 8 0.716667 8 1C8 1.28333 7.90417 1.52083 7.7125 1.7125C7.52083 1.90417 7.28333 2 7 2H4V5C4 5.28333 3.90417 5.52083 3.7125 5.7125C3.52083 5.90417 3.28333 6 3 6C2.71667 6 2.47917 5.90417 2.2875 5.7125C2.09583 5.52083 2 5.28333 2 5ZM18 5V2H15C14.7167 2 14.4792 1.90417 14.2875 1.7125C14.0958 1.52083 14 1.28333 14 1C14 0.716667 14.0958 0.479167 14.2875 0.2875C14.4792 0.0958333 14.7167 0 15 0H18C18.55 0 19.0208 0.195833 19.4125 0.5875C19.8042 0.979167 20 1.45 20 2V5C20 5.28333 19.9042 5.52083 19.7125 5.7125C19.5208 5.90417 19.2833 6 19 6C18.7167 6 18.4792 5.90417 18.2875 5.7125C18.0958 5.52083 18 5.28333 18 5Z" fill="currentColor"/>
+        <path d="M21 8C21.5523 8 22 8.44772 22 9C22 9.55228 21.5523 10 21 10H1C0.447715 10 0 9.55228 0 9C0 8.44772 0.447715 8 1 8H21Z" fill="currentColor"/>
+      </symbol>
+      <symbol id="i-info-circle" viewBox="0 0 24 24">
+        <path d="M12 17C12.2833 17 12.5208 16.9042 12.7125 16.7125C12.9042 16.5208 13 16.2833 13 16V12C13 11.7167 12.9042 11.4792 12.7125 11.2875C12.5208 11.0958 12.2833 11 12 11C11.7167 11 11.4792 11.0958 11.2875 11.2875C11.0958 11.4792 11 11.7167 11 12V16C11 16.2833 11.0958 16.5208 11.2875 16.7125C11.4792 16.9042 11.7167 17 12 17ZM12 9C12.2833 9 12.5208 8.90417 12.7125 8.7125C12.9042 8.52083 13 8.28333 13 8C13 7.71667 12.9042 7.47917 12.7125 7.2875C12.5208 7.09583 12.2833 7 12 7C11.7167 7 11.4792 7.09583 11.2875 7.2875C11.0958 7.47917 11 7.71667 11 8C11 8.28333 11.0958 8.52083 11.2875 8.7125C11.4792 8.90417 11.7167 9 12 9ZM12 22C10.6167 22 9.31667 21.7375 8.1 21.2125C6.88333 20.6875 5.825 19.975 4.925 19.075C4.025 18.175 3.3125 17.1167 2.7875 15.9C2.2625 14.6833 2 13.3833 2 12C2 10.6167 2.2625 9.31667 2.7875 8.1C3.3125 6.88333 4.025 5.825 4.925 4.925C5.825 4.025 6.88333 3.3125 8.1 2.7875C9.31667 2.2625 10.6167 2 12 2C13.3833 2 14.6833 2.2625 15.9 2.7875C17.1167 3.3125 18.175 4.025 19.075 4.925C19.975 5.825 20.6875 6.88333 21.2125 8.1C21.7375 9.31667 22 10.6167 22 12C22 13.3833 21.7375 14.6833 21.2125 15.9C20.6875 17.1167 19.975 18.175 19.075 19.075C18.175 19.975 17.1167 20.6875 15.9 21.2125C14.6833 21.7375 13.3833 22 12 22ZM12 20C14.2333 20 16.125 19.225 17.675 17.675C19.225 16.125 20 14.2333 20 12C20 9.76667 19.225 7.875 17.675 6.325C16.125 4.775 14.2333 4 12 4C9.76667 4 7.875 4.775 6.325 6.325C4.775 7.875 4 9.76667 4 12C4 14.2333 4.775 16.125 6.325 17.675C7.875 19.225 9.76667 20 12 20Z" fill="currentColor"/>
+      </symbol>
+      <symbol id="i-menu-dots-vertical" viewBox="0 0 24 24">
+        <circle cx="12" cy="5"  r="2" fill="currentColor"/>
+        <circle cx="12" cy="12" r="2" fill="currentColor"/>
+        <circle cx="12" cy="19" r="2" fill="currentColor"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <h1>Tooltip — top + bottom positions</h1>
+  <p class="lead">
+    Brand-blue brief contextual hint that appears on hover or focus of a trigger. Sharp 0-radius rectangle,
+    white text, 16×8 caret pointing at the trigger.
+    Figma defines two positions verbatim: <strong><code>tipPosition: bottom</code></strong> (tip on the bottom of
+    the label, so the tooltip sits ABOVE the trigger pointing down) and <strong><code>tipPosition: top</code></strong>
+    (tip on the top of the label, so the tooltip sits BELOW the trigger pointing up). The first panel shows both
+    forced-visible side by side; the second panel uses real <code>:hover</code> with a 500ms delay — hover or tab
+    onto any trigger and wait half a second.
+  </p>
+
+  <!-- ═════════════════ FORCED-VISIBLE COMPARISON ═════════════════ -->
+  <h2>Positions side-by-side (forced visible)</h2>
+  <div class="panel">
+    <div class="grid-positions">
+
+      <div style="position: relative;">
+        <div class="grid-positions__label">tipPosition: bottom (tooltip above)</div>
+        <span class="tooltip-trigger">
+          <button type="button" class="demo-btn"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+          <span class="tooltip tooltip--bottom tooltip--always-on" role="tooltip">
+            <span class="tooltip__label">Give tooltips meaningful messages</span>
+            <span class="tooltip__tip"></span>
+          </span>
+        </span>
+      </div>
+
+      <div style="position: relative;">
+        <div class="grid-positions__label">tipPosition: top (tooltip below)</div>
+        <span class="tooltip-trigger">
+          <button type="button" class="demo-btn"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+          <span class="tooltip tooltip--top tooltip--always-on" role="tooltip">
+            <span class="tooltip__tip"></span>
+            <span class="tooltip__label">Give tooltips meaningful messages</span>
+          </span>
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════════════════ INTERACTIVE (REAL :hover) ═════════════════ -->
+  <h2>Interactive · 500ms delay on hover / focus</h2>
+  <div class="panel">
+    <div style="display: flex; gap: 40px; justify-content: center; padding: 48px 0;">
+
+      <span class="tooltip-trigger">
+        <button type="button" class="demo-text-btn" aria-describedby="tt-int-1">Hover or tab to me</button>
+        <span class="tooltip tooltip--top" role="tooltip" id="tt-int-1">
+          <span class="tooltip__tip"></span>
+          <span class="tooltip__label">Real :hover with 500ms delay</span>
+        </span>
+      </span>
+
+      <span class="tooltip-trigger">
+        <button type="button" class="demo-text-btn" aria-describedby="tt-int-2">And me</button>
+        <span class="tooltip tooltip--bottom" role="tooltip" id="tt-int-2">
+          <span class="tooltip__label">Same component, tipPosition: bottom</span>
+          <span class="tooltip__tip"></span>
+        </span>
+      </span>
+
+    </div>
+    <p style="font-size: 12px; color: var(--color-text-secondary); text-align: center; margin: 0;">
+      Hover (or focus via keyboard) — the tooltip appears after a 500ms delay.
+      Move away and it disappears instantly.
+    </p>
+  </div>
+
+  <!-- ═════════════════ SHORT + LONG TEXT ═════════════════ -->
+  <h2>Short vs long text (max-width clamp)</h2>
+  <div class="panel">
+    <div style="display: flex; gap: 60px; justify-content: center; padding: 60px 0;">
+
+      <span class="tooltip-trigger">
+        <button type="button" class="demo-btn"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+        <span class="tooltip tooltip--top tooltip--always-on" role="tooltip">
+          <span class="tooltip__tip"></span>
+          <span class="tooltip__label">Scan a code</span>
+        </span>
+      </span>
+
+      <span class="tooltip-trigger">
+        <button type="button" class="demo-btn"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+        <span class="tooltip tooltip--top tooltip--always-on" role="tooltip">
+          <span class="tooltip__tip"></span>
+          <span class="tooltip__label">Activate the device's camera and capture the next barcode you point it at, then fill the value into the current field automatically.</span>
+        </span>
+      </span>
+
+    </div>
+    <p style="font-size: 12px; color: var(--color-text-secondary); text-align: center; margin-top: 24px;">
+      Short labels fit on one line. Longer labels wrap within the 240px max-width.
+      Anything over ~25 words should move to a <code>callout</code> — tooltips enforce brevity by design.
+    </p>
+  </div>
+
+  <!-- ═════════════════ REALISTIC SCENARIOS ═════════════════ -->
+  <h2>In context — four realistic tooltip use cases</h2>
+  <div class="panel">
+    <div class="scenarios">
+
+      <div>
+        <div class="scenario__label">1 · Icon-only button (label affordance)</div>
+        <div class="scenario__shell">
+          <span class="tooltip-trigger">
+            <button type="button" class="demo-btn" aria-label="Open scanner"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+            <span class="tooltip tooltip--top" role="tooltip">
+              <span class="tooltip__tip"></span>
+              <span class="tooltip__label">Open scanner</span>
+            </span>
+          </span>
+        </div>
+        <p class="scenario__caption">The canonical use case — a 32×32 icon button has no visible text, so the tooltip provides the label. The button also carries <code>aria-label="Open scanner"</code> for screen readers; the tooltip is the sighted-user equivalent.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">2 · Kebab menu (3-dot vertical)</div>
+        <div class="scenario__shell">
+          <span class="tooltip-trigger">
+            <button type="button" class="demo-btn" aria-label="More actions"><svg viewBox="0 0 24 24"><use href="#i-menu-dots-vertical"/></svg></button>
+            <span class="tooltip tooltip--top" role="tooltip">
+              <span class="tooltip__tip"></span>
+              <span class="tooltip__label">More actions</span>
+            </span>
+          </span>
+        </div>
+        <p class="scenario__caption">A 3-dot vertical kebab — universally recognised but a tooltip removes ambiguity for first-time users.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">3 · Unfamiliar terminology / abbreviation</div>
+        <div class="scenario__shell">
+          <span class="tooltip-trigger">
+            <span class="demo-badge" tabindex="0">E-12</span>
+            <span class="tooltip tooltip--top" role="tooltip">
+              <span class="tooltip__tip"></span>
+              <span class="tooltip__label">E-12: device offline — last seen 14:32</span>
+            </span>
+          </span>
+        </div>
+        <p class="scenario__caption">An error code badge wrapped in a tooltip that explains what it means + a quick timestamp. <code>cursor: help</code> hints that more info is available on hover.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">4 · Help icon next to a setting label</div>
+        <div class="scenario__shell">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 14px; font-weight: 500; color: var(--color-text-primary);">Aggressive matching</span>
+            <span class="tooltip-trigger">
+              <button type="button" class="demo-btn" style="width: 24px; height: 24px; background: transparent; border: 0; color: var(--color-text-secondary);" aria-label="What does this do?">
+                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px;"><use href="#i-info-circle"/></svg>
+              </button>
+              <span class="tooltip tooltip--bottom" role="tooltip">
+                <span class="tooltip__label">Allow partial barcode matches with up to 2 character substitutions.</span>
+                <span class="tooltip__tip"></span>
+              </span>
+            </span>
+          </div>
+        </div>
+        <p class="scenario__caption">A <code>(i)</code> info icon next to a settings label opens a tooltip explaining the option's behaviour. The tooltip uses <code>tipPosition: bottom</code> here because the icon sits at the top of the visible area — the tooltip needs room ABOVE.</p>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tree View test — 3 states + indentation + realistic trees</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    :root {
+      --color-surface-default:           #FFFFFF;
+      --color-surface-hover:             #F3F5F8;
+      --color-border-tertiary:           #E1E7ED;
+      --color-text-primary:              #16191C;
+      --color-text-secondary:            #525A61;
+      --color-text-info-default:         #1660D9;
+      --color-icon-primary:              #16191C;
+
+      --size-cornerradius-xs:       4px;
+      --size-cornerradius-s:        6px;
+      --comp-height-xl:             40px;
+      --color-background-secondary-page: #F7F7F7;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 32px; max-width: 800px; line-height: 1.5; }
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+      text-transform: none; letter-spacing: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+    .panel {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 20px 24px 24px;
+      margin-bottom: 16px;
+    }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: 160px 320px;
+      gap: 16px 24px;
+      align-items: start;
+    }
+    .state-grid__label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      padding-top: 12px;
+    }
+
+    .scenarios {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 420px));
+      gap: 32px 40px;
+      align-items: start;
+    }
+    .scenario__label {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 0 0 12px;
+    }
+    .scenario__shell {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 12px;
+      padding: 8px 4px;
+    }
+    .scenario__caption {
+      font-size: 12px; color: var(--color-text-secondary);
+      margin: 10px 0 0; line-height: 1.5;
+    }
+
+    /* ═══════════════════════ TREE ═══════════════════════ */
+    .tree-view {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .tree-item {
+      display: flex;
+      align-items: center;
+      height: var(--comp-height-xl);
+      padding-right: 16px;
+      border-radius: var(--size-cornerradius-xs);
+      cursor: pointer;
+      background: transparent;
+      transition: background-color 80ms;
+      user-select: none;
+      width: 100%;
+      box-sizing: border-box;
+      border: 0;
+      font-family: inherit;
+      text-align: left;
+    }
+    .tree-item--leaf { padding-left: 24px; }
+
+    .tree-item:hover, .tree-item.is-hover {
+      background: var(--color-surface-hover);
+    }
+
+    .tree-item__chevron {
+      flex-shrink: 0;
+      width: 24px; height: 24px;
+      padding: 2px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-icon-primary);
+      border-radius: var(--size-cornerradius-s);
+    }
+    .tree-item__chevron svg { width: 20px; height: 20px; display: block; }
+
+    .tree-item__title {
+      flex: 1 1 0;
+      min-width: 0;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 24px;
+      letter-spacing: 0.25px;
+      color: var(--color-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Selected = text-only (SemiBold + info-blue), NO surface tint */
+    .tree-item--selected .tree-item__title {
+      font-weight: 600;
+      color: var(--color-text-info-default);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- ───── Icon symbol defs (verbatim from assets/icons/) ───── -->
+  <svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+      <symbol id="i-arrow-triangle-right" viewBox="0 0 24 24">
+        <path d="M10.5 16.3C10.367 16.3 10.25 16.2542 10.15 16.1625C10.05 16.0708 10 15.95 10 15.8V8.20001C10 8.05001 10.05 7.92918 10.15 7.83751C10.25 7.74585 10.367 7.70001 10.5 7.70001C10.533 7.70001 10.65 7.75001 10.85 7.85001L14.475 11.475C14.558 11.5583 14.617 11.6417 14.65 11.725C14.683 11.8083 14.7 11.9 14.7 12C14.7 12.1 14.683 12.1917 14.65 12.275C14.617 12.3583 14.558 12.4417 14.475 12.525L10.85 16.15C10.8 16.2 10.746 16.2375 10.688 16.2625C10.629 16.2875 10.567 16.3 10.5 16.3Z" fill="currentColor"/>
+      </symbol>
+      <symbol id="i-arrow-triangle-down" viewBox="0 0 24 24">
+        <path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z" fill="currentColor"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <h1>Tree View — 3 states + indentation + realistic trees</h1>
+  <p class="lead">
+    Hierarchical rows for nested data. Two row kinds: <strong>expandable parents</strong> (chevron, toggles open/closed
+    on click) and <strong>non-expandable leaves</strong> (no chevron, reserve the 24px slot so titles align).
+    Selected is <strong>text-only</strong> — bold + info-blue, no background tint.
+    Each level adds 24px of left padding. Hover any row to see <code>surface/hover</code> #F3F5F8 tint.
+  </p>
+
+  <!-- ═════════════════ STATE GRID ═════════════════ -->
+  <h2>States — expandable parent + leaf · interactive on the first row</h2>
+  <div class="panel">
+    <div class="state-grid">
+
+      <div class="state-grid__label">Expandable · default (interactive — click to toggle)</div>
+      <div class="tree-view">
+        <button class="tree-item" type="button" aria-expanded="false" style="padding-left: 0;" onclick="
+          const e = this.getAttribute('aria-expanded') === 'true';
+          this.setAttribute('aria-expanded', String(!e));
+          this.querySelector('use').setAttribute('href', e ? '#i-arrow-triangle-right' : '#i-arrow-triangle-down');
+        ">
+          <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-right"/></svg></span>
+          <span class="tree-item__title">Tree item (parent)</span>
+        </button>
+      </div>
+
+      <div class="state-grid__label">Expandable · hover (forced)</div>
+      <div class="tree-view">
+        <div class="tree-item is-hover" style="padding-left: 0;">
+          <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-right"/></svg></span>
+          <span class="tree-item__title">Tree item</span>
+        </div>
+      </div>
+
+      <div class="state-grid__label">Expandable · expanded</div>
+      <div class="tree-view">
+        <div class="tree-item" style="padding-left: 0;">
+          <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-down"/></svg></span>
+          <span class="tree-item__title">Tree item</span>
+        </div>
+      </div>
+
+      <div class="state-grid__label">Leaf · default</div>
+      <div class="tree-view">
+        <div class="tree-item tree-item--leaf">
+          <span class="tree-item__title">Tree item (leaf)</span>
+        </div>
+      </div>
+
+      <div class="state-grid__label">Leaf · hover (forced)</div>
+      <div class="tree-view">
+        <div class="tree-item tree-item--leaf is-hover">
+          <span class="tree-item__title">Tree item</span>
+        </div>
+      </div>
+
+      <div class="state-grid__label">Leaf · selected (text-only — bold + info-blue, no bg)</div>
+      <div class="tree-view">
+        <div class="tree-item tree-item--leaf tree-item--selected" aria-selected="true">
+          <span class="tree-item__title">Tree item</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════════════════ INDENTATION ═════════════════ -->
+  <h2>Indentation · 24px per level</h2>
+  <div class="panel">
+    <div style="max-width: 320px;">
+      <div class="tree-view">
+        <div class="tree-item tree-item--leaf" style="padding-left: 24px;"><span class="tree-item__title">Level 0 leaf</span></div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 48px;"><span class="tree-item__title">Level 1 leaf</span></div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 72px;"><span class="tree-item__title">Level 2 leaf</span></div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 96px;"><span class="tree-item__title">Level 3 leaf</span></div>
+      </div>
+    </div>
+    <p style="font-size: 12px; color: var(--color-text-secondary); margin: 12px 0 0; max-width: 480px;">
+      Title left-edge = <code>24 × (level + 1)</code> px. The 24px reserve on the leaf rows occupies the slot
+      where the chevron sits on expandable rows, so titles align in a column down the tree.
+    </p>
+  </div>
+
+  <!-- ═════════════════ ASSEMBLED TREE (matches Figma's "Tree View" frame) ═════════════════ -->
+  <h2>Assembled tree (mirrors Figma's Tree View example)</h2>
+  <div class="panel">
+    <div style="max-width: 320px; border: 1px solid var(--color-border-tertiary); border-radius: 12px; padding: 8px 4px;">
+      <div class="tree-view">
+        <div class="tree-item tree-item--leaf"><span class="tree-item__title">Tree item</span></div>
+        <div class="tree-item tree-item--leaf"><span class="tree-item__title">Tree item</span></div>
+        <div class="tree-item" style="padding-left: 0;">
+          <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-down"/></svg></span>
+          <span class="tree-item__title">Tree item</span>
+        </div>
+        <div class="tree-item tree-item--leaf tree-item--selected" style="padding-left: 48px;" aria-selected="true"><span class="tree-item__title">Tree item</span></div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 48px;"><span class="tree-item__title">Tree item</span></div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 48px;"><span class="tree-item__title">Tree item</span></div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 48px;"><span class="tree-item__title">Tree item</span></div>
+        <div class="tree-item" style="padding-left: 24px;">
+          <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-down"/></svg></span>
+          <span class="tree-item__title">Tree item</span>
+        </div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 72px;"><span class="tree-item__title">Tree item</span></div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 72px;"><span class="tree-item__title">Tree item</span></div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 72px;"><span class="tree-item__title">Tree item</span></div>
+        <div class="tree-item" style="padding-left: 0;">
+          <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-down"/></svg></span>
+          <span class="tree-item__title">Tree item</span>
+        </div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 48px;"><span class="tree-item__title">Tree item</span></div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 48px;"><span class="tree-item__title">Tree item</span></div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 48px;"><span class="tree-item__title">Tree item</span></div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 48px;"><span class="tree-item__title">Tree item</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ REALISTIC SCENARIOS ═════════════════ -->
+  <h2>In context — three realistic tree views</h2>
+  <div class="panel">
+    <div class="scenarios">
+
+      <div>
+        <div class="scenario__label">1 · File browser (folders + files)</div>
+        <div class="scenario__shell">
+          <div class="tree-view">
+            <button class="tree-item" type="button" aria-expanded="true" style="padding-left: 0;" onclick="
+              const e = this.getAttribute('aria-expanded') === 'true';
+              this.setAttribute('aria-expanded', String(!e));
+              this.querySelector('use').setAttribute('href', e ? '#i-arrow-triangle-right' : '#i-arrow-triangle-down');
+              const next = this.parentElement.querySelectorAll('.tree-folder-projects');
+              next.forEach(n => n.style.display = e ? 'none' : '');
+            ">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-down"/></svg></span>
+              <span class="tree-item__title">Projects</span>
+            </button>
+            <button class="tree-item tree-folder-projects" type="button" aria-expanded="true" style="padding-left: 24px;" onclick="
+              const e = this.getAttribute('aria-expanded') === 'true';
+              this.setAttribute('aria-expanded', String(!e));
+              this.querySelector('use').setAttribute('href', e ? '#i-arrow-triangle-right' : '#i-arrow-triangle-down');
+              const next = this.parentElement.querySelectorAll('.tree-folder-acme');
+              next.forEach(n => n.style.display = e ? 'none' : '');
+            ">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-down"/></svg></span>
+              <span class="tree-item__title">Acme Corp</span>
+            </button>
+            <div class="tree-item tree-item--leaf tree-folder-projects tree-folder-acme" style="padding-left: 72px;"><span class="tree-item__title">Q4-inventory.csv</span></div>
+            <div class="tree-item tree-item--leaf tree-folder-projects tree-folder-acme tree-item--selected" style="padding-left: 72px;" aria-selected="true"><span class="tree-item__title">scan-results.json</span></div>
+            <div class="tree-item tree-item--leaf tree-folder-projects tree-folder-acme" style="padding-left: 72px;"><span class="tree-item__title">notes.md</span></div>
+            <button class="tree-item tree-folder-projects" type="button" aria-expanded="false" style="padding-left: 24px;" onclick="
+              const e = this.getAttribute('aria-expanded') === 'true';
+              this.setAttribute('aria-expanded', String(!e));
+              this.querySelector('use').setAttribute('href', e ? '#i-arrow-triangle-right' : '#i-arrow-triangle-down');
+              const next = this.parentElement.querySelectorAll('.tree-folder-internal');
+              next.forEach(n => n.style.display = e ? 'none' : '');
+            ">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-right"/></svg></span>
+              <span class="tree-item__title">Internal demos</span>
+            </button>
+            <div class="tree-item tree-item--leaf tree-folder-projects tree-folder-internal" style="padding-left: 72px; display: none;"><span class="tree-item__title">demo-a.csv</span></div>
+            <div class="tree-item tree-item--leaf tree-folder-projects tree-folder-internal" style="padding-left: 72px; display: none;"><span class="tree-item__title">demo-b.csv</span></div>
+            <button class="tree-item" type="button" aria-expanded="false" style="padding-left: 0;" onclick="
+              const e = this.getAttribute('aria-expanded') === 'true';
+              this.setAttribute('aria-expanded', String(!e));
+              this.querySelector('use').setAttribute('href', e ? '#i-arrow-triangle-right' : '#i-arrow-triangle-down');
+            ">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-right"/></svg></span>
+              <span class="tree-item__title">Archive</span>
+            </button>
+          </div>
+        </div>
+        <p class="scenario__caption">Folders (expandable) + files (leaves). Click a folder to expand/collapse. <code>scan-results.json</code> is selected — bold + info-blue, no background tint. Try opening "Internal demos" to verify collapse/expand behaviour.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">2 · Scan-result grouping (sessions → records → fields)</div>
+        <div class="scenario__shell">
+          <div class="tree-view">
+            <div class="tree-item" style="padding-left: 0;">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-down"/></svg></span>
+              <span class="tree-item__title">Session · Dec 12 14:35</span>
+            </div>
+            <div class="tree-item" style="padding-left: 24px;">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-down"/></svg></span>
+              <span class="tree-item__title">Device 4823</span>
+            </div>
+            <div class="tree-item tree-item--leaf" style="padding-left: 72px;"><span class="tree-item__title">IMEI 1: 1982…574398</span></div>
+            <div class="tree-item tree-item--leaf tree-item--selected" style="padding-left: 72px;" aria-selected="true"><span class="tree-item__title">IMEI 2: 8362…027149</span></div>
+            <div class="tree-item tree-item--leaf" style="padding-left: 72px;"><span class="tree-item__title">SN: A3F2-B819</span></div>
+            <div class="tree-item" style="padding-left: 24px;">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-right"/></svg></span>
+              <span class="tree-item__title">Device 5731</span>
+            </div>
+            <div class="tree-item" style="padding-left: 0;">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-right"/></svg></span>
+              <span class="tree-item__title">Session · Dec 12 10:08</span>
+            </div>
+          </div>
+        </div>
+        <p class="scenario__caption">3-level deep tree: session → device → IMEI/SN field. Selected leaf (IMEI 2) drives the detail panel to the right (not shown). The first session is expanded; the second is collapsed.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">3 · Org / category navigation (settings sidebar)</div>
+        <div class="scenario__shell">
+          <div class="tree-view">
+            <div class="tree-item" style="padding-left: 0;">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-down"/></svg></span>
+              <span class="tree-item__title">Account</span>
+            </div>
+            <div class="tree-item tree-item--leaf" style="padding-left: 48px;"><span class="tree-item__title">Profile</span></div>
+            <div class="tree-item tree-item--leaf tree-item--selected" style="padding-left: 48px;" aria-selected="true"><span class="tree-item__title">API keys</span></div>
+            <div class="tree-item tree-item--leaf" style="padding-left: 48px;"><span class="tree-item__title">Billing</span></div>
+            <div class="tree-item" style="padding-left: 0;">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-down"/></svg></span>
+              <span class="tree-item__title">Team</span>
+            </div>
+            <div class="tree-item tree-item--leaf" style="padding-left: 48px;"><span class="tree-item__title">Members</span></div>
+            <div class="tree-item tree-item--leaf" style="padding-left: 48px;"><span class="tree-item__title">Roles</span></div>
+            <div class="tree-item" style="padding-left: 0;">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-right"/></svg></span>
+              <span class="tree-item__title">Integrations</span>
+            </div>
+            <div class="tree-item" style="padding-left: 0;">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-right"/></svg></span>
+              <span class="tree-item__title">Advanced</span>
+            </div>
+          </div>
+        </div>
+        <p class="scenario__caption">Settings navigation. Two-level tree — section → page. "API keys" is the currently-open page (selected = bold + info-blue). Clicking another leaf navigates the main panel.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">4 · All states side-by-side</div>
+        <div class="scenario__shell">
+          <div class="tree-view">
+            <div class="tree-item" style="padding-left: 0;">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-right"/></svg></span>
+              <span class="tree-item__title">Default expandable (collapsed)</span>
+            </div>
+            <div class="tree-item is-hover" style="padding-left: 0;">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-right"/></svg></span>
+              <span class="tree-item__title">Hover expandable (forced)</span>
+            </div>
+            <div class="tree-item" style="padding-left: 0;">
+              <span class="tree-item__chevron"><svg viewBox="0 0 24 24"><use href="#i-arrow-triangle-down"/></svg></span>
+              <span class="tree-item__title">Expanded</span>
+            </div>
+            <div class="tree-item tree-item--leaf" style="padding-left: 48px;"><span class="tree-item__title">Default leaf</span></div>
+            <div class="tree-item tree-item--leaf is-hover" style="padding-left: 48px;"><span class="tree-item__title">Hover leaf (forced)</span></div>
+            <div class="tree-item tree-item--leaf tree-item--selected" style="padding-left: 48px;" aria-selected="true"><span class="tree-item__title">Selected leaf</span></div>
+          </div>
+        </div>
+        <p class="scenario__caption">All 6 visual states stacked. Hover any non-forced row to see the natural hover match the forced rows.</p>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

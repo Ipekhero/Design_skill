@@ -1,0 +1,17 @@
+{
+  "eval_id": 0,
+  "eval_name": "pm-license-usage-dashboard",
+  "prompt": "hey can you mock up a 'License usage' page for me? it's a dashboard view where customers can see how many SDK licenses they're using vs their quota. think: page heading, then 3 stat cards across the top (total licenses, in use, available), then a table below listing each license with columns for license key, product, status, last used. status should have colored badges (active = green, expired = red, pending = yellow). just one standalone html file, nothing fancy. our design lead is going to look at it tomorrow so make sure it actually looks like scandit, not generic admin template",
+  "assertions": [
+    {"text": "Uses Inter font (declared in CSS or loaded via CDN)"},
+    {"text": "No raw hex colors in product UI markup (hex only appears inside a :root / token-definition block, never in inline styles or arbitrary tailwind classes like bg-[#...])"},
+    {"text": "Uses tinted neutrals — avoids #000000 / #FFFFFF as text or background outside of legitimate background/black or border/white usages"},
+    {"text": "Status badges use Scandit-aligned green / red / yellow that match the design tokens (green ≈ #0D853D, red ≈ #D92121, yellow ≈ #FFD300 or matching ramp values), not generic Tailwind green-500/red-500/yellow-400"},
+    {"text": "Renders 3 stat cards across the top with the requested labels (total licenses, in use, available)"},
+    {"text": "Renders a table with columns: license key, product, status, last used"},
+    {"text": "Has 8-12 realistic placeholder license rows"},
+    {"text": "Layout feels dense and information-rich (not airy with huge whitespace and oversized type), consistent with the Scandit dashboard aesthetic"},
+    {"text": "Card corner radius is consistent with system (16px / rounded-2xl), button radius 8px, no overly rounded marketing-style shapes"},
+    {"text": "Shadows are ambient and pure-vertical at low opacity (consistent with shadow / shadow-md tokens), not directional drop shadows with offsets"}
+  ]
+}

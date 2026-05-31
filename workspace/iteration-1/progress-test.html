@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Progress test — linear (7 sample values) + circular (determinate + stop + indeterminate)</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ───── Scandit semantic tokens — verbatim from references/design.md ───── */
+    :root {
+      --color-surface-default:          #FFFFFF;
+      --color-surface-disabled:         #E1E7ED;
+      --color-surface-neutral-subdued:  #C7CFD6;
+      --color-surface-success-full:     #0D853D;
+      --color-icon-primary:             #16191C;
+      --color-text-primary:             #16191C;
+      --color-text-secondary:           #525A61;
+      --color-border-tertiary:          #E1E7ED;
+
+      --size-cornerradius-2xs:   1px;
+      --size-cornerradius-round: 999px;
+      --size-comp-height-s:      16px;
+      --size-comp-height-2xs:    8px;
+      --spacing-padding-s:       8px;
+
+      --color-background-secondary-page: #F7F7F7;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 32px; max-width: 800px; line-height: 1.5; }
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+      text-transform: none; letter-spacing: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+    .panel {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 20px 24px 24px;
+      margin-bottom: 16px;
+    }
+
+    .row-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 0 0 8px;
+    }
+    .stack { display: flex; flex-direction: column; gap: 16px; }
+    .scenarios { display: grid; grid-template-columns: repeat(2, minmax(0, 440px)); gap: 32px 40px; align-items: start; }
+    .scenario__label {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 0 0 12px;
+    }
+    .scenario__shell {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+    .scenario__caption {
+      font-size: 12px; color: var(--color-text-secondary);
+      margin: 10px 0 0; line-height: 1.5;
+    }
+
+    /* ═══════════════════════ LINEAR ═══════════════════════ */
+    .progress-linear {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-padding-s);
+      height: var(--size-comp-height-s);
+    }
+    .progress-linear__track {
+      flex: 1 1 0;
+      min-width: 0;
+      height: var(--size-comp-height-2xs);
+      background: var(--color-surface-disabled);
+      border-radius: var(--size-cornerradius-round);
+      overflow: hidden;
+    }
+    .progress-linear__fill {
+      height: 100%;
+      background: var(--color-surface-success-full);
+      border-radius: var(--size-cornerradius-round);
+      transition: width 200ms;
+    }
+    .progress-linear__label {
+      width: 44px;
+      text-align: right;
+      font-size: 14px;
+      line-height: 20px;
+      letter-spacing: 0.25px;
+      color: var(--color-text-primary);
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    /* ═══════════════════════ CIRCULAR ═══════════════════════ */
+    .progress-circular {
+      position: relative;
+      width: 24px;
+      height: 24px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .progress-circular__svg { width: 24px; height: 24px; display: block; }
+    .progress-circular__track {
+      fill: none;
+      stroke: var(--color-surface-neutral-subdued);
+      stroke-width: 2;
+    }
+    .progress-circular__arc {
+      fill: none;
+      stroke: var(--color-icon-primary);
+      stroke-width: 2;
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      transition: stroke-dashoffset 200ms;
+    }
+    .progress-circular--indeterminate .progress-circular__arc {
+      animation: progress-spin 1.4s linear infinite;
+    }
+    @keyframes progress-spin {
+      0%   { transform: rotate(-90deg); }
+      100% { transform: rotate(270deg); }
+    }
+    .progress-circular__stop {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      transform: translate(-50%, -50%);
+      background: var(--color-icon-primary);
+      border-radius: var(--size-cornerradius-2xs);
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    /* ─── matrix grid for circular states ─── */
+    .circular-matrix {
+      display: grid;
+      grid-template-columns: repeat(6, 96px);
+      gap: 24px 32px;
+      align-items: center;
+      justify-items: center;
+      padding: 8px 0;
+    }
+    .circular-matrix__cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .circular-matrix__caption {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      text-align: center;
+    }
+
+    .row-with-spinner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--color-background-secondary-page);
+    }
+    .row-with-spinner__text {
+      flex: 1;
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--color-text-primary);
+    }
+    .row-with-spinner__sub {
+      font-size: 12px;
+      line-height: 16px;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Progress — linear + circular</h1>
+  <p class="lead">
+    Two variants doing different jobs. <strong>Linear</strong> = "how much of a known total is done" (green, determinate).
+    <strong>Circular</strong> = "something is happening" (dark, determinate or indeterminate, optionally stoppable).
+    The colour split is intentional — green for "value accumulating", dark for "task in progress, neutral status."
+  </p>
+
+  <!-- ═════════════════ LINEAR — sample values ═════════════════ -->
+  <h2>Linear · 7 sample values (matching Figma)</h2>
+  <div class="panel">
+    <div class="stack" style="max-width: 700px;">
+
+      <div class="progress-linear" role="progressbar" aria-valuenow="12" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-linear__track"><div class="progress-linear__fill" style="width: 12%;"></div></div>
+        <span class="progress-linear__label">12 %</span>
+      </div>
+
+      <div class="progress-linear" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-linear__track"><div class="progress-linear__fill" style="width: 25%;"></div></div>
+        <span class="progress-linear__label">25 %</span>
+      </div>
+
+      <div class="progress-linear" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-linear__track"><div class="progress-linear__fill" style="width: 40%;"></div></div>
+        <span class="progress-linear__label">40 %</span>
+      </div>
+
+      <div class="progress-linear" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-linear__track"><div class="progress-linear__fill" style="width: 50%;"></div></div>
+        <span class="progress-linear__label">50 %</span>
+      </div>
+
+      <div class="progress-linear" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-linear__track"><div class="progress-linear__fill" style="width: 75%;"></div></div>
+        <span class="progress-linear__label">75 %</span>
+      </div>
+
+      <div class="progress-linear" role="progressbar" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-linear__track"><div class="progress-linear__fill" style="width: 85%;"></div></div>
+        <span class="progress-linear__label">85 %</span>
+      </div>
+
+      <div class="progress-linear" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-linear__track"><div class="progress-linear__fill" style="width: 100%;"></div></div>
+        <span class="progress-linear__label">100 %</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════════════════ LINEAR — showValue=false ═════════════════ -->
+  <h2>Linear · without value label (showValue=false)</h2>
+  <div class="panel">
+    <div class="stack" style="max-width: 700px;">
+      <div class="progress-linear">
+        <div class="progress-linear__track"><div class="progress-linear__fill" style="width: 35%;"></div></div>
+      </div>
+      <div class="progress-linear">
+        <div class="progress-linear__track"><div class="progress-linear__fill" style="width: 70%;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ CIRCULAR ═════════════════ -->
+  <h2>Circular · 5 states (matching Figma)</h2>
+  <div class="panel">
+    <div class="circular-matrix">
+
+      <div class="circular-matrix__cell">
+        <div class="progress-circular" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+          <svg class="progress-circular__svg" viewBox="0 0 24 24">
+            <circle class="progress-circular__track" cx="12" cy="12" r="9"/>
+            <circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="42.41"/>
+          </svg>
+        </div>
+        <span class="circular-matrix__caption">25%</span>
+      </div>
+
+      <div class="circular-matrix__cell">
+        <div class="progress-circular" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+          <svg class="progress-circular__svg" viewBox="0 0 24 24">
+            <circle class="progress-circular__track" cx="12" cy="12" r="9"/>
+            <circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="42.41"/>
+          </svg>
+          <button class="progress-circular__stop" aria-label="Stop"></button>
+        </div>
+        <span class="circular-matrix__caption">25% · stop</span>
+      </div>
+
+      <div class="circular-matrix__cell">
+        <div class="progress-circular" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+          <svg class="progress-circular__svg" viewBox="0 0 24 24">
+            <circle class="progress-circular__track" cx="12" cy="12" r="9"/>
+            <circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="14.14"/>
+          </svg>
+        </div>
+        <span class="circular-matrix__caption">75%</span>
+      </div>
+
+      <div class="circular-matrix__cell">
+        <div class="progress-circular" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+          <svg class="progress-circular__svg" viewBox="0 0 24 24">
+            <circle class="progress-circular__track" cx="12" cy="12" r="9"/>
+            <circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="14.14"/>
+          </svg>
+          <button class="progress-circular__stop" aria-label="Stop"></button>
+        </div>
+        <span class="circular-matrix__caption">75% · stop</span>
+      </div>
+
+      <div class="circular-matrix__cell">
+        <div class="progress-circular" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+          <svg class="progress-circular__svg" viewBox="0 0 24 24">
+            <circle class="progress-circular__track" cx="12" cy="12" r="9"/>
+            <circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="0"/>
+          </svg>
+        </div>
+        <span class="circular-matrix__caption">100%</span>
+      </div>
+
+      <div class="circular-matrix__cell">
+        <div class="progress-circular progress-circular--indeterminate" role="progressbar" aria-label="Loading">
+          <svg class="progress-circular__svg" viewBox="0 0 24 24">
+            <circle class="progress-circular__track" cx="12" cy="12" r="9"/>
+            <circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="42.41"/>
+          </svg>
+        </div>
+        <span class="circular-matrix__caption">indeterminate</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════════════════ Determinate sweep (extra) ═════════════════ -->
+  <h2>Circular · determinate sweep (0–100% in 12.5% steps)</h2>
+  <div class="panel">
+    <div class="circular-matrix" style="grid-template-columns: repeat(9, 64px); gap: 16px 24px;">
+      <!-- 0, 12.5, 25, 37.5, 50, 62.5, 75, 87.5, 100 -->
+      <div class="circular-matrix__cell"><div class="progress-circular"><svg class="progress-circular__svg" viewBox="0 0 24 24"><circle class="progress-circular__track" cx="12" cy="12" r="9"/><circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="56.55"/></svg></div><span class="circular-matrix__caption">0%</span></div>
+      <div class="circular-matrix__cell"><div class="progress-circular"><svg class="progress-circular__svg" viewBox="0 0 24 24"><circle class="progress-circular__track" cx="12" cy="12" r="9"/><circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="49.48"/></svg></div><span class="circular-matrix__caption">12.5%</span></div>
+      <div class="circular-matrix__cell"><div class="progress-circular"><svg class="progress-circular__svg" viewBox="0 0 24 24"><circle class="progress-circular__track" cx="12" cy="12" r="9"/><circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="42.41"/></svg></div><span class="circular-matrix__caption">25%</span></div>
+      <div class="circular-matrix__cell"><div class="progress-circular"><svg class="progress-circular__svg" viewBox="0 0 24 24"><circle class="progress-circular__track" cx="12" cy="12" r="9"/><circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="35.34"/></svg></div><span class="circular-matrix__caption">37.5%</span></div>
+      <div class="circular-matrix__cell"><div class="progress-circular"><svg class="progress-circular__svg" viewBox="0 0 24 24"><circle class="progress-circular__track" cx="12" cy="12" r="9"/><circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="28.27"/></svg></div><span class="circular-matrix__caption">50%</span></div>
+      <div class="circular-matrix__cell"><div class="progress-circular"><svg class="progress-circular__svg" viewBox="0 0 24 24"><circle class="progress-circular__track" cx="12" cy="12" r="9"/><circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="21.21"/></svg></div><span class="circular-matrix__caption">62.5%</span></div>
+      <div class="circular-matrix__cell"><div class="progress-circular"><svg class="progress-circular__svg" viewBox="0 0 24 24"><circle class="progress-circular__track" cx="12" cy="12" r="9"/><circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="14.14"/></svg></div><span class="circular-matrix__caption">75%</span></div>
+      <div class="circular-matrix__cell"><div class="progress-circular"><svg class="progress-circular__svg" viewBox="0 0 24 24"><circle class="progress-circular__track" cx="12" cy="12" r="9"/><circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="7.07"/></svg></div><span class="circular-matrix__caption">87.5%</span></div>
+      <div class="circular-matrix__cell"><div class="progress-circular"><svg class="progress-circular__svg" viewBox="0 0 24 24"><circle class="progress-circular__track" cx="12" cy="12" r="9"/><circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="0"/></svg></div><span class="circular-matrix__caption">100%</span></div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ In context ═════════════════ -->
+  <h2>In context — realistic usage</h2>
+  <div class="panel">
+    <div class="scenarios">
+
+      <div>
+        <div class="scenario__label">1 · File upload (linear, determinate)</div>
+        <div class="scenario__shell">
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;font-size:14px;line-height:20px;">
+              <span>Uploading <strong>Q4-inventory.csv</strong></span>
+              <span style="color:var(--color-text-secondary);">2.3 of 3.7 MB</span>
+            </div>
+            <div class="progress-linear">
+              <div class="progress-linear__track"><div class="progress-linear__fill" style="width: 62%;"></div></div>
+              <span class="progress-linear__label">62 %</span>
+            </div>
+          </div>
+        </div>
+        <p class="scenario__caption">Linear bar pinned with a contextual line above. Tabular numerals + animated fill ramp keep the bar honest as bytes stream in.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">2 · Multi-step onboarding (linear, 3 of 5 steps)</div>
+        <div class="scenario__shell">
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;font-size:14px;line-height:20px;">
+              <span>Set up your first scanner</span>
+              <span style="color:var(--color-text-secondary);">Step 3 of 5</span>
+            </div>
+            <div class="progress-linear">
+              <div class="progress-linear__track"><div class="progress-linear__fill" style="width: 60%;"></div></div>
+              <span class="progress-linear__label">60 %</span>
+            </div>
+            <p style="font-size:12px;line-height:16px;color:var(--color-text-secondary);margin:0;">Almost there — configure your symbology list next.</p>
+          </div>
+        </div>
+        <p class="scenario__caption">Linear bar in a multi-step wizard. Bar width = (current_step / total_steps) × 100. Step label sits inline above the bar.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">3 · Background sync (circular, indeterminate)</div>
+        <div class="scenario__shell">
+          <div class="row-with-spinner">
+            <div class="progress-circular progress-circular--indeterminate" aria-label="Syncing">
+              <svg class="progress-circular__svg" viewBox="0 0 24 24">
+                <circle class="progress-circular__track" cx="12" cy="12" r="9"/>
+                <circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="42.41"/>
+              </svg>
+            </div>
+            <div class="row-with-spinner__text">
+              Syncing with Scandit Cloud
+              <div class="row-with-spinner__sub">Last synced 3 minutes ago</div>
+            </div>
+          </div>
+        </div>
+        <p class="scenario__caption">Indeterminate spinner sits inline with the status text. Used when the system knows "something is happening" but not how long it'll take.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">4 · Cancellable processing job (circular, determinate + stop)</div>
+        <div class="scenario__shell">
+          <div class="row-with-spinner">
+            <div class="progress-circular" role="progressbar" aria-valuenow="68" aria-valuemin="0" aria-valuemax="100">
+              <svg class="progress-circular__svg" viewBox="0 0 24 24">
+                <circle class="progress-circular__track" cx="12" cy="12" r="9"/>
+                <circle class="progress-circular__arc" cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="18.10"/>
+              </svg>
+              <button class="progress-circular__stop" aria-label="Stop processing"></button>
+            </div>
+            <div class="row-with-spinner__text">
+              Reprocessing 4&nbsp;823 records
+              <div class="row-with-spinner__sub">Tap the square to cancel · 68% complete</div>
+            </div>
+          </div>
+        </div>
+        <p class="scenario__caption">Circular determinate + stop button. The 6×6 dark square inside the ring is the affordance to cancel the in-flight task. Note: the 24×24 ring is the real hit target (the button absolutely positions over the entire SVG).</p>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dialog test — anatomy + header variations + content compositions</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ───── Scandit semantic tokens — from references/design.md ───── */
+    :root {
+      --color-surface-default:             #FFFFFF;
+      --color-border-secondary:            #C7CFD6;
+      --color-border-tertiary:             #E1E7ED;
+      --color-text-primary:                #16191C;
+      --color-text-secondary:              #525A61;
+      --color-icon-primary:                #16191C;
+      --color-icon-secondary:              #6C7680;
+      --color-icon-disabled:               #ACB6BF;
+      --color-text-disabled:               #ACB6BF;
+      --color-surface-hover:               #F3F5F8;
+      --color-surface-pressed:             #E1E7ED;
+
+      /* Primary action surface — BLUE per design.md (NOT Figma's near-black) */
+      --color-surface-interactive:         #1047A1;
+      --color-surface-interactive-hover:   #1660D9;
+      --color-surface-interactive-pressed: #063073;
+      --color-text-inverted:               #FFFFFF;
+      --color-icon-on-color:               #FFFFFF;
+
+      /* Background scrim behind the dialog */
+      --color-background-overlay-dark:     rgba(0, 0, 0, 0.40);
+
+      /* Dialog-specific directional shadow (Figma Elevation/3) —
+         explicit exception to design.md's pure-vertical rule */
+      --shadow-dialog: 0 1px 3px 0 rgba(0, 0, 0, 0.20), 0 4px 8px 3px rgba(0, 0, 0, 0.15);
+
+      /* Page chrome (page is OUTSIDE the modal — uses tinted neutrals) */
+      --color-background-secondary-page:   #F7F7F7;
+      --color-text-secondary-page:         #525A61;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary-page); font-size: 14px; margin: 0 0 32px; max-width: 800px; line-height: 1.5; }
+
+    h2 {
+      font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary-page);
+      margin: 32px 0 12px;
+    }
+
+    /* Faux-scrim — gives every dialog example a dimmed backdrop without using fixed positioning */
+    .scrim {
+      background: var(--color-background-overlay-dark);
+      padding: 56px 32px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ═══════════════════════ DIALOG ═══════════════════════ */
+    .dialog {
+      width: 676px;                                 /* spacing/dialog */
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-secondary);
+      border-radius: 16px;                          /* size/cornerRadius/xl */
+      padding: 24px;                                /* spacing/padding/xl */
+      display: flex; flex-direction: column; align-items: center;
+      gap: 16px;                                    /* spacing/stack/l */
+      box-shadow: var(--shadow-dialog);             /* Dialog-specific directional shadow */
+      font-family: inherit;
+      color: var(--color-text-primary);
+    }
+
+    .dialog__header {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%;
+    }
+    .dialog__title-wrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .dialog__title {
+      font-size: 20px; font-weight: 600; line-height: 1.0;   /* heading/medium */
+      letter-spacing: 0;                                     /* explicit reset (page h2 sets 0.08em) */
+      text-transform: none;                                  /* explicit reset (page h2 uppercases) */
+      text-align: center;
+      color: var(--color-text-primary);
+      margin: 0;
+    }
+    /* Two-line title (per the Figma frame's "Title that has 2 lines of text" example) */
+    .dialog__title--narrow { width: 160px; }
+
+    /* Icon buttons in the header — 24×24 visible icon, 32×32 hit-area with subtle hover fill.
+       Hover treatment is NOT in Figma's dialog frame; it's a recommended standard UX affordance
+       so the user can see the close target is interactive. */
+    .dialog__icon-btn {
+      width: 32px; height: 32px; flex-shrink: 0;
+      display: inline-grid; place-items: center;
+      background: transparent; border: 0; padding: 0;
+      color: var(--color-icon-primary);
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 120ms;
+    }
+    .dialog__icon-btn--secondary { color: var(--color-icon-secondary); }
+    .dialog__icon-btn:not([disabled]):not(.is-disabled):hover   { background: var(--color-surface-hover); }
+    .dialog__icon-btn:not([disabled]):not(.is-disabled):active  { background: var(--color-surface-pressed); }
+    .dialog__icon-btn:focus-visible { outline: 2px solid var(--color-surface-interactive); outline-offset: 2px; }
+    /* Invisible spacer so the title stays centered when the leading slot is empty */
+    .dialog__spacer { width: 24px; height: 24px; flex-shrink: 0; }
+
+    .dialog__slot {
+      flex: 1; width: 100%;
+      display: flex; flex-direction: column;
+      color: var(--color-text-primary);
+      font-size: 14px; line-height: 20px; letter-spacing: 0.25px;
+    }
+
+    /* Realistic content elements used inside the slots */
+    .slot-body { padding: 16px 0; color: var(--color-text-secondary); font-size: 14px; line-height: 20px; letter-spacing: 0.25px; }
+    .slot-body p { margin: 0 0 12px; }
+    .slot-body p:last-child { margin-bottom: 0; }
+    .slot-divider { height: 1px; background: var(--color-border-tertiary); margin: 8px 0; }
+    .slot-license {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px;
+      background: var(--color-background-secondary-page);
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+      font-size: 14px;
+      color: var(--color-text-primary);
+      letter-spacing: 0.02em;
+      word-break: break-all;
+    }
+
+    .form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .form-field label { font-size: 14px; font-weight: 500; letter-spacing: 0.25px; }
+    .form-field input, .form-field select {
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--color-border-secondary);
+      border-radius: 4px;
+      font: inherit; font-size: 14px;
+      color: var(--color-text-primary);
+      background: var(--color-surface-default);
+    }
+    .form-field input:focus, .form-field select:focus {
+      outline: none; border-color: var(--color-surface-interactive);
+      box-shadow: 0 0 0 3px rgba(16, 71, 161, 0.12);
+    }
+
+    .actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 8px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 40px; padding: 0 24px; border-radius: 8px;
+      font-family: inherit; font-size: 16px; font-weight: 500; letter-spacing: 0.25px;
+      border: 0; cursor: pointer;
+      transition: background-color 120ms;
+    }
+    .btn--primary { background: var(--color-surface-interactive); color: var(--color-text-inverted); }
+    .btn--primary:hover  { background: var(--color-surface-interactive-hover); }
+    .btn--primary:active { background: var(--color-surface-interactive-pressed); }
+    .btn--secondary {
+      background: var(--color-surface-default); color: var(--color-text-primary);
+      border: 1px solid #525A61;
+    }
+    .btn--secondary:hover  { background: var(--color-surface-hover); }
+    .btn--secondary:active { background: var(--color-surface-pressed); }
+
+    /* Tiny "copied!" tag for the license-key example */
+    .copy-status {
+      font-size: 12px; color: var(--color-text-secondary);
+      margin-left: 8px;
+    }
+
+    /* ───── Closing animation — the `closing` state from design.md ─────
+       Not drawn in Figma but documented as a real animation state.
+       Fade opacity + slight translateY down, 180ms ease-out. The scrim
+       fades concurrently. */
+    .scrim {
+      transition: background-color 180ms ease-out;
+    }
+    .scrim.is-closing { background: rgba(0, 0, 0, 0); }
+
+    @keyframes dialog-closing {
+      from { opacity: 1; transform: translateY(0); }
+      to   { opacity: 0; transform: translateY(8px); }
+    }
+    .dialog.is-closing {
+      animation: dialog-closing 180ms ease-out forwards;
+    }
+
+    @keyframes dialog-opening {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .dialog.is-opening {
+      animation: dialog-opening 220ms ease-out backwards;
+    }
+
+    /* Demo helper — caption above the closing-animation example */
+    .demo-caption {
+      color: var(--color-text-secondary-page);
+      font-size: 13px;
+      margin: -8px 0 8px;
+    }
+
+    /* Annotation tag for the anatomy section */
+    .annot {
+      display: inline-flex; align-items: center;
+      padding: 3px 8px; border-radius: 4px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      color: var(--color-text-secondary-page);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dialog — single variant · header variations · content compositions</h1>
+  <p class="lead">
+    The Dialog has only one variant (<code>default</code>) and one rendered state (<code>open</code>).
+    Width fixed at 676px, height content-driven. Each example below sits on a faux scrim
+    (<code>background/overlay dark</code>) to mimic the real modal context.
+    The shadow is the <strong>directional 2-layer Figma Elevation/3</strong> — explicit exception
+    to design.md's "shadows are pure-vertical" rule. All SVG icons are inlined byte-for-byte
+    from <code>assets/icons/</code>.
+  </p>
+
+  <!-- ═════════════════ HEADER VARIATIONS ═════════════════ -->
+  <h2>1 · Header variations</h2>
+
+  <!-- All 3: back · title + copy · close -->
+  <div class="scrim">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-1">
+      <div class="dialog__header">
+        <button class="dialog__icon-btn" type="button" aria-label="Back">
+          <!-- assets/icons/chevron-left.svg -->
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
+            <path d="M10.8 12L14.7 15.9C14.8833 16.0833 14.975 16.3167 14.975 16.6C14.975 16.8833 14.8833 17.1167 14.7 17.3C14.5167 17.4833 14.2833 17.575 14 17.575C13.7167 17.575 13.4833 17.4833 13.3 17.3L8.7 12.7C8.6 12.6 8.52917 12.4917 8.4875 12.375C8.44583 12.2583 8.425 12.1333 8.425 12C8.425 11.8667 8.44583 11.7417 8.4875 11.625C8.52917 11.5083 8.6 11.4 8.7 11.3L13.3 6.7C13.4833 6.51667 13.7167 6.425 14 6.425C14.2833 6.425 14.5167 6.51667 14.7 6.7C14.8833 6.88333 14.975 7.11667 14.975 7.4C14.975 7.68333 14.8833 7.91667 14.7 8.1L10.8 12Z"/>
+          </svg>
+        </button>
+        <div class="dialog__title-wrap">
+          <h2 id="dlg-1" class="dialog__title dialog__title--narrow">Title that has 2 lines of text</h2>
+          <button class="dialog__icon-btn dialog__icon-btn--secondary" type="button" aria-label="Copy title">
+            <!-- assets/icons/content-copy.svg — note 17×20 native viewBox; scaled into a 24×24 button -->
+            <svg viewBox="0 0 17 20" fill="currentColor" width="20" height="22" aria-hidden="true">
+              <path d="M6 16C5.45 16 4.97917 15.8042 4.5875 15.4125C4.19583 15.0208 4 14.55 4 14V2C4 1.45 4.19583 0.979167 4.5875 0.5875C4.97917 0.195833 5.45 0 6 0H15C15.55 0 16.0208 0.195833 16.4125 0.5875C16.8042 0.979167 17 1.45 17 2V14C17 14.55 16.8042 15.0208 16.4125 15.4125C16.0208 15.8042 15.55 16 15 16H6ZM6 14H15V2H6V14ZM2 20C1.45 20 0.979167 19.8042 0.5875 19.4125C0.195833 19.0208 0 18.55 0 18V5C0 4.71667 0.0958333 4.47917 0.2875 4.2875C0.479167 4.09583 0.716667 4 1 4C1.28333 4 1.52083 4.09583 1.7125 4.2875C1.90417 4.47917 2 4.71667 2 5V18H12C12.2833 18 12.5208 18.0958 12.7125 18.2875C12.9042 18.4792 13 18.7167 13 19C13 19.2833 12.9042 19.5208 12.7125 19.7125C12.5208 19.9042 12.2833 20 12 20H2Z"/>
+            </svg>
+          </button>
+        </div>
+        <button class="dialog__icon-btn" type="button" aria-label="Close">
+          <!-- assets/icons/close.svg -->
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
+            <path d="M12 13.4L7.1 18.3C6.91667 18.4833 6.68333 18.575 6.4 18.575C6.11667 18.575 5.88333 18.4833 5.7 18.3C5.51667 18.1167 5.425 17.8833 5.425 17.6C5.425 17.3167 5.51667 17.0833 5.7 16.9L10.6 12L5.7 7.1C5.51667 6.91667 5.425 6.68333 5.425 6.4C5.425 6.11667 5.51667 5.88333 5.7 5.7C5.88333 5.51667 6.11667 5.425 6.4 5.425C6.68333 5.425 6.91667 5.51667 7.1 5.7L12 10.6L16.9 5.7C17.0833 5.51667 17.3167 5.425 17.6 5.425C17.8833 5.425 18.1167 5.51667 18.3 5.7C18.4833 5.88333 18.575 6.11667 18.575 6.4C18.575 6.68333 18.4833 6.91667 18.3 7.1L13.4 12L18.3 16.9C18.4833 17.0833 18.575 17.3167 18.575 17.6C18.575 17.8833 18.4833 18.1167 18.3 18.3C18.1167 18.4833 17.8833 18.575 17.6 18.575C17.3167 18.575 17.0833 18.4833 16.9 18.3L12 13.4Z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="dialog__slot">
+        <div class="slot-body">
+          <p>All three header slots present — leading back, centered title with optional inline copy, trailing close. Title wraps to two lines per the Figma "narrow" 160px width.</p>
+          <p style="color: var(--color-text-secondary)">Mirrors Figma node 8705:1226 directly.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No back, no copy — minimal title + close -->
+  <div class="scrim">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-2">
+      <div class="dialog__header">
+        <span class="dialog__spacer" aria-hidden="true"></span>
+        <div class="dialog__title-wrap">
+          <h2 id="dlg-2" class="dialog__title">Confirm deletion</h2>
+        </div>
+        <button class="dialog__icon-btn" type="button" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
+            <path d="M12 13.4L7.1 18.3C6.91667 18.4833 6.68333 18.575 6.4 18.575C6.11667 18.575 5.88333 18.4833 5.7 18.3C5.51667 18.1167 5.425 17.8833 5.425 17.6C5.425 17.3167 5.51667 17.0833 5.7 16.9L10.6 12L5.7 7.1C5.51667 6.91667 5.425 6.68333 5.425 6.4C5.425 6.11667 5.51667 5.88333 5.7 5.7C5.88333 5.51667 6.11667 5.425 6.4 5.425C6.68333 5.425 6.91667 5.51667 7.1 5.7L12 10.6L16.9 5.7C17.0833 5.51667 17.3167 5.425 17.6 5.425C17.8833 5.425 18.1167 5.51667 18.3 5.7C18.4833 5.88333 18.575 6.11667 18.575 6.4C18.575 6.68333 18.4833 6.91667 18.3 7.1L13.4 12L18.3 16.9C18.4833 17.0833 18.575 17.3167 18.575 17.6C18.575 17.8833 18.4833 18.1167 18.3 18.3C18.1167 18.4833 17.8833 18.575 17.6 18.575C17.3167 18.575 17.0833 18.4833 16.9 18.3L12 13.4Z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="dialog__slot">
+        <div class="slot-body">
+          <p>No back-navigation, no copy affordance. The leading slot gets an invisible 24×24 spacer to keep the title centered. Single-line title with <code>lineHeight: 1.0</code>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ CONTENT COMPOSITIONS ═════════════════ -->
+  <h2>2 · Content compositions</h2>
+
+  <!-- License key dialog — content_copy on title makes sense here -->
+  <div class="scrim">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-3">
+      <div class="dialog__header">
+        <span class="dialog__spacer" aria-hidden="true"></span>
+        <div class="dialog__title-wrap">
+          <h2 id="dlg-3" class="dialog__title">License key</h2>
+          <button class="dialog__icon-btn dialog__icon-btn--secondary" type="button" aria-label="Copy license key">
+            <svg viewBox="0 0 17 20" fill="currentColor" width="20" height="22" aria-hidden="true">
+              <path d="M6 16C5.45 16 4.97917 15.8042 4.5875 15.4125C4.19583 15.0208 4 14.55 4 14V2C4 1.45 4.19583 0.979167 4.5875 0.5875C4.97917 0.195833 5.45 0 6 0H15C15.55 0 16.0208 0.195833 16.4125 0.5875C16.8042 0.979167 17 1.45 17 2V14C17 14.55 16.8042 15.0208 16.4125 15.4125C16.0208 15.8042 15.55 16 15 16H6ZM6 14H15V2H6V14ZM2 20C1.45 20 0.979167 19.8042 0.5875 19.4125C0.195833 19.0208 0 18.55 0 18V5C0 4.71667 0.0958333 4.47917 0.2875 4.2875C0.479167 4.09583 0.716667 4 1 4C1.28333 4 1.52083 4.09583 1.7125 4.2875C1.90417 4.47917 2 4.71667 2 5V18H12C12.2833 18 12.5208 18.0958 12.7125 18.2875C12.9042 18.4792 13 18.7167 13 19C13 19.2833 12.9042 19.5208 12.7125 19.7125C12.5208 19.9042 12.2833 20 12 20H2Z"/>
+            </svg>
+          </button>
+        </div>
+        <button class="dialog__icon-btn" type="button" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
+            <path d="M12 13.4L7.1 18.3C6.91667 18.4833 6.68333 18.575 6.4 18.575C6.11667 18.575 5.88333 18.4833 5.7 18.3C5.51667 18.1167 5.425 17.8833 5.425 17.6C5.425 17.3167 5.51667 17.0833 5.7 16.9L10.6 12L5.7 7.1C5.51667 6.91667 5.425 6.68333 5.425 6.4C5.425 6.11667 5.51667 5.88333 5.7 5.7C5.88333 5.51667 6.11667 5.425 6.4 5.425C6.68333 5.425 6.91667 5.51667 7.1 5.7L12 10.6L16.9 5.7C17.0833 5.51667 17.3167 5.425 17.6 5.425C17.8833 5.425 18.1167 5.51667 18.3 5.7C18.4833 5.88333 18.575 6.11667 18.575 6.4C18.575 6.68333 18.4833 6.91667 18.3 7.1L13.4 12L18.3 16.9C18.4833 17.0833 18.575 17.3167 18.575 17.6C18.575 17.8833 18.4833 18.1167 18.3 18.3C18.1167 18.4833 17.8833 18.575 17.6 18.575C17.3167 18.575 17.0833 18.4833 16.9 18.3L12 13.4Z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="dialog__slot">
+        <div class="slot-body">
+          <p style="color: var(--color-text-secondary);">Paste this license key into your SDK initialisation. Anyone with this value can issue scans against your quota — treat it like a credential.</p>
+          <div class="slot-license">AmGq·BvJp·KZ4d·R2sM·X9eL·N3qV·H7tD·8wKp·LcFm·R5xY</div>
+          <div class="actions">
+            <button class="btn btn--secondary" type="button">Close</button>
+            <button class="btn btn--primary" type="button">Regenerate key</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form composition — confirm dialog with input -->
+  <div class="scrim">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-4">
+      <div class="dialog__header">
+        <span class="dialog__spacer" aria-hidden="true"></span>
+        <div class="dialog__title-wrap">
+          <h2 id="dlg-4" class="dialog__title">Rename project</h2>
+        </div>
+        <button class="dialog__icon-btn" type="button" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
+            <path d="M12 13.4L7.1 18.3C6.91667 18.4833 6.68333 18.575 6.4 18.575C6.11667 18.575 5.88333 18.4833 5.7 18.3C5.51667 18.1167 5.425 17.8833 5.425 17.6C5.425 17.3167 5.51667 17.0833 5.7 16.9L10.6 12L5.7 7.1C5.51667 6.91667 5.425 6.68333 5.425 6.4C5.425 6.11667 5.51667 5.88333 5
+.7 5.7C5.88333 5.51667 6.11667 5.425 6.4 5.425C6.68333 5.425 6.91667 5.51667 7.1 5.7L12 10.6L16.9 5.7C17.0833 5.51667 17.3167 5.425 17.6 5.425C17.8833 5.425 18.1167 5.51667 18.3 5.7C18.4833 5.88333 18.575 6.11667 18.575 6.4C18.575 6.68333 18.4833 6.91667 18.3 7.1L13.4 12L18.3 16.9C18.4833 17.0833 18.575 17.3167 18.575 17.6C18.575 17.8833 18.4833 18.1167 18.3 18.3C18.1167 18.4833 17.8833 18.575 17.6 18.575C17.3167 18.575 17.0833 18.4833 16.9 18.3L12 13.4Z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="dialog__slot">
+        <div class="slot-body">
+          <div class="form-field">
+            <label for="proj-name">Project name</label>
+            <input id="proj-name" type="text" value="Warehouse pilot — Zurich DC" />
+          </div>
+          <div class="form-field">
+            <label for="proj-desc">Description <span style="color: var(--color-text-secondary); font-weight: 400;">(optional)</span></label>
+            <input id="proj-desc" type="text" placeholder="A short note for your team" />
+          </div>
+          <div class="actions">
+            <button class="btn btn--secondary" type="button">Cancel</button>
+            <button class="btn btn--primary" type="button">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ CLOSING ANIMATION DEMO ═════════════════ -->
+  <h2>3 · Closing animation (the `closing` state)</h2>
+  <p class="demo-caption">
+    Click the <strong>×</strong> in the dialog below to see the closing transition —
+    the dialog fades + translates 8px down over 180ms, the scrim fades concurrently. The page
+    auto-restores after the animation so you can replay it.
+  </p>
+  <div class="scrim" id="closing-scrim">
+    <div class="dialog" id="closing-dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-closing">
+      <div class="dialog__header">
+        <span class="dialog__spacer" aria-hidden="true"></span>
+        <div class="dialog__title-wrap">
+          <h2 id="dlg-closing" class="dialog__title">Click X to dismiss</h2>
+        </div>
+        <button class="dialog__icon-btn" type="button" aria-label="Close" id="closing-trigger">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
+            <path d="M12 13.4L7.1 18.3C6.91667 18.4833 6.68333 18.575 6.4 18.575C6.11667 18.575 5.88333 18.4833 5.7 18.3C5.51667 18.1167 5.425 17.8833 5.425 17.6C5.425 17.3167 5.51667 17.0833 5.7 16.9L10.6 12L5.7 7.1C5.51667 6.91667 5.425 6.68333 5.425 6.4C5.425 6.11667 5.51667 5.88333 5.7 5.7C5.88333 5.51667 6.11667 5.425 6.4 5.425C6.68333 5.425 6.91667 5.51667 7.1 5.7L12 10.6L16.9 5.7C17.0833 5.51667 17.3167 5.425 17.6 5.425C17.8833 5.425 18.1167 5.51667 18.3 5.7C18.4833 5.88333 18.575 6.11667 18.575 6.4C18.575 6.68333 18.4833 6.91667 18.3 7.1L13.4 12L18.3 16.9C18.4833 17.0833 18.575 17.3167 18.575 17.6C18.575 17.8833 18.4833 18.1167 18.3 18.3C18.1167 18.4833 17.8833 18.575 17.6 18.575C17.3167 18.575 17.0833 18.4833 16.9 18.3L12 13.4Z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="dialog__slot">
+        <div class="slot-body">
+          <p>This dialog demonstrates the <code>closing</code> state — an animation, not a frozen visual.</p>
+          <p style="color: var(--color-text-secondary);">Auto-restores after the animation so you can replay it as many times as you want.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Closing-animation demo: add .is-closing to the dialog + scrim, then auto-restore.
+    (function () {
+      const trigger = document.getElementById('closing-trigger');
+      const dialog  = document.getElementById('closing-dialog');
+      const scrim   = document.getElementById('closing-scrim');
+      const original = dialog.outerHTML;
+      const scrimColor = getComputedStyle(scrim).backgroundColor;
+
+      trigger.addEventListener('click', () => {
+        dialog.classList.add('is-closing');
+        scrim.classList.add('is-closing');
+        // After the closing animation finishes, hold a beat, then restore
+        setTimeout(() => {
+          scrim.classList.remove('is-closing');
+          dialog.outerHTML = original;
+          // Re-bind to the new node (outerHTML replaces the element)
+          rebindCloseHandler();
+        }, 700);
+      });
+
+      function rebindCloseHandler() {
+        const newDialog = document.getElementById('closing-dialog');
+        const newTrigger = document.getElementById('closing-trigger');
+        if (!newTrigger) return;
+        // Mark as opening for the entry animation
+        newDialog.classList.add('is-opening');
+        setTimeout(() => newDialog.classList.remove('is-opening'), 240);
+        newTrigger.addEventListener('click', () => {
+          newDialog.classList.add('is-closing');
+          scrim.classList.add('is-closing');
+          setTimeout(() => {
+            scrim.classList.remove('is-closing');
+            newDialog.outerHTML = original;
+            rebindCloseHandler();
+          }, 700);
+        });
+      }
+    })();
+  </script>
+
+  <!-- Back-navigation dialog — back-into-a-flow example -->
+  <div class="scrim">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-5">
+      <div class="dialog__header">
+        <button class="dialog__icon-btn" type="button" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
+            <path d="M10.8 12L14.7 15.9C14.8833 16.0833 14.975 16.3167 14.975 16.6C14.975 16.8833 14.8833 17.1167 14.7 17.3C14.5167 17.4833 14.2833 17.575 14 17.575C13.7167 17.575 13.4833 17.4833 13.3 17.3L8.7 12.7C8.6 12.6 8.52917 12.4917 8.4875 12.375C8.44583 12.2583 8.425 12.1333 8.425 12C8.425 11.8667 8.44583 11.7417 8.4875 11.625C8.52917 11.5083 8.6 11.4 8.7 11.3L13.3 6.7C13.4833 6.51667 13.7167 6.425 14 6.425C14.2833 6.425 14.5167 6.51667 14.7 6.7C14.8833 6.88333 14.975 7.11667 14.975 7.4C14.975 7.68333 14.8833 7.91667 14.7 8.1L10.8 12Z"/>
+          </svg>
+        </button>
+        <div class="dialog__title-wrap">
+          <h2 id="dlg-5" class="dialog__title">Confirm subscription change</h2>
+        </div>
+        <button class="dialog__icon-btn" type="button" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
+            <path d="M12 13.4L7.1 18.3C6.91667 18.4833 6.68333 18.575 6.4 18.575C6.11667 18.575 5.88333 18.4833 5.7 18.3C5.51667 18.1167 5.425 17.8833 5.425 17.6C5.425 17.3167 5.51667 17.0833 5.7 16.9L10.6 12L5.7 7.1C5.51667 6.91667 5.425 6.68333 5.425 6.4C5.425 6.11667 5.51667 5.88333 5.7 5.7C5.88333 5.51667 6.11667 5.425 6.4 5.425C6.68333 5.425 6.91667 5.51667 7.1 5.7L12 10.6L16.9 5.7C17.0833 5.51667 17.3167 5.425 17.6 5.425C17.8833 5.425 18.1167 5.51667 18.3 5.7C18.4833 5.88333 18.575 6.11667 18.575 6.4C18.575 6.68333 18.4833 6.91667 18.3 7.1L13.4 12L18.3 16.9C18.4833 17.0833 18.575 17.3167 18.575 17.6C18.575 17.8833 18.4833 18.1167 18.3 18.3C18.1167 18.4833 17.8833 18.575 17.6 18.575C17.3167 18.575 17.0833 18.4833 16.9 18.3L12 13.4Z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="dialog__slot">
+        <div class="slot-body">
+          <p>You're upgrading from <strong>Trial</strong> to <strong>Pro</strong>. Your scan quota will increase from <strong>1,000 / month</strong> to <strong>unlimited</strong> and you'll be billed on the next cycle.</p>
+          <p style="color: var(--color-text-secondary);">Use the <em>Back</em> arrow to return to plan selection without committing.</p>
+          <div class="actions">
+            <button class="btn btn--secondary" type="button">Back</button>
+            <button class="btn btn--primary" type="button">Confirm upgrade</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

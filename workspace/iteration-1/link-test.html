@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Link test — 3 types × 4 states + in-context examples</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ───── Scandit semantic tokens — from references/design.md ───── */
+    :root {
+      --color-text-info-default:  #1660D9;
+      --color-text-info-hover:    #3683FF;
+      --color-text-info-pressed:  #1047A1;
+      --color-text-primary:       #16191C;
+      --color-text-secondary:     #525A61;
+      --color-text-disabled:      #ACB6BF;
+
+      --color-surface-default:    #FFFFFF;
+      --color-background-secondary-page: #F7F7F7;
+      --color-border-tertiary:    #E1E7ED;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 32px; max-width: 800px; line-height: 1.5; }
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+    .panel {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 20px 24px 24px;
+      margin-bottom: 16px;
+      max-width: 1000px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 120px repeat(4, max-content);
+      gap: 16px 32px;
+      align-items: center;
+    }
+    .col-header, .row-header {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+    }
+    .col-header {
+      text-align: left;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+    }
+
+    /* In-context demo containers */
+    .demo-paragraph {
+      font-size: 14px; line-height: 22px; letter-spacing: 0.25px;
+      color: var(--color-text-primary);
+      max-width: 540px;
+    }
+    .demo-card {
+      max-width: 380px;
+      padding: 24px;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      box-shadow: 0 0 4px 0 rgba(27, 32, 38, 0.08);
+    }
+    .demo-card__title { font-size: 18px; font-weight: 600; margin: 0 0 8px; }
+    .demo-card__body  {
+      font-size: 14px; line-height: 22px; color: var(--color-text-secondary);
+      margin: 0 0 16px; letter-spacing: 0.25px;
+    }
+    .demo-label {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 16px 0 8px;
+    }
+    .demo-label:first-child { margin-top: 0; }
+
+    /* ═══════════════════════ LINK ═══════════════════════ */
+    .link {
+      display: inline-block;
+      font-family: inherit;
+      font-size: 16px; font-weight: 500; line-height: 24px; letter-spacing: 0.25px;  /* label/large */
+      text-decoration: none;
+      border-bottom: 1px solid transparent;     /* reserves space; colour set per variant + state */
+      cursor: pointer;
+      transition: color 120ms, border-color 120ms;
+    }
+    .link:focus-visible {
+      outline: 2px solid var(--color-text-info-default);
+      outline-offset: 2px;
+    }
+
+    /* Default — blue, always underlined */
+    .link--default {
+      color: var(--color-text-info-default);
+      border-bottom-color: var(--color-text-info-default);
+    }
+
+    /* Neutral — dark, always underlined */
+    .link--neutral {
+      color: var(--color-text-primary);
+      border-bottom-color: var(--color-text-primary);
+    }
+
+    /* Context-link — blue, NO underline at rest */
+    .link--context_link {
+      color: var(--color-text-info-default);
+      border-bottom-color: transparent;
+    }
+
+    /* Hover state ladder — applies to all interactive variants
+       Guarded against [aria-disabled] / .is-disabled and respects forced .is-hover */
+    .link:not([aria-disabled="true"]):not(.is-disabled):hover,
+    .link.is-hover {
+      color: var(--color-text-info-hover);
+      border-bottom-color: var(--color-text-info-hover);
+    }
+
+    /* Pressed state ladder */
+    .link:not([aria-disabled="true"]):not(.is-disabled):active,
+    .link.is-pressed {
+      color: var(--color-text-info-pressed);
+      border-bottom-color: var(--color-text-info-pressed);
+    }
+
+    /* Disabled — wins over everything (specificity: a single class + attribute) */
+    .link[aria-disabled="true"],
+    .link.is-disabled {
+      color: var(--color-text-disabled);
+      border-bottom-color: var(--color-text-disabled);
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>Link — 3 types × 4 states</h1>
+  <p class="lead">
+    Each panel below shows all 4 states for one type: <strong>Default</strong> (blue, always underlined),
+    <strong>Neutral</strong> (dark text, always underlined, for inline use in paragraphs), and
+    <strong>Context-link</strong> (blue, no underline at rest — underline appears on interaction).
+    The first cell in each row uses real CSS <code>:hover</code> / <code>:active</code> —
+    hover it to verify the natural state matches the forced state next to it.
+    The last two sections show realistic in-context usage (Neutral inside a paragraph;
+    Context-link inside a card).
+  </p>
+
+  <!-- ═════════════════ DEFAULT ═════════════════ -->
+  <h2>Default — always underlined, blue at rest</h2>
+  <div class="panel">
+    <div class="grid">
+      <div></div>
+      <div class="col-header">default</div>
+      <div class="col-header">hover</div>
+      <div class="col-header">pressed</div>
+      <div class="col-header">disabled</div>
+
+      <div class="row-header">Default</div>
+      <div><a href="#" class="link link--default">link</a></div>
+      <div><a href="#" class="link link--default is-hover">link</a></div>
+      <div><a href="#" class="link link--default is-pressed">link</a></div>
+      <div><a href="#" class="link link--default is-disabled" aria-disabled="true" tabindex="-1">link</a></div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ NEUTRAL ═════════════════ -->
+  <h2>Neutral — always underlined, body-text dark at rest</h2>
+  <div class="panel">
+    <div class="grid">
+      <div></div>
+      <div class="col-header">default</div>
+      <div class="col-header">hover</div>
+      <div class="col-header">pressed</div>
+      <div class="col-header">disabled</div>
+
+      <div class="row-header">Neutral</div>
+      <div><a href="#" class="link link--neutral">link</a></div>
+      <div><a href="#" class="link link--neutral is-hover">link</a></div>
+      <div><a href="#" class="link link--neutral is-pressed">link</a></div>
+      <div><a href="#" class="link link--neutral is-disabled" aria-disabled="true" tabindex="-1">link</a></div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ CONTEXT-LINK ═════════════════ -->
+  <h2>Context-link — no underline at rest; appears on interaction</h2>
+  <div class="panel">
+    <div class="grid">
+      <div></div>
+      <div class="col-header">default</div>
+      <div class="col-header">hover</div>
+      <div class="col-header">pressed</div>
+      <div class="col-header">disabled</div>
+
+      <div class="row-header">Context-link</div>
+      <div><a href="#" class="link link--context_link">link</a></div>
+      <div><a href="#" class="link link--context_link is-hover">link</a></div>
+      <div><a href="#" class="link link--context_link is-pressed">link</a></div>
+      <div><a href="#" class="link link--context_link is-disabled" aria-disabled="true" tabindex="-1">link</a></div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ IN-CONTEXT ═════════════════ -->
+  <h2>In context — realistic usage</h2>
+  <div class="panel">
+
+    <div class="demo-label">Neutral — inline within a paragraph (quieter than the blue Default)</div>
+    <p class="demo-paragraph">
+      Your trial expires in 7 days. To continue scanning at the current rate after the trial,
+      review the <a href="#" class="link link--neutral">License usage report</a> in the admin
+      console and upgrade your plan before the cutoff. If you've already chosen a plan,
+      see the <a href="#" class="link link--neutral">billing FAQ</a> for next steps.
+    </p>
+
+    <div class="demo-label">Default — standalone hyperlink (loud, blue, always underlined)</div>
+    <p class="demo-paragraph">
+      Three standalone Default links — use these when the link is the primary affordance,
+      not embedded inside surrounding copy:
+    </p>
+    <div style="display: flex; gap: 24px; flex-wrap: wrap; padding-top: 4px;">
+      <a href="#" class="link link--default">View documentation</a>
+      <a href="#" class="link link--default">Open API reference</a>
+      <a href="#" class="link link--default">Contact support</a>
+    </div>
+
+    <div class="demo-label">Context-link — inside a card (no underline at rest; the card signals interactivity)</div>
+    <div class="demo-card">
+      <h3 class="demo-card__title">License usage</h3>
+      <p class="demo-card__body">
+        Customers can see how many SDK licenses they're using vs their quota across all
+        connected scanners.
+      </p>
+      <a href="#" class="link link--context_link">Read more →</a>
+    </div>
+
+  </div>
+
+</body>
+</html>

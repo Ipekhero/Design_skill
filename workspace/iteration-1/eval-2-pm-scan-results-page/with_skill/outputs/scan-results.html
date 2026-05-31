@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scan results — Scandit</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ───── Scandit semantic tokens ───── */
+    :root {
+      /* Background */
+      --background-primary: #FFFFFF;
+      --background-secondary: #F7F7F7;
+      --background-brand: #141F2E;
+
+      /* Surface */
+      --surface-default: #FFFFFF;
+      --surface-hover: #F3F5F8;
+      --surface-pressed: #E1E7ED;
+      --surface-interactive: #1047A1;
+      --surface-interactive-hover: #1660D9;
+      --surface-success-soft: #CEF2DC;
+      --surface-success-softer: #E6F9EE;
+      --surface-warning-soft: #FFF1CC;
+      --surface-warning-softer: #FFF8E5;
+      --surface-danger-soft: #FFD9D9;
+      --surface-danger-softer: #FFE8E8;
+      --surface-info-soft: #D9E7FF;
+      --surface-info-softer: #ECF3FF;
+      --surface-neutral-soft: #E1E7ED;
+      --surface-neutral-softer: #F3F5F8;
+      
+      /* Surface — full (used for badge dots: color/surface/<status>/full) */
+      --surface-success-full: #0D853D;
+      --surface-warning-full: #F0BD30;
+      --surface-danger-full:  #D92121;
+      --surface-info-full:    #1660D9;
+      --surface-neutral-full: #525A61;
+
+      /* Text */
+      --text-primary: #16191C;
+      --text-secondary: #525A61;
+      --text-disabled: #ACB6BF;
+      --text-inverted: #FFFFFF;
+      --text-positive: #0D853D;
+      --text-warning: #4D3800;
+      --text-danger: #D92121;
+      --text-info-default: #1660D9;
+      --text-on-color-green: #05612A;
+      --text-on-color-yellow: #4D3800;
+      --text-on-color-red: #AD1111;
+      --text-on-color-blue: #1047A1;
+
+      /* Border */
+      --border-secondary: #C7CFD6;
+      --border-tertiary: #E1E7ED;
+      --border-info: #1660D9;
+      --border-success: #0D853D;
+      --border-warning: #FFD300;
+      --border-danger: #D92121;
+      --border-notification-info: #B2D0FF;
+
+      /* Icon */
+      --icon-primary: #16191C;
+      --icon-secondary: #6C7680;
+      --icon-info: #3683FF;
+      --icon-positive: #0D853D;
+      --icon-warning: #4D3800;
+      --icon-danger: #D92121;
+
+      /* Shadow — ambient pure-vertical */
+      --shadow-resting: 0 0 4px 0 rgba(27, 32, 38, 0.08);
+      --shadow-md:      0 0 8px 0 rgba(27, 32, 38, 0.08);
+
+      /* Radius */
+      --radius-input: 4px;
+      --radius-button: 8px;
+      --radius-card: 16px;
+      --radius-pill: 9999px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-feature-settings: 'cv11', 'ss01', 'tnum';
+      color: var(--text-primary);
+      background: var(--background-secondary);
+      font-size: 14px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ───── App chrome ───── */
+    .topbar {
+      height: 56px;
+      background: var(--background-brand);
+      color: var(--text-inverted);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 20px;
+    }
+    /* Branding — uses the canonical SCANDIT wordmark from assets/scandit-logo.svg.
+       SVG is inlined with fill="currentColor" so it inherits --text-inverted on dark chrome. */
+    .brand {
+      display: flex; align-items: center;
+      color: var(--text-inverted);
+    }
+    .brand svg { display: block; height: 18px; width: auto; }
+    .topnav { display: flex; gap: 4px; margin-left: 12px; }
+    .topnav a {
+      color: rgba(255,255,255,0.72);
+      text-decoration: none;
+      font-size: 14px; padding: 8px 12px; border-radius: var(--radius-button);
+      letter-spacing: 0.25px;
+    }
+    .topnav a.active {
+      color: var(--text-inverted); font-weight: 600;
+      background: rgba(255,255,255,0.06);
+    }
+
+    main {
+      max-width: 1650px;
+      margin: 0 auto;
+      padding: 28px 32px 64px;
+    }
+    .page-head h1 {
+      margin: 0;
+      font-size: 30px; font-weight: 600; letter-spacing: -0.02em;
+    }
+    .page-head .sub {
+      margin-top: 4px; color: var(--text-secondary); font-size: 14px;
+    }
+
+    /* ───── Info callout (surface/info/soft) ───── */
+    .callout {
+      display: flex; gap: 12px; align-items: flex-start;
+      margin: 20px 0 16px;
+      padding: 12px 16px;
+      background: var(--surface-info-softer);
+      border: 1px solid var(--border-notification-info);
+      border-radius: var(--radius-card);
+      color: var(--text-on-color-blue);
+      font-size: 14px;
+    }
+    .callout .ico {
+      flex-shrink: 0; margin-top: 1px;
+      color: var(--icon-info);
+    }
+    .callout strong { color: var(--text-primary); font-weight: 600; }
+    .callout .small { color: var(--text-secondary); font-size: 13px; margin-left: 8px; }
+
+    /* ───── Toolbar above table ───── */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .summary {
+      display: flex; align-items: center; gap: 14px;
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .summary strong { color: var(--text-primary); font-size: 14px; font-weight: 600; }
+    /* Badge (neutral variant with colored dot) — matches references/components/badge.md */
+    .stat-pill {
+      display: inline-flex; align-items: center; gap: 4px;       /* spacing/inline/xs */
+      padding: 4px 8px;                                          /* spacing/padding/xs · spacing/padding/s */
+      border-radius: 6px;                                        /* size/cornerRadius/s */
+      font-size: 12px; font-weight: 500;                         /* label/small */
+      line-height: 16px; letter-spacing: 0.25px;
+      text-transform: uppercase; white-space: nowrap;
+      background: var(--surface-neutral-soft);
+      color: var(--text-secondary);
+    }
+    .stat-pill .dot { width: 6px; height: 6px; border-radius: 9999px; }
+    .stat-pill.success .dot { background: var(--surface-success-full); }
+    .stat-pill.warning .dot { background: var(--surface-warning-full); }
+    .stat-pill.danger  .dot { background: var(--surface-danger-full); }
+    .stat-pill.neutral .dot { background: var(--surface-neutral-full); }
+
+    .toolbar-actions { display: flex; gap: 8px; }
+    .btn {
+      font-family: inherit; font-size: 14px; font-weight: 500;
+      letter-spacing: 0.25px;
+      padding: 8px 14px;
+      border-radius: var(--radius-button);
+      border: 1px solid var(--border-secondary);
+      background: var(--surface-default);
+      color: var(--text-primary);
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: background-color 120ms, border-color 120ms;
+    }
+    .btn:hover { background: var(--surface-hover); }
+    .btn .ico { color: var(--icon-secondary); }
+    .btn-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; padding: 0 5px;
+      border-radius: var(--radius-pill);
+      background: var(--surface-interactive); color: var(--text-inverted);
+      font-size: 11px; font-weight: 600;
+      margin-left: 2px;
+    }
+
+    /* ───── Table card ───── */
+    .table-card {
+      background: var(--surface-default);
+      border: 1px solid var(--border-tertiary);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-resting);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      padding: 10px 16px;
+      background: var(--background-secondary);
+      border-bottom: 1px solid var(--border-tertiary);
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: 10px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border-tertiary);
+      vertical-align: middle;
+    }
+    tbody tr:hover { background: var(--surface-hover); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .ts { color: var(--text-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .ts .ts-rel { color: var(--text-primary); font-weight: 500; margin-right: 6px; }
+
+    .barcode {
+      font-family: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+      font-size: 13px; letter-spacing: 0.02em;
+    }
+    .barcode .fmt { color: var(--text-disabled); font-size: 11px; margin-left: 8px;
+                    font-family: 'Inter', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; }
+
+    .product-line { font-weight: 500; }
+    .sub { font-size: 12px; color: var(--text-secondary); }
+
+    .loc { font-weight: 500; }
+
+    /* ───── Status pills ───── */
+    /* Badge — matches references/components/badge.md spec */
+    .pill {
+      display: inline-flex; align-items: center; gap: 4px;       /* spacing/inline/xs */
+      padding: 4px 8px;                                          /* spacing/padding/xs · spacing/padding/s */
+      border-radius: 6px;                                        /* size/cornerRadius/s */
+      font-size: 12px; font-weight: 500;                         /* label/small */
+      line-height: 16px; letter-spacing: 0.25px;
+      text-transform: uppercase; white-space: nowrap;
+    }
+    .pill .dot { width: 6px; height: 6px; border-radius: 9999px; }
+    .pill.success { background: var(--surface-success-soft);  color: var(--text-on-color-green); }
+    .pill.success .dot { background: var(--surface-success-full); }
+    .pill.warning { background: var(--surface-warning-soft);  color: var(--text-on-color-yellow); }
+    .pill.warning .dot { background: var(--surface-warning-full); }
+    .pill.danger  { background: var(--surface-danger-soft);   color: var(--text-on-color-red); }
+    .pill.danger  .dot { background: var(--surface-danger-full); }
+    .pill.pending { background: var(--surface-neutral-soft);  color: var(--text-secondary); }
+    .pill.pending .dot { background: var(--surface-neutral-full); }
+
+    /* ───── Table footer ───── */
+    .table-foot {
+      padding: 10px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 13px; color: var(--text-secondary);
+      border-top: 1px solid var(--border-tertiary);
+    }
+    .pager { display: flex; gap: 4px; }
+    .pager button {
+      width: 28px; height: 28px;
+      background: transparent; border: 1px solid var(--border-secondary);
+      border-radius: var(--radius-input);
+      font-family: inherit; font-size: 12px;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+    .pager button:hover { background: var(--surface-hover); }
+    .pager button.active {
+      background: var(--surface-interactive); border-color: var(--surface-interactive);
+      color: var(--text-inverted);
+    }
+
+    svg { display: block; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand" aria-label="Scandit">
+      <!-- assets/scandit-logo.svg inlined; fill="currentColor" inherits --text-inverted -->
+      <svg viewBox="0 0 136 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M41.0644 19.9297C41.0332 19.8907 45.439 3.25654 46.2514 0.327997L46.3451 0H49.3604L49.4776 0.406091C49.6026 0.827802 54.5474 19.3909 54.6411 19.7735L54.6958 19.9922H53.6412C52.7038 19.9922 52.5867 19.9766 52.5554 19.8594C52.5468 19.8306 52.3961 19.2658 52.1444 18.3226L52.1431 18.3178L52.1423 18.3145L52.1395 18.3041L52.1363 18.292C51.7063 16.6806 50.9879 13.9881 50.1807 10.9801C48.8995 6.17727 47.845 2.27255 47.8293 2.3116C47.8215 2.35064 46.7748 6.2788 45.5014 11.0504L44.5995 14.4312L44.5986 14.4346C43.7645 17.5614 43.1677 19.7989 43.1501 19.8516C43.1111 19.9766 42.9939 19.9922 42.1034 19.9922C41.5487 19.9922 41.08 19.9688 41.0644 19.9297ZM0.146724 4.12398C0.709167 1.92952 2.56054 0.320774 4.8025 0.0786809C5.55242 0.000586435 13.5282 -0.0150325 13.6532 0.063062C13.7235 0.117728 13.7469 0.37544 13.7313 1.10172L13.7078 2.07009L9.21611 2.10914L9.20052 2.10927C4.74776 2.14819 4.72386 2.14839 4.27911 2.3278C2.83395 2.91351 1.96685 4.20207 2.04497 5.65463C2.07621 6.41214 2.48242 7.24776 3.11517 7.88032C4.09944 8.8565 4.60721 8.98145 7.73189 8.98145C10.341 8.98145 10.5519 9.01269 11.6299 9.53592C12.8329 10.1294 13.8641 11.3555 14.3406 12.769C14.614 13.5656 14.6765 14.7604 14.5046 15.5961C14.075 17.6187 12.8251 19.0791 10.9737 19.7351L10.3488 19.9537L5.43525 19.9772C1.4669 19.9928 0.506062 19.9772 0.459192 19.8991C0.381075 19.7819 0.365452 18.2669 0.435757 18.0873C0.482627 17.9779 0.951329 17.9623 5.0056 17.9623C8.02873 17.9623 9.66138 17.9311 9.93478 17.8764C11.1768 17.6109 12.1064 16.6738 12.458 15.3305C12.872 13.753 12.0361 12.0037 10.5441 11.2931L10.0363 11.051L7.30224 11.0041C4.26349 10.9494 4.16975 10.9338 3.08392 10.395C1.63876 9.67649 0.513874 8.29422 0.123289 6.74795C-0.0485684 6.06853 -0.0407567 4.85806 0.146724 4.12398ZM62.7418 9.97267L62.7652 19.9531H64.7181L64.7572 11.0348L64.7963 2.10855L69.9989 11.0348L75.1936 19.9531L76.4201 19.9766L77.6465 20L77.6309 10.0195L77.6075 0.0390472H75.5764L75.5374 8.16868L75.4983 16.2983L70.7253 8.16868L65.9602 0.0390472L64.3432 0.0156189L62.7262 0L62.7418 9.97267ZM111.206 19.8672C111.143 19.7111 111.143 0.28114 111.206 0.124951C111.245 0.0234284 111.409 0 112.221 0H113.19V19.9922H112.221C111.409 19.9922 111.245 19.9688 111.206 19.8672ZM120.611 0.976181V1.95236H127.329L127.345 10.9488L127.368 19.9531L128.259 19.9766C128.844 19.9922 129.18 19.9688 129.251 19.9063C129.344 19.8282 129.36 18.4225 129.36 10.8864V1.95236H136V0H120.611V0.976181ZM21.3788 4.06042C22.449 2.10025 24.316 0.608645 26.2065 0.194744C26.5658 0.11665 27.6282 0.0932214 30.7763 0.101031L34.8774 0.11665V2.06901L30.7372 2.10806L30.6958 2.10845C26.6513 2.14711 26.5878 2.14772 26.1596 2.32672C24.0661 3.17014 22.5896 5.37241 22.1366 8.31657C21.9803 9.30056 22.0272 11.5184 22.2147 12.4946C22.6834 14.8843 23.8239 16.6649 25.3862 17.4536C26.3705 17.9534 26.4721 17.9612 30.956 17.9612H35.0024L34.979 18.953L34.9556 19.9527H30.6201C26.3236 19.9527 26.2768 19.9527 25.6596 19.773C22.8631 18.9687 21.0039 16.6883 20.2618 13.1741C20.0118 11.9714 19.918 9.60513 20.0743 8.29314C20.2461 6.78592 20.7148 5.26308 21.3788 4.06042ZM87.2706 10.0117L87.2941 19.9532L91.5514 19.9766C95.9807 20 96.7697 19.961 97.7774 19.672C101.519 18.6021 103.667 14.7052 103.48 9.30108C103.417 7.55958 103.136 6.32568 102.457 4.90436C101.535 2.952 99.7693 1.2183 98.0273 0.546692C96.84 0.0937439 96.6681 0.078125 91.7389 0.078125H87.255L87.2706 10.0117ZM101.066 7.02738C100.238 4.42683 98.3398 2.52913 96.2385 2.19333C95.9416 2.14647 94.3871 2.10742 92.5123 2.10742H89.2861V17.9684L92.9029 17.945L92.9081 17.9449C96.8947 17.9059 96.9186 17.9057 97.9961 17.3749C99.0663 16.8517 99.8553 16.0004 100.465 14.7197C101.097 13.3921 101.379 12.1035 101.449 10.2605C101.504 8.87821 101.41 8.10508 101.066 7.02738Z"/>
+      </svg>
+    </div>
+    <nav class="topnav">
+      <a href="#">Overview</a>
+      <a href="#">Licenses</a>
+      <a href="#">Projects</a>
+      <a href="#" class="active">Scan results</a>
+      <a href="#">Team</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page-head">
+      <h1>Scan results</h1>
+      <div class="sub">Captures from connected scanners and SDK clients.</div>
+    </div>
+
+    <!-- Info callout (surface/info/soft + border/notification/info + icon/info) -->
+    <div class="callout" role="status">
+      <span class="ico">
+        <!-- info-circle -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+      </span>
+      <div>
+        <strong>Showing results from the last 24 hours.</strong>
+        <span class="small">Adjust the window using filters.</span>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="summary">
+        <span><strong>2,418</strong> scans</span>
+        <span class="stat-pill success"><span class="dot"></span>2,247 success</span>
+        <span class="stat-pill warning"><span class="dot"></span>104 warning</span>
+        <span class="stat-pill danger"><span class="dot"></span>52 failed</span>
+        <span class="stat-pill neutral"><span class="dot"></span>15 pending</span>
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn">
+          <!-- filter.svg from approved set -->
+          <svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          Filter
+          <span class="btn-count">3</span>
+        </button>
+        <button class="btn">
+          <!-- refresh.svg from approved set -->
+          <svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <section class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Barcode</th>
+            <th>Product</th>
+            <th>Location</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="ts"><span class="ts-rel">2 min ago</span>11:23:42</td>
+            <td><span class="barcode">7 612345 678901</span><span class="fmt">EAN-13</span></td>
+            <td><div class="product-line">Coca-Cola Zero 500 ml</div><div class="sub">SKU 481·203·22</div></td>
+            <td><div class="loc">Zurich DC</div><div class="sub">Aisle 14 · Dock 3</div></td>
+            <td><span class="pill success"><span class="dot"></span>Success</span></td>
+          </tr>
+          <tr>
+            <td class="ts"><span class="ts-rel">7 min ago</span>11:18:11</td>
+            <td><span class="barcode">0 41789 00135 9</span><span class="fmt">UPC-A</span></td>
+            <td><div class="product-line">Heinz Tomato Ketchup 1 L</div><div class="sub">SKU 902·118·07</div></td>
+            <td><div class="loc">Berlin Hub</div><div class="sub">Aisle 2 · Bay B</div></td>
+            <td><span class="pill warning"><span class="dot"></span>Warning</span></td>
+          </tr>
+          <tr>
+            <td class="ts"><span class="ts-rel">15 min ago</span>11:10:27</td>
+            <td><span class="barcode">5 000112 637946</span><span class="fmt">EAN-13</span></td>
+            <td><div class="product-line">Persil Universal 50WL</div><div class="sub">SKU 311·556·90</div></td>
+            <td><div class="loc">Madrid Warehouse</div><div class="sub">Aisle 8 · Pallet 12</div></td>
+            <td><span class="pill success"><span class="dot"></span>Success</span></td>
+          </tr>
+          <tr>
+            <td class="ts"><span class="ts-rel">28 min ago</span>10:57:03</td>
+            <td><span class="barcode">8 901030 891908</span><span class="fmt">EAN-13</span></td>
+            <td><div class="product-line">Nestlé KitKat 4-Finger</div><div class="sub">SKU 220·451·18</div></td>
+            <td><div class="loc">Zurich DC</div><div class="sub">Aisle 6 · Dock 1</div></td>
+            <td><span class="pill danger"><span class="dot"></span>Failed</span></td>
+          </tr>
+          <tr>
+            <td class="ts"><span class="ts-rel">41 min ago</span>10:44:18</td>
+            <td><span class="barcode">7 622300 463335</span><span class="fmt">EAN-13</span></td>
+            <td><div class="product-line">Milka Alpine Milk 100g</div><div class="sub">SKU 661·208·44</div></td>
+            <td><div class="loc">Vienna Store 03</div><div class="sub">Backroom · Shelf C</div></td>
+            <td><span class="pill success"><span class="dot"></span>Success</span></td>
+          </tr>
+          <tr>
+            <td class="ts"><span class="ts-rel">52 min ago</span>10:33:01</td>
+            <td><span class="barcode">3 017620 422003</span><span class="fmt">EAN-13</span></td>
+            <td><div class="product-line">Nutella Hazelnut Spread 400g</div><div class="sub">SKU 705·119·12</div></td>
+            <td><div class="loc">Berlin Hub</div><div class="sub">Aisle 5 · Bay A</div></td>
+            <td><span class="pill pending"><span class="dot"></span>Pending</span></td>
+          </tr>
+          <tr>
+            <td class="ts"><span class="ts-rel">1 hr ago</span>10:18:55</td>
+            <td><span class="barcode">4 000539 060007</span><span class="fmt">EAN-13</span></td>
+            <td><div class="product-line">Haribo Goldbears 200g</div><div class="sub">SKU 884·301·77</div></td>
+            <td><div class="loc">Madrid Warehouse</div><div class="sub">Aisle 11 · Pallet 4</div></td>
+            <td><span class="pill warning"><span class="dot"></span>Warning</span></td>
+          </tr>
+          <tr>
+            <td class="ts"><span class="ts-rel">1 hr ago</span>10:11:22</td>
+            <td><span class="barcode">7 613034 626844</span><span class="fmt">EAN-13</span></td>
+            <td><div class="product-line">Nescafé Gold 200g</div><div class="sub">SKU 142·760·39</div></td>
+            <td><div class="loc">Zurich DC</div><div class="sub">Aisle 9 · Dock 2</div></td>
+            <td><span class="pill success"><span class="dot"></span>Success</span></td>
+          </tr>
+          <tr>
+            <td class="ts"><span class="ts-rel">2 hr ago</span>09:24:08</td>
+            <td><span class="barcode">5 449000 000996</span><span class="fmt">EAN-13</span></td>
+            <td><div class="product-line">Coca-Cola Classic 330 ml</div><div class="sub">SKU 481·203·11</div></td>
+            <td><div class="loc">Vienna Store 03</div><div class="sub">Backroom · Shelf A</div></td>
+            <td><span class="pill danger"><span class="dot"></span>Failed</span></td>
+          </tr>
+          <tr>
+            <td class="ts"><span class="ts-rel">3 hr ago</span>08:36:51</td>
+            <td><span class="barcode">8 712100 853395</span><span class="fmt">EAN-13</span></td>
+            <td><div class="product-line">Knorr Chicken Bouillon 24 cubes</div><div class="sub">SKU 339·502·88</div></td>
+            <td><div class="loc">Berlin Hub</div><div class="sub">Aisle 1 · Bay D</div></td>
+            <td><span class="pill success"><span class="dot"></span>Success</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="table-foot">
+        <div>Showing <strong style="color: var(--text-primary)">1–10</strong> of 2,418 scans</div>
+        <div class="pager">
+          <button>‹</button>
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <button>…</button>
+          <button>242</button>
+          <button>›</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

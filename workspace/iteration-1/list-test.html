@@ -1,0 +1,623 @@
+h<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>List test — 5 row types × 5 states + leading element variations + 4 realistic scenarios</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ───── Scandit semantic tokens — verbatim from references/design.md ───── */
+    :root {
+      --color-surface-default:        #FFFFFF;
+      --color-surface-hover:          #F3F5F8;
+      --color-surface-pressed:        #E1E7ED;
+      --color-surface-selected:       #EFF5FA;   /* BLUE, not Figma's teal */
+      --color-surface-selected-hover: #F3F5F8;
+      --color-surface-info-full:      #1660D9;
+      --color-surface-interactive:    #1660D9;
+
+      --color-text-primary:           #16191C;
+      --color-text-secondary:         #525A61;
+      --color-text-disabled:          #ACB6BF;
+      --color-text-inverted:          #FFFFFF;
+
+      --color-icon-primary:           #16191C;
+      --color-icon-secondary:         #525A61;
+      --color-icon-disabled:          #ACB6BF;
+
+      --color-border-primary:         #525A61;
+      --color-border-tertiary:        #E1E7ED;
+
+      --color-gray-30:                #ACB6BF;
+
+      --spacing-padding-xs: 4px;
+      --spacing-padding-s:  8px;
+      --spacing-padding-m:  12px;
+      --spacing-padding-l:  16px;
+      --spacing-inline-l:   16px;
+
+      --size-comp-height-xl: 40px;
+      --size-cornerradius-xs:    4px;
+      --size-cornerradius-round: 999px;
+
+      --color-background-secondary-page: #F7F7F7;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 32px; max-width: 800px; line-height: 1.5; }
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+      text-transform: none; letter-spacing: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+    .panel {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 20px 24px 24px;
+      margin-bottom: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 120px repeat(5, 360px);
+      gap: 16px 24px;
+      align-items: start;
+    }
+    .col-header, .row-header {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+    }
+    .col-header {
+      text-align: left;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+    }
+    .row-header { padding-top: 20px; }
+
+    .scenarios {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 420px));
+      gap: 32px 40px;
+      align-items: start;
+    }
+    .scenario__label {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 0 0 12px;
+    }
+    .scenario__shell {
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--color-surface-default);
+    }
+    .scenario__caption {
+      font-size: 12px; color: var(--color-text-secondary);
+      margin: 10px 0 0; line-height: 1.5;
+    }
+
+    /* ═══════════════════════ LIST ═══════════════════════ */
+    .list {
+      display: flex; flex-direction: column;
+      background: var(--color-surface-default);
+    }
+    .list--inline {
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 8px;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    /* ═══════════════════════ SECTION HEADER ═══════════════════════ */
+    .section-header {
+      display: flex; align-items: center; gap: var(--spacing-padding-s);
+      height: var(--size-comp-height-xl);
+      padding: 0 var(--spacing-padding-l);
+      background: var(--color-surface-hover);
+    }
+    .section-header__title {
+      flex: 1; font-size: 14px; font-weight: 500;
+      line-height: 20px; letter-spacing: 0.25px;
+      color: var(--color-text-secondary);
+    }
+    .section-header__count {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 20px; padding: 0 6px;
+      background: var(--color-surface-info-full);
+      color: var(--color-text-inverted);
+      font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: 0.25px;
+      border-radius: var(--size-cornerradius-round);
+    }
+
+    /* ═══════════════════════ ITEM ═══════════════════════ */
+    .list-item {
+      display: flex; flex-direction: column;
+      background: var(--color-surface-default);
+      cursor: pointer;
+      transition: background 80ms;
+      border: 0; padding: 0;
+      font-family: inherit;
+      text-align: left;
+      width: 100%;
+    }
+    .list-item__content {
+      display: flex; align-items: center; gap: var(--spacing-padding-m);
+      padding: var(--spacing-padding-m);
+      width: 100%;
+    }
+    .list-item--2-line .list-item__content,
+    .list-item--3-line .list-item__content,
+    .list-item--multi-line .list-item__content { align-items: flex-start; }
+    .list-item--1-line     { min-height: 48px; }
+    .list-item--2-line     { min-height: 72px; }
+    .list-item--3-line     { min-height: 88px; }
+    .list-item--multi-line { min-height: 104px; }
+    .list-item--draggable  { min-height: 48px; }
+
+    .list-item__handle {
+      width: 24px; height: 24px;
+      color: var(--color-icon-secondary);
+      flex-shrink: 0;
+      cursor: grab;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .list-item__handle svg { display: block; width: 24px; height: 24px; }
+
+    .list-item__leading {
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: var(--color-icon-primary);
+    }
+    .list-item__leading svg { display: block; width: 24px; height: 24px; }
+
+    .list-item__thumbnail {
+      width: 48px; height: 48px;
+      background: var(--color-gray-30);
+      border-radius: var(--size-cornerradius-xs);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .list-item__thumbnail img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .list-item__body {
+      flex: 1 1 0; min-width: 0;
+      display: flex; flex-direction: column;
+    }
+    .list-item__title {
+      font-size: 16px; font-weight: 400; line-height: 24px; letter-spacing: 0.25px;
+      color: var(--color-text-primary);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      margin: 0;
+    }
+    .list-item__description {
+      font-size: 14px; font-weight: 400; line-height: 20px; letter-spacing: 0.25px;
+      color: var(--color-text-secondary);
+      margin: 0;
+    }
+    .list-item--2-line .list-item__description {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .list-item--3-line .list-item__description {
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .list-item__info-rows {
+      display: flex; flex-direction: column; gap: 4px;
+      margin-top: 4px;
+    }
+    .list-item__info-row {
+      display: flex; align-items: center; gap: var(--spacing-inline-l);
+      width: 100%;
+    }
+    .list-item__info-label {
+      width: 64px;
+      font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: 0.25px;
+      color: var(--color-text-secondary);
+      margin: 0;
+    }
+    .list-item__info-value {
+      font-size: 14px; line-height: 20px;
+      color: var(--color-text-primary);
+      margin: 0;
+    }
+
+    .list-item__trailing {
+      display: flex; align-items: center; gap: var(--spacing-padding-s);
+      flex-shrink: 0;
+      color: var(--color-icon-secondary);
+    }
+    .list-item__trailing-info {
+      font-size: 14px; line-height: 20px; color: var(--color-text-secondary);
+      white-space: nowrap;
+    }
+    .list-item__trailing svg { display: block; width: 24px; height: 24px; }
+
+    /* ─── Divider ─── */
+    .list-item__divider {
+      height: 1px;
+      background: var(--color-border-tertiary);
+      margin-left: var(--spacing-padding-m);
+    }
+    .list-item--no-divider .list-item__divider { display: none; }
+
+    /* ─── State ladder (guard against disabled/selected) ─── */
+    .list-item:not(.list-item--disabled):not(.list-item--selected):hover,
+    .list-item.is-hover { background: var(--color-surface-hover); }
+    .list-item:not(.list-item--disabled):not(.list-item--selected):active,
+    .list-item.is-pressed { background: var(--color-surface-pressed); }
+
+    /* selected (+ hover/pressed combos) */
+    .list-item--selected { background: var(--color-surface-selected); }
+    .list-item--selected:not(.list-item--disabled):hover,
+    .list-item--selected.is-hover { background: var(--color-surface-selected-hover); }
+    .list-item--selected:not(.list-item--disabled):active,
+    .list-item--selected.is-pressed { background: var(--color-surface-pressed); }
+
+    /* disabled — wins */
+    .list-item--disabled, .list-item.is-disabled { cursor: not-allowed; background: var(--color-surface-default); }
+    .list-item--disabled .list-item__title,
+    .list-item--disabled .list-item__description,
+    .list-item--disabled .list-item__info-label,
+    .list-item--disabled .list-item__info-value,
+    .list-item--disabled .list-item__trailing-info,
+    .list-item.is-disabled .list-item__title,
+    .list-item.is-disabled .list-item__description {
+      color: var(--color-text-disabled);
+    }
+    .list-item--disabled .list-item__leading,
+    .list-item--disabled .list-item__trailing,
+    .list-item--disabled .list-item__handle,
+    .list-item.is-disabled .list-item__leading {
+      color: var(--color-icon-disabled);
+    }
+    .list-item--disabled .list-item__thumbnail { opacity: 0.4; }
+
+    /* ─── leading checkbox / radio ─── */
+    .leading-cb {
+      width: 20px; height: 20px;
+      border: 2px solid var(--color-border-primary);
+      border-radius: var(--size-cornerradius-xs);
+      background: var(--color-surface-default);
+      display: flex; align-items: center; justify-content: center;
+      box-sizing: border-box;
+    }
+    .leading-cb--checked {
+      background: var(--color-surface-interactive);
+      border-color: var(--color-surface-interactive);
+      color: var(--color-text-inverted);
+    }
+    .leading-cb--checked svg { width: 16px; height: 16px; display: block; }
+
+    .leading-radio {
+      width: 20px; height: 20px;
+      border: 2px solid var(--color-border-primary);
+      border-radius: var(--size-cornerradius-round);
+      background: var(--color-surface-default);
+      box-sizing: border-box;
+      position: relative;
+    }
+    .leading-radio--checked { border-color: var(--color-surface-interactive); }
+    .leading-radio--checked::after {
+      content: '';
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: var(--size-cornerradius-round);
+      background: var(--color-surface-interactive);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  </style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+  <defs>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M10.825 22C10.375 22 9.9875 21.85 9.6625 21.55C9.3375 21.25 9.14167 20.8833 9.075 20.45L8.85 18.8C8.63333 18.7167 8.42917 18.6167 8.2375 18.5C8.04583 18.3833 7.85833 18.2583 7.675 18.125L6.125 18.775C5.70833 18.9583 5.29167 18.975 4.875 18.825C4.45833 18.675 4.13333 18.4083 3.9 18.025L2.725 15.975C2.49167 15.5917 2.425 15.1833 2.525 14.75C2.625 14.3167 2.85 13.9583 3.2 13.675L4.525 12.675C4.50833 12.5583 4.5 12.4458 4.5 12.3375V11.6625C4.5 11.5542 4.50833 11.4417 4.525 11.325L3.2 10.325C2.85 10.0417 2.625 9.68333 2.525 9.25C2.425 8.81667 2.49167 8.40833 2.725 8.025L3.9 5.975C4.13333 5.59167 4.45833 5.325 4.875 5.175C5.29167 5.025 5.70833 5.04167 6.125 5.225L7.675 5.875C7.85833 5.74167 8.05 5.61667 8.25 5.5C8.45 5.38333 8.65 5.28333 8.85 5.2L9.075 3.55C9.14167 3.11667 9.3375 2.75 9.6625 2.45C9.9875 2.15 10.375 2 10.825 2H13.175C13.625 2 14.0125 2.15 14.3375 2.45C14.6625 2.75 14.8583 3.11667 14.925 3.55L15.15 5.2C15.3667 5.28333 15.5708 5.38333 15.7625 5.5C15.9542 5.61667 16.1417 5.74167 16.325 5.875L17.875 5.225C18.2917 5.04167 18.7083 5.025 19.125 5.175C19.5417 5.325 19.8667 5.59167 20.1 5.975L21.275 8.025C21.5083 8.40833 21.575 8.81667 21.475 9.25C21.375 9.68333 21.15 10.0417 20.8 10.325L19.475 11.325C19.4917 11.4417 19.5 11.5542 19.5 11.6625V12.3375C19.5 12.4458 19.4833 12.5583 19.45 12.675L20.775 13.675C21.125 13.9583 21.35 14.3167 21.45 14.75C21.55 15.1833 21.4833 15.5917 21.25 15.975L20.05 18.025C19.8167 18.4083 19.4917 18.675 19.075 18.825C18.6583 18.975 18.2417 18.9583 17.825 18.775L16.325 18.125C16.1417 18.2583 15.95 18.3833 15.75 18.5C15.55 18.6167 15.35 18.7167 15.15 18.8L14.925 20.45C14.8583 20.8833 14.6625 21.25 14.3375 21.55C14.0125 21.85 13.625 22 13.175 22H10.825ZM11 20H12.975L13.325 17.35C13.8417 17.2167 14.3208 17.0208 14.7625 16.7625C15.2042 16.5042 15.6083 16.1917 15.975 15.825L18.45 16.85L19.425 15.15L17.275 13.525C17.3583 13.2917 17.4167 13.0458 17.45 12.7875C17.4833 12.5292 17.5 12.2667 17.5 12C17.5 11.7333 17.4833 11.4708 17.45 11.2125C17.4167 10.9542 17.3583 10.7083 17.275 10.475L19.425 8.85L18.45 7.15L15.975 8.2C15.6083 7.81667 15.2042 7.49583 14.7625 7.2375C14.3208 6.97917 13.8417 6.78333 13.325 6.65L13 4H11.025L10.675 6.65C10.1583 6.78333 9.67917 6.97917 9.2375 7.2375C8.79583 7.49583 8.39167 7.80833 8.025 8.175L5.55 7.15L4.575 8.85L6.725 10.45C6.64167 10.7 6.58333 10.95 6.55 11.2C6.51667 11.45 6.5 11.7167 6.5 12C6.5 12.2667 6.51667 12.525 6.55 12.775C6.58333 13.025 6.64167 13.275 6.725 13.525L4.575 15.15L5.55 16.85L8.025 15.8C8.39167 16.1833 8.79583 16.5042 9.2375 16.7625C9.67917 17.0208 10.1583 17.2167 10.675 17.35L11 20ZM12.05 15.5C13.0167 15.5 13.8417 15.1583 14.525 14.475C15.2083 13.7917 15.55 12.9667 15.55 12C15.55 11.0333 15.2083 10.2083 14.525 9.525C13.8417 8.84167 13.0167 8.5 12.05 8.5C11.0667 8.5 10.2375 8.84167 9.5625 9.525C8.8875 10.2083 8.55 11.0333 8.55 12C8.55 12.9667 8.8875 13.7917 9.5625 14.475C10.2375 15.1583 11.0667 15.5 12.05 15.5Z" fill="currentColor"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="M13.175 12L9.275 8.09999C9.09167 7.91665 9 7.68332 9 7.39999C9 7.11665 9.09167 6.88332 9.275 6.69999C9.45833 6.51665 9.69167 6.42499 9.975 6.42499C10.2583 6.42499 10.4917 6.51665 10.675 6.69999L15.275 11.3C15.375 11.4 15.4458 11.5083 15.4875 11.625C15.5292 11.7417 15.55 11.8667 15.55 12C15.55 12.1333 15.5292 12.2583 15.4875 12.375C15.4458 12.4917 15.375 12.6 15.275 12.7L10.675 17.3C10.4917 17.4833 10.2583 17.575 9.975 17.575C9.69167 17.575 9.45833 17.4833 9.275 17.3C9.09167 17.1167 9 16.8833 9 16.6C9 16.3167 9.09167 16.0833 9.275 15.9L13.175 12Z" fill="currentColor"/></symbol>
+    <symbol id="i-info-circle" viewBox="0 0 24 24"><path d="M12 17C12.2833 17 12.5208 16.9042 12.7125 16.7125C12.9042 16.5208 13 16.2833 13 16V12C13 11.7167 12.9042 11.4792 12.7125 11.2875C12.5208 11.0958 12.2833 11 12 11C11.7167 11 11.4792 11.0958 11.2875 11.2875C11.0958 11.4792 11 11.7167 11 12V16C11 16.2833 11.0958 16.5208 11.2875 16.7125C11.4792 16.9042 11.7167 17 12 17ZM12 9C12.2833 9 12.5208 8.90417 12.7125 8.7125C12.9042 8.52083 13 8.28333 13 8C13 7.71667 12.9042 7.47917 12.7125 7.2875C12.5208 7.09583 12.2833 7 12 7C11.7167 7 11.4792 7.09583 11.2875 7.2875C11.0958 7.47917 11 7.71667 11 8C11 8.28333 11.0958 8.52083 11.2875 8.7125C11.4792 8.90417 11.7167 9 12 9ZM12 22C10.6167 22 9.31667 21.7375 8.1 21.2125C6.88333 20.6875 5.825 19.975 4.925 19.075C4.025 18.175 3.3125 17.1167 2.7875 15.9C2.2625 14.6833 2 13.3833 2 12C2 10.6167 2.2625 9.31667 2.7875 8.1C3.3125 6.88333 4.025 5.825 4.925 4.925C5.825 4.025 6.88333 3.3125 8.1 2.7875C9.31667 2.2625 10.6167 2 12 2C13.3833 2 14.6833 2.2625 15.9 2.7875C17.1167 3.3125 18.175 4.025 19.075 4.925C19.975 5.825 20.6875 6.88333 21.2125 8.1C21.7375 9.31667 22 10.6167 22 12C22 13.3833 21.7375 14.6833 21.2125 15.9C20.6875 17.1167 19.975 18.175 19.075 19.075C18.175 19.975 17.1167 20.6875 15.9 21.2125C14.6833 21.7375 13.3833 22 12 22ZM12 20C14.2333 20 16.125 19.225 17.675 17.675C19.225 16.125 20 14.2333 20 12C20 9.76667 19.225 7.875 17.675 6.325C16.125 4.775 14.2333 4 12 4C9.76667 4 7.875 4.775 6.325 6.325C4.775 7.875 4 9.76667 4 12C4 14.2333 4.775 16.125 6.325 17.675C7.875 19.225 9.76667 20 12 20Z" fill="currentColor"/></symbol>
+    <symbol id="i-drag-handle" viewBox="0 0 24 24"><path d="M5.00004 15C4.71671 15 4.47921 14.9042 4.28754 14.7125C4.09587 14.5209 4.00004 14.2834 4.00004 14C4.00004 13.7167 4.09587 13.4792 4.28754 13.2875C4.47921 13.0959 4.71671 13 5.00004 13H19C19.2834 13 19.5209 13.0959 19.7125 13.2875C19.9042 13.4792 20 13.7167 20 14C20 14.2834 19.9042 14.5209 19.7125 14.7125C19.5209 14.9042 19.2834 15 19 15H5.00004ZM5.00004 11C4.71671 11 4.47921 10.9042 4.28754 10.7125C4.09587 10.5209 4.00004 10.2834 4.00004 10C4.00004 9.71671 4.09587 9.47921 4.28754 9.28754C4.47921 9.09587 4.71671 9.00004 5.00004 9.00004H19C19.2834 9.00004 19.5209 9.09587 19.7125 9.28754C19.9042 9.47921 20 9.71671 20 10C20 10.2834 19.9042 10.5209 19.7125 10.7125C19.5209 10.9042 19.2834 11 19 11H5.00004Z" fill="currentColor"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M9.55 15.15L18.025 6.675C18.225 6.475 18.4583 6.375 18.725 6.375C18.9917 6.375 19.225 6.475 19.425 6.675C19.625 6.875 19.725 7.1125 19.725 7.3875C19.725 7.6625 19.625 7.9 19.425 8.1L10.25 17.3C10.05 17.5 9.81667 17.6 9.55 17.6C9.28333 17.6 9.05 17.5 8.85 17.3L4.55 13C4.35 12.8 4.25417 12.5625 4.2625 12.2875C4.27083 12.0125 4.375 11.775 4.575 11.575C4.775 11.375 5.0125 11.275 5.2875 11.275C5.5625 11.275 5.8 11.375 6 11.575L9.55 15.15Z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+  <h1>List — 5 row types × 5 states + leading element axis + section headers</h1>
+  <p class="lead">
+    The List has two orthogonal axes: <strong>row type</strong> (density &mdash; <code>1-line</code>,
+    <code>2-line</code>, <code>3-line</code>, <code>multi-line</code>, <code>draggable</code>) and
+    <strong>leading element</strong> (<code>none</code>, <code>icon</code>, <code>checkbox</code>, <code>radio</code>,
+    <code>thumbnail</code> &mdash; the last only valid for 2/3/multi-line rows). The first cell in each row uses real
+    CSS <code>:hover</code> / <code>:active</code> &mdash; hover it to verify the natural state matches the forced state
+    next to it. <strong>Selected uses brand-blue softer (#EFF5FA), NOT teal</strong> per the web colour rule.
+    Section headers use the <em>info-blue</em> num-badge (<code>surface/info/full</code> #1660D9) &mdash; this is correctly
+    blue in Figma because it's info-coded, not the brand teal.
+  </p>
+
+  <!-- ═════════════════ ROW TYPES ═════════════════ -->
+  <h2>Row types — default state, with icon leading + chevron trailing</h2>
+  <div class="panel">
+    <div style="display:grid;grid-template-columns:repeat(5,minmax(0,360px));gap:24px;">
+
+      <div>
+        <div class="col-header" style="margin-bottom:8px;">1-line · 48px</div>
+        <div class="list list--inline">
+          <button class="list-item list-item--1-line">
+            <div class="list-item__content">
+              <span class="list-item__leading"><svg viewBox="0 0 24 24" fill="none"><use href="#i-settings"/></svg></span>
+              <div class="list-item__body"><p class="list-item__title">Settings</p></div>
+              <div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div>
+            </div>
+            <div class="list-item__divider"></div>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="col-header" style="margin-bottom:8px;">2-line · 72px</div>
+        <div class="list list--inline">
+          <button class="list-item list-item--2-line">
+            <div class="list-item__content">
+              <span class="list-item__thumbnail"></span>
+              <div class="list-item__body">
+                <p class="list-item__title">Document.pdf</p>
+                <p class="list-item__description">Last edited · Dec 12, 14:35</p>
+              </div>
+              <div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div>
+            </div>
+            <div class="list-item__divider"></div>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="col-header" style="margin-bottom:8px;">3-line · 88px</div>
+        <div class="list list--inline">
+          <button class="list-item list-item--3-line">
+            <div class="list-item__content">
+              <span class="list-item__thumbnail"></span>
+              <div class="list-item__body">
+                <p class="list-item__title">Match found</p>
+                <p class="list-item__description">3 barcodes were detected and matched against the active inventory configuration on Dec 12</p>
+              </div>
+              <div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div>
+            </div>
+            <div class="list-item__divider"></div>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="col-header" style="margin-bottom:8px;">multi-line · 104px+</div>
+        <div class="list list--inline">
+          <button class="list-item list-item--multi-line">
+            <div class="list-item__content">
+              <span class="list-item__leading"><svg viewBox="0 0 24 24" fill="none"><use href="#i-info-circle"/></svg></span>
+              <div class="list-item__body">
+                <p class="list-item__title">Device 4823</p>
+                <div class="list-item__info-rows">
+                  <div class="list-item__info-row"><p class="list-item__info-label">IMEI 1</p><p class="list-item__info-value">1982749283574398</p></div>
+                  <div class="list-item__info-row"><p class="list-item__info-label">IMEI 2</p><p class="list-item__info-value">1982749283574398</p></div>
+                  <div class="list-item__info-row"><p class="list-item__info-label">SN</p><p class="list-item__info-value">1982749283574398</p></div>
+                </div>
+              </div>
+              <div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div>
+            </div>
+            <div class="list-item__divider"></div>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="col-header" style="margin-bottom:8px;">draggable · 48px + handle</div>
+        <div class="list list--inline">
+          <button class="list-item list-item--draggable">
+            <div class="list-item__content">
+              <span class="list-item__handle"><svg viewBox="0 0 24 24" fill="none"><use href="#i-drag-handle"/></svg></span>
+              <span class="list-item__leading"><span class="leading-cb leading-cb--checked"><svg viewBox="0 0 24 24" fill="none"><use href="#i-check"/></svg></span></span>
+              <div class="list-item__body"><p class="list-item__title">Reorderable item</p></div>
+            </div>
+            <div class="list-item__divider"></div>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════════════════ STATES — 1-LINE ═════════════════ -->
+  <h2>States · 1-line</h2>
+  <div class="panel">
+    <div class="grid">
+      <div></div>
+      <div class="col-header">default</div>
+      <div class="col-header">hover</div>
+      <div class="col-header">pressed</div>
+      <div class="col-header">selected</div>
+      <div class="col-header">disabled</div>
+
+      <div class="row-header">1-line</div>
+      <div class="list list--inline">
+        <button class="list-item list-item--1-line"><div class="list-item__content"><span class="list-item__leading"><svg viewBox="0 0 24 24" fill="none"><use href="#i-settings"/></svg></span><div class="list-item__body"><p class="list-item__title">List item</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button>
+      </div>
+      <div class="list list--inline">
+        <button class="list-item list-item--1-line is-hover"><div class="list-item__content"><span class="list-item__leading"><svg viewBox="0 0 24 24" fill="none"><use href="#i-settings"/></svg></span><div class="list-item__body"><p class="list-item__title">List item</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button>
+      </div>
+      <div class="list list--inline">
+        <button class="list-item list-item--1-line is-pressed"><div class="list-item__content"><span class="list-item__leading"><svg viewBox="0 0 24 24" fill="none"><use href="#i-settings"/></svg></span><div class="list-item__body"><p class="list-item__title">List item</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button>
+      </div>
+      <div class="list list--inline">
+        <button class="list-item list-item--1-line list-item--selected"><div class="list-item__content"><span class="list-item__leading"><svg viewBox="0 0 24 24" fill="none"><use href="#i-settings"/></svg></span><div class="list-item__body"><p class="list-item__title">List item</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button>
+      </div>
+      <div class="list list--inline">
+        <button class="list-item list-item--1-line list-item--disabled" disabled aria-disabled="true"><div class="list-item__content"><span class="list-item__leading"><svg viewBox="0 0 24 24" fill="none"><use href="#i-settings"/></svg></span><div class="list-item__body"><p class="list-item__title">List item</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button>
+      </div>
+
+      <div class="row-header">2-line</div>
+      <div class="list list--inline"><button class="list-item list-item--2-line"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">List item</p><p class="list-item__description">Last Captured · Dec 12, 14:35</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button></div>
+      <div class="list list--inline"><button class="list-item list-item--2-line is-hover"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">List item</p><p class="list-item__description">Last Captured · Dec 12, 14:35</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button></div>
+      <div class="list list--inline"><button class="list-item list-item--2-line is-pressed"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">List item</p><p class="list-item__description">Last Captured · Dec 12, 14:35</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button></div>
+      <div class="list list--inline"><button class="list-item list-item--2-line list-item--selected"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">List item</p><p class="list-item__description">Last Captured · Dec 12, 14:35</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button></div>
+      <div class="list list--inline"><button class="list-item list-item--2-line list-item--disabled" disabled aria-disabled="true"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">List item</p><p class="list-item__description">Last Captured · Dec 12, 14:35</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button></div>
+
+      <div class="row-header">3-line</div>
+      <div class="list list--inline"><button class="list-item list-item--3-line"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">List item</p><p class="list-item__description">This is a longer description that takes up two lines</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button></div>
+      <div class="list list--inline"><button class="list-item list-item--3-line is-hover"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">List item</p><p class="list-item__description">This is a longer description that takes up two lines</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button></div>
+      <div class="list list--inline"><button class="list-item list-item--3-line is-pressed"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">List item</p><p class="list-item__description">This is a longer description that takes up two lines</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button></div>
+      <div class="list list--inline"><button class="list-item list-item--3-line list-item--selected"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">List item</p><p class="list-item__description">This is a longer description that takes up two lines</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button></div>
+      <div class="list list--inline"><button class="list-item list-item--3-line list-item--disabled" disabled aria-disabled="true"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">List item</p><p class="list-item__description">This is a longer description that takes up two lines</p></div><div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div></div></button></div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ LEADING ELEMENT VARIATIONS ═════════════════ -->
+  <h2>Leading element axis — orthogonal to row type (shown on 2-line)</h2>
+  <div class="panel">
+    <div style="display:grid;grid-template-columns:repeat(5,minmax(0,360px));gap:24px;">
+
+      <div>
+        <div class="col-header" style="margin-bottom:8px;">none</div>
+        <div class="list list--inline">
+          <button class="list-item list-item--2-line">
+            <div class="list-item__content">
+              <div class="list-item__body"><p class="list-item__title">List item</p><p class="list-item__description">Last Captured · Dec 12</p></div>
+              <div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="col-header" style="margin-bottom:8px;">icon (24×24)</div>
+        <div class="list list--inline">
+          <button class="list-item list-item--2-line">
+            <div class="list-item__content">
+              <span class="list-item__leading"><svg viewBox="0 0 24 24" fill="none"><use href="#i-info-circle"/></svg></span>
+              <div class="list-item__body"><p class="list-item__title">List item</p><p class="list-item__description">With info icon leading</p></div>
+              <div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="col-header" style="margin-bottom:8px;">checkbox (20×20)</div>
+        <div class="list list--inline">
+          <button class="list-item list-item--2-line">
+            <div class="list-item__content">
+              <span class="list-item__leading"><span class="leading-cb leading-cb--checked"><svg viewBox="0 0 24 24" fill="none"><use href="#i-check"/></svg></span></span>
+              <div class="list-item__body"><p class="list-item__title">Select item</p><p class="list-item__description">Multi-select pattern</p></div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="col-header" style="margin-bottom:8px;">radio (20×20)</div>
+        <div class="list list--inline">
+          <button class="list-item list-item--2-line">
+            <div class="list-item__content">
+              <span class="list-item__leading"><span class="leading-radio leading-radio--checked"></span></span>
+              <div class="list-item__body"><p class="list-item__title">Pick option</p><p class="list-item__description">Single-select pattern</p></div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="col-header" style="margin-bottom:8px;">thumbnail (48×48)</div>
+        <div class="list list--inline">
+          <button class="list-item list-item--2-line">
+            <div class="list-item__content">
+              <span class="list-item__thumbnail"></span>
+              <div class="list-item__body"><p class="list-item__title">List item</p><p class="list-item__description">Last Captured · Dec 12</p></div>
+              <div class="list-item__trailing"><svg viewBox="0 0 24 24" fill="none"><use href="#i-chevron-right"/></svg></div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════════════════ IN-CONTEXT SCENARIOS ═════════════════ -->
+  <h2>In context — four realistic list scenarios</h2>
+  <div class="panel">
+    <div class="scenarios">
+
+      <!-- Scenario 1: master-detail with one selected -->
+      <div>
+        <div class="scenario__label">1 · Master-detail sidebar (one row selected)</div>
+        <div class="scenario__shell">
+          <div class="list">
+            <button class="list-item list-item--2-line"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">Sample Co. inventory</p><p class="list-item__description">Updated · 2 hours ago</p></div></div><div class="list-item__divider"></div></button>
+            <button class="list-item list-item--2-line list-item--selected"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">Acme Corp shipment</p><p class="list-item__description">Updated · 18 minutes ago</p></div></div><div class="list-item__divider"></div></button>
+            <button class="list-item list-item--2-line"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">Q4 audit run</p><p class="list-item__description">Updated · yesterday</p></div></div><div class="list-item__divider"></div></button>
+            <button class="list-item list-item--2-line list-item--no-divider"><div class="list-item__content"><span class="list-item__thumbnail"></span><div class="list-item__body"><p class="list-item__title">Returns batch · 04-12</p><p class="list-item__description">Updated · 3 days ago</p></div></div></button>
+          </div>
+        </div>
+        <p class="scenario__caption">The selected row gets <code>surface/selected</code> (#EFF5FA brand-blue softer). Last row drops the divider. Master-detail UI: clicking a row updates a detail panel to the right.</p>
+      </div>
+
+      <!-- Scenario 2: settings list with checkboxes -->
+      <div>
+        <div class="scenario__label">2 · Notification settings (checkbox leading)</div>
+        <div class="scenario__shell">
+          <div class="list">
+            <button class="list-item list-item--1-line"><div class="list-item__content"><span class="list-item__leading"><span class="leading-cb leading-cb--checked"><svg viewBox="0 0 24 24" fill="none"><use href="#i-check"/></svg></span></span><div class="list-item__body"><p class="list-item__title">Email notifications</p></div></div><div class="list-item__divider"></div></button>
+            <button class="list-item list-item--1-line"><div class="list-item__content"><span class="list-item__leading"><span class="leading-cb leading-cb--checked"><svg viewBox="0 0 24 24" fill="none"><use href="#i-check"/></svg></span></span><div class="list-item__body"><p class="list-item__title">SMS alerts on critical errors</p></div></div><div class="list-item__divider"></div></button>
+            <button class="list-item list-item--1-line"><div class="list-item__content"><span class="list-item__leading"><span class="leading-cb"></span></span><div class="list-item__body"><p class="list-item__title">Daily summary digest</p></div></div><div class="list-item__divider"></div></button>
+            <button class="list-item list-item--1-line"><div class="list-item__content"><span class="list-item__leading"><span class="leading-cb"></span></span><div class="list-item__body"><p class="list-item__title">Webhook delivery failures</p></div></div><div class="list-item__divider"></div></button>
+            <button class="list-item list-item--1-line list-item--disabled list-item--no-divider" disabled aria-disabled="true"><div class="list-item__content"><span class="list-item__leading"><span class="leading-cb" style="border-color:var(--color-icon-disabled);"></span></span><div class="list-item__body"><p class="list-item__title">Push notifications (mobile app required)</p></div></div></button>
+          </div>
+        </div>
+        <p class="scenario__caption">Settings list with checkbox leading. Bottom row is disabled because the feature requires the mobile app, which isn't installed.</p>
+      </div>
+
+      <!-- Scenario 3: section headers + found/missing groupings -->
+      <div>
+        <div class="scenario__label">3 · Section headers (info-blue num-badge)</div>
+        <div class="scenario__shell">
+          <div class="list">
+            <div class="section-header"><span class="section-header__title">FOUND ITEMS</span><span class="section-header__count">12</span></div>
+            <button class="list-item list-item--multi-line"><div class="list-item__content"><span class="list-item__leading"><svg viewBox="0 0 24 24" fill="none"><use href="#i-check"/></svg></span><div class="list-item__body"><p class="list-item__title">Device 4823</p><div class="list-item__info-rows"><div class="list-item__info-row"><p class="list-item__info-label">IMEI 1</p><p class="list-item__info-value">1982749283574398</p></div><div class="list-item__info-row"><p class="list-item__info-label">IMEI 2</p><p class="list-item__info-value">1982749283574398</p></div><div class="list-item__info-row"><p class="list-item__info-label">SN</p><p class="list-item__info-value">1982749283574398</p></div></div></div></div><div class="list-item__divider"></div></button>
+            <button class="list-item list-item--multi-line"><div class="list-item__content"><span class="list-item__leading"><svg viewBox="0 0 24 24" fill="none"><use href="#i-check"/></svg></span><div class="list-item__body"><p class="list-item__title">Device 5731</p><div class="list-item__info-rows"><div class="list-item__info-row"><p class="list-item__info-label">IMEI 1</p><p class="list-item__info-value">8362617385027149</p></div><div class="list-item__info-row"><p class="list-item__info-label">SN</p><p class="list-item__info-value">8362617385027149</p></div></div></div></div><div class="list-item__divider"></div></button>
+            <div class="section-header"><span class="section-header__title">MISSING</span><span class="section-header__count">3</span></div>
+            <button class="list-item list-item--1-line"><div class="list-item__content"><span class="list-item__leading"><svg viewBox="0 0 24 24" fill="none"><use href="#i-info-circle"/></svg></span><div class="list-item__body"><p class="list-item__title" style="color:var(--color-text-secondary);">Device 1247 (expected, not seen)</p></div></div><div class="list-item__divider"></div></button>
+            <button class="list-item list-item--1-line list-item--no-divider"><div class="list-item__content"><span class="list-item__leading"><svg viewBox="0 0 24 24" fill="none"><use href="#i-info-circle"/></svg></span><div class="list-item__body"><p class="list-item__title" style="color:var(--color-text-secondary);">Device 1248 (expected, not seen)</p></div></div></button>
+          </div>
+        </div>
+        <p class="scenario__caption">Two section headers group items into "Found" (12) and "Missing" (3). The num-badge is correctly <code>surface/info/full</code> (#1660D9) — info blue, not Scandit brand teal.</p>
+      </div>
+
+      <!-- Scenario 4: draggable column ordering -->
+      <div>
+        <div class="scenario__label">4 · Reorderable columns (draggable)</div>
+        <div class="scenario__shell">
+          <div class="list">
+            <button class="list-item list-item--draggable"><div class="list-item__content"><span class="list-item__handle"><svg viewBox="0 0 24 24" fill="none"><use href="#i-drag-handle"/></svg></span><span class="list-item__leading"><span class="leading-cb leading-cb--checked"><svg viewBox="0 0 24 24" fill="none"><use href="#i-check"/></svg></span></span><div class="list-item__body"><p class="list-item__title">Status</p></div></div><div class="list-item__divider"></div></button>
+            <button class="list-item list-item--draggable"><div class="list-item__content"><span class="list-item__handle"><svg viewBox="0 0 24 24" fill="none"><use href="#i-drag-handle"/></svg></span><span class="list-item__leading"><span class="leading-cb leading-cb--checked"><svg viewBox="0 0 24 24" fill="none"><use href="#i-check"/></svg></span></span><div class="list-item__body"><p class="list-item__title">Customer</p></div></div><div class="list-item__divider"></div></button>
+            <button class="list-item list-item--draggable"><div class="list-item__content"><span class="list-item__handle"><svg viewBox="0 0 24 24" fill="none"><use href="#i-drag-handle"/></svg></span><span class="list-item__leading"><span class="leading-cb"></span></span><div class="list-item__body"><p class="list-item__title">Last scanned</p></div></div><div class="list-item__divider"></div></button>
+            <button class="list-item list-item--draggable list-item--no-divider"><div class="list-item__content"><span class="list-item__handle"><svg viewBox="0 0 24 24" fill="none"><use href="#i-drag-handle"/></svg></span><span class="list-item__leading"><span class="leading-cb"></span></span><div class="list-item__body"><p class="list-item__title">Notes</p></div></div></button>
+          </div>
+        </div>
+        <p class="scenario__caption">Draggable rows combine the drag handle (<code>drag_handle</code>) AND a checkbox leading element. Common pattern: pick which columns to show + drag to reorder them.</p>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

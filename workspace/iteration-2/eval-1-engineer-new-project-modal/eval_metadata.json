@@ -1,0 +1,18 @@
+{
+  "eval_id": 1,
+  "eval_name": "engineer-new-project-modal",
+  "prompt": "i'm prototyping a 'Create new project' modal. single-file React component (i'll paste it into a sandbox). modal should have: title 'New project', a text field for project name (required), a dropdown for 'Project type' (Inventory / Receiving / Search), a textarea for description (optional, max 280 chars with a counter), and at the bottom Cancel (secondary/ghost) + Create (primary) buttons. tab order should be sensible. file should compile standalone with tailwind via CDN. make sure all the colors and spacing match scandit dashboard please",
+  "assertions": [
+    {"text": "Uses Inter font (loaded via CDN or @import)"},
+    {"text": "Primary Create button uses Scandit brand blue surface/interactive (#1047A1 or close match), NOT the dark slate background/brand (#141F2E) used for chrome"},
+    {"text": "Cancel button is rendered as ghost/secondary style — transparent or neutral background with a label, distinct from the primary button"},
+    {"text": "Modal has rounded-2xl (16px) corners consistent with card radius; buttons have rounded-lg (8px) corners"},
+    {"text": "Textarea includes a working character counter showing current/max (e.g. '42 / 280')"},
+    {"text": "Project name field is marked as required (visible asterisk or 'Required' indicator)"},
+    {"text": "Dropdown has the three options: Inventory, Receiving, Search"},
+    {"text": "No raw hex colors in product UI markup (hex only appears in token definitions like a tailwind config block or :root, never as inline styles or bg-[#...] arbitrary values)"},
+    {"text": "Modal sits on a dimmed page background (overlay scrim)"},
+    {"text": "Inputs have a modest 4px radius (rounded) consistent with the input shape token"},
+    {"text": "Tab order between fields and buttons is sensible (name → type → description → cancel → create)"}
+  ]
+}

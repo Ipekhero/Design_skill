@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dropdown test — 2 layouts × 2 sizes × 9 states</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ───── Scandit semantic tokens — from references/design.md ───── */
+    :root {
+      /* Form-component surface tokens — inlined per dropdown.md (not in design.md catalog) */
+      --color-surface-formcomp-default:  #FFFFFF;
+      --color-surface-formcomp-error:    #FFE8E8;        /* = surface/danger/softer */
+      --color-surface-formcomp-disabled: #F3F5F8;        /* = surface/hover (NOT surface/disabled) */
+      --color-surface-formcomp-hover:    rgba(0, 0, 0, 0.05);
+
+      --color-border-secondary:          #C7CFD6;
+      --color-border-interactive:        #16191C;        /* design.md border/interactive */
+      --color-border-danger:             #D92121;
+
+      --color-text-primary:              #16191C;
+      --color-text-secondary:            #525A61;
+      --color-text-disabled:             #ACB6BF;
+      --color-text-danger:               #D92121;
+
+      --color-icon-primary:              #16191C;
+      --color-icon-secondary:            #6C7680;
+      --color-icon-disabled:             #ACB6BF;
+
+      --color-surface-default:           #FFFFFF;
+      --color-surface-hover:             #F3F5F8;
+      --color-surface-brand-softer:      #EFF5FA;        /* menu selected item — BLUE, NOT teal #E7F7F9 */
+
+      /* shadow-lg (now directional per design.md) */
+      --shadow-popover: 0 1px 2px 0 rgba(0, 0, 0, 0.30), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+
+      /* Page chrome */
+      --color-background-secondary-page: #F7F7F7;
+      --color-surface-default-page:      #FFFFFF;
+      --color-border-tertiary:           #E1E7ED;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 32px; max-width: 800px; line-height: 1.5; }
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default-page);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+    .panel {
+      background: var(--color-surface-default-page);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .state-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 16px 0 8px;
+    }
+    .state-label:first-child { margin-top: 0; }
+    .row { display: flex; flex-wrap: wrap; gap: 32px 24px; align-items: flex-start; padding: 8px 0; }
+    .cell { display: flex; flex-direction: column; gap: 6px; }
+    .cell-state {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      padding-bottom: 4px;
+    }
+
+    /* ═══════════════════════ DROPDOWN ═══════════════════════ */
+    .dropdown { display: flex; font-family: inherit; position: relative; }
+    .dropdown--vertical   { flex-direction: column; align-items: flex-start; }
+    .dropdown--horizontal { flex-direction: row; align-items: center; gap: 16px; }
+    .dropdown--vertical.dropdown--lg  { width: 329px; }
+    .dropdown--vertical.dropdown--sm  { width: 200px; }
+    .dropdown--horizontal.dropdown--sm { width: 286px; }
+
+    /* Label */
+    .dropdown__label {
+      display: inline-flex; align-items: center;
+      font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: 0.25px;
+      color: var(--color-text-secondary);
+    }
+    .dropdown--vertical .dropdown__label   { padding-bottom: 4px; }
+    .dropdown--horizontal .dropdown__label { width: 120px; }
+    .dropdown__mandatory { color: var(--color-text-danger); margin-left: 2px; font-weight: 500; font-size: 11px; }
+    .dropdown--disabled .dropdown__label { color: var(--color-text-disabled); }
+
+    /* Trigger */
+    .dropdown__trigger {
+      display: flex; align-items: center;
+      padding: 0 8px 0 12px;
+      border: 1px solid var(--color-border-secondary);
+      border-radius: 4px;
+      background: var(--color-surface-formcomp-default);
+      cursor: pointer; position: relative;
+      color: var(--color-text-secondary);
+      width: 100%;
+    }
+    .dropdown--lg .dropdown__trigger { height: 48px; padding-right: 8px; }
+    .dropdown--sm .dropdown__trigger { height: 32px; padding-right: 4px; }
+    .dropdown--horizontal .dropdown__trigger { width: 150px; }
+
+    .dropdown__content {
+      flex: 1; display: flex; align-items: center; min-width: 0;
+      gap: 12px; padding: 4px 0;
+    }
+    .dropdown--sm .dropdown__content { gap: 0; }
+    .dropdown__input {
+      flex: 1; min-width: 0;
+      font-size: 16px; font-weight: 400; line-height: 24px; letter-spacing: 0.25px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* Trailing arrow icon button */
+    .dropdown__arrow-btn {
+      display: inline-grid; place-items: center; flex-shrink: 0;
+      background: transparent; border: 0; padding: 0; cursor: pointer;
+      color: var(--color-icon-primary);
+    }
+    .dropdown--lg .dropdown__arrow-btn { width: 32px; height: 32px; border-radius: 8px; }
+    .dropdown--sm .dropdown__arrow-btn { width: 24px; height: 24px; border-radius: 6px; }
+    .dropdown--lg .dropdown__arrow-btn svg { width: 24px; height: 24px; }
+    .dropdown--sm .dropdown__arrow-btn svg { width: 20px; height: 20px; }
+
+    /* Hover overlay — applies on real :hover for interactive states (default / filled / error)
+       AND on the forced .is-hover / .is-error_hover modifier classes.
+       Guarded against non-interactive (disabled, read_only) and already-active (selected, error_selected) states. */
+    .dropdown__trigger:not(.dropdown__trigger--disabled):not(.dropdown__trigger--read_only):not(.dropdown__trigger--selected):not(.dropdown__trigger--error_selected):hover::after,
+    .dropdown__trigger--hover::after,
+    .dropdown__trigger--error_hover::after {
+      content: ''; position: absolute; inset: -1px;
+      background: var(--color-surface-formcomp-hover);
+      pointer-events: none; border-radius: inherit;
+    }
+    .dropdown__trigger--filled .dropdown__input,
+    .dropdown__trigger--selected .dropdown__input,
+    .dropdown__trigger--error .dropdown__input,
+    .dropdown__trigger--error_hover .dropdown__input,
+    .dropdown__trigger--error_selected .dropdown__input,
+    .dropdown__trigger--read_only .dropdown__input { color: var(--color-text-primary); }
+
+    .dropdown__trigger--selected {
+      border-width: 2px;
+      border-color: var(--color-border-interactive);
+    }
+    .dropdown__trigger--error,
+    .dropdown__trigger--error_hover {
+      background: var(--color-surface-formcomp-error);
+      border-color: var(--color-border-danger);
+    }
+    .dropdown__trigger--error_selected {
+      background: var(--color-surface-formcomp-error);
+      border: 2px solid var(--color-border-danger);
+    }
+    .dropdown__trigger--read_only {
+      border: 0; cursor: default;
+    }
+    .dropdown__trigger--disabled {
+      border: 0; cursor: not-allowed;
+      background: var(--color-surface-formcomp-disabled);
+      color: var(--color-text-disabled);
+    }
+    .dropdown__trigger--disabled .dropdown__input,
+    .dropdown__trigger--disabled .dropdown__arrow-btn { color: var(--color-text-disabled); }
+
+    /* Helper text */
+    .dropdown__helper {
+      padding-top: 4px;
+      font-size: 12px; font-weight: 400; line-height: 16px; letter-spacing: 0.25px;
+      color: var(--color-text-primary);
+      width: 100%;
+    }
+    .dropdown__helper--error { color: var(--color-text-danger); }
+    .dropdown--horizontal .dropdown__helper { padding-left: 136px; }
+
+    /* Menu */
+    .dropdown__menu {
+      position: absolute; z-index: 10;
+      background: var(--color-surface-default);
+      border-radius: 4px;
+      box-shadow: var(--shadow-popover);
+      list-style: none; margin: 0;
+      overflow: hidden;
+    }
+    .dropdown--lg .dropdown__menu { padding: 8px 0; }
+    .dropdown--sm .dropdown__menu { padding: 4px 0; }
+    .dropdown--vertical .dropdown__menu { top: calc(100% + 4px); left: 0; width: 100%; }
+    .dropdown--horizontal .dropdown__menu { top: calc(100% + 4px); left: 136px; width: 150px; }
+    /* For triggers with helper text below, push menu further down */
+    .dropdown--has-helper.dropdown--vertical .dropdown__menu { top: auto; bottom: auto; }
+    .dropdown__menu-item {
+      display: flex; align-items: center;
+      padding: 0 12px;
+      font-size: 16px; font-weight: 400; line-height: 24px; letter-spacing: 0.25px;
+      color: var(--color-text-primary);
+      cursor: pointer;
+      background: transparent; border: 0; text-align: left; width: 100%;
+    }
+    .dropdown--lg .dropdown__menu-item { height: 40px; }
+    .dropdown--sm .dropdown__menu-item { height: 32px; }
+    .dropdown__menu-item:hover { background: var(--color-surface-hover); }
+    .dropdown__menu-item--selected { background: var(--color-surface-brand-softer); }
+
+    /* Layout for the matrix — each cell has enough vertical space for the menu when selected */
+    .cell.cell--selected { min-height: 200px; }
+    .cell.cell--selected.cell--lg { min-height: 240px; }
+  </style>
+</head>
+<body>
+  <h1>Dropdown — all 9 states × 2 layouts × 2 sizes</h1>
+  <p class="lead">
+    Three layout combinations across three panels: <strong>Vertical Large</strong>,
+    <strong>Vertical Small</strong>, and <strong>Horizontal Small</strong>. Each shows all
+    9 states. The selected (menu-open) state has extra cell space so the floating menu fits.
+    Menu's selected row uses <code>color/surface/brand/softer</code> (#EFF5FA — brand blue)
+    instead of Figma's teal <code>list item/selected</code>, per the web rule.
+    Trailing arrows use the just-added <code>arrow_triangle_down</code> /
+    <code>arrow_triangle_up</code> assets, byte-for-byte from <code>assets/icons/</code>.
+  </p>
+
+  <!-- ═════════════════ VERTICAL LARGE ═════════════════ -->
+  <h2>Vertical · Large (329 × 48)</h2>
+  <div class="panel">
+    <div class="row">
+      <!-- Default -->
+      <div class="cell">
+        <span class="cell-state">default</span>
+        <div class="dropdown dropdown--vertical dropdown--lg">
+          <label class="dropdown__label">Label</label>
+          <div class="dropdown__trigger dropdown__trigger--default">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button" aria-label="Open">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hover -->
+      <div class="cell">
+        <span class="cell-state">hover</span>
+        <div class="dropdown dropdown--vertical dropdown--lg">
+          <label class="dropdown__label">Label</label>
+          <div class="dropdown__trigger dropdown__trigger--hover">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filled -->
+      <div class="cell">
+        <span class="cell-state">filled</span>
+        <div class="dropdown dropdown--vertical dropdown--lg">
+          <label class="dropdown__label">Library</label>
+          <div class="dropdown__trigger dropdown__trigger--filled">
+            <div class="dropdown__content"><span class="dropdown__input">Barcode Scanner</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected (menu open) -->
+      <div class="cell cell--selected cell--lg">
+        <span class="cell-state">selected (menu open)</span>
+        <div class="dropdown dropdown--vertical dropdown--lg">
+          <label class="dropdown__label">Library</label>
+          <div class="dropdown__trigger dropdown__trigger--selected">
+            <div class="dropdown__content"><span class="dropdown__input">Barcode Scanner</span></div>
+            <button class="dropdown__arrow-btn" type="button" aria-expanded="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.2 14C8.05 14 7.9292 13.95 7.8375 13.85C7.7458 13.75 7.7 13.6333 7.7 13.5C7.7 13.4667 7.75 13.35 7.85 13.15L11.475 9.52499C11.5583 9.44165 11.6417 9.38332 11.725 9.34999C11.8083 9.31665 11.9 9.29999 12 9.29999C12.1 9.29999 12.192 9.31665 12.275 9.34999C12.358 9.38332 12.442 9.44165 12.525 9.52499L16.15 13.15C16.2 13.2 16.237 13.2542 16.262 13.3125C16.287 13.3708 16.3 13.4333 16.3 13.5C16.3 13.6333 16.254 13.75 16.162 13.85C16.071 13.95 15.95 14 15.8 14H8.2Z"/></svg>
+            </button>
+          </div>
+          <ul class="dropdown__menu">
+            <li class="dropdown__menu-item">Barcode Scanner</li>
+            <li class="dropdown__menu-item dropdown__menu-item--selected">ID Scanner</li>
+            <li class="dropdown__menu-item">MatrixScan Count</li>
+            <li class="dropdown__menu-item">Smart Parcel</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Read only -->
+      <div class="cell">
+        <span class="cell-state">read only</span>
+        <div class="dropdown dropdown--vertical dropdown--lg">
+          <label class="dropdown__label">Library</label>
+          <div class="dropdown__trigger dropdown__trigger--read_only">
+            <div class="dropdown__content"><span class="dropdown__input">Barcode Scanner</span></div>
+            <button class="dropdown__arrow-btn" type="button" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Disabled -->
+      <div class="cell">
+        <span class="cell-state">disabled</span>
+        <div class="dropdown dropdown--vertical dropdown--lg dropdown--disabled">
+          <label class="dropdown__label">Label</label>
+          <div class="dropdown__trigger dropdown__trigger--disabled">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div class="cell">
+        <span class="cell-state">error</span>
+        <div class="dropdown dropdown--vertical dropdown--lg">
+          <label class="dropdown__label">Label<span class="dropdown__mandatory">*</span></label>
+          <div class="dropdown__trigger dropdown__trigger--error">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+          <div class="dropdown__helper dropdown__helper--error">This field is mandatory</div>
+        </div>
+      </div>
+
+      <!-- Error Hover -->
+      <div class="cell">
+        <span class="cell-state">error hover</span>
+        <div class="dropdown dropdown--vertical dropdown--lg">
+          <label class="dropdown__label">Label<span class="dropdown__mandatory">*</span></label>
+          <div class="dropdown__trigger dropdown__trigger--error_hover">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+          <div class="dropdown__helper dropdown__helper--error">This field is mandatory</div>
+        </div>
+      </div>
+
+      <!-- Error Selected -->
+      <div class="cell cell--selected cell--lg">
+        <span class="cell-state">error selected</span>
+        <div class="dropdown dropdown--vertical dropdown--lg">
+          <label class="dropdown__label">Label<span class="dropdown__mandatory">*</span></label>
+          <div class="dropdown__trigger dropdown__trigger--error_selected">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.2 14C8.05 14 7.9292 13.95 7.8375 13.85C7.7458 13.75 7.7 13.6333 7.7 13.5C7.7 13.4667 7.75 13.35 7.85 13.15L11.475 9.52499C11.5583 9.44165 11.6417 9.38332 11.725 9.34999C11.8083 9.31665 11.9 9.29999 12 9.29999C12.1 9.29999 12.192 9.31665 12.275 9.34999C12.358 9.38332 12.442 9.44165 12.525 9.52499L16.15 13.15C16.2 13.2 16.237 13.2542 16.262 13.3125C16.287 13.3708 16.3 13.4333 16.3 13.5C16.3 13.6333 16.254 13.75 16.162 13.85C16.071 13.95 15.95 14 15.8 14H8.2Z"/></svg></button>
+          </div>
+          <ul class="dropdown__menu">
+            <li class="dropdown__menu-item">Menu item</li>
+            <li class="dropdown__menu-item">Menu item</li>
+            <li class="dropdown__menu-item">Menu item</li>
+            <li class="dropdown__menu-item">Menu item</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ VERTICAL SMALL ═════════════════ -->
+  <h2>Vertical · Small (200 × 32)</h2>
+  <div class="panel">
+    <div class="row">
+      <div class="cell">
+        <span class="cell-state">default</span>
+        <div class="dropdown dropdown--vertical dropdown--sm">
+          <label class="dropdown__label">Label</label>
+          <div class="dropdown__trigger dropdown__trigger--default">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cell">
+        <span class="cell-state">hover</span>
+        <div class="dropdown dropdown--vertical dropdown--sm">
+          <label class="dropdown__label">Label</label>
+          <div class="dropdown__trigger dropdown__trigger--hover">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cell">
+        <span class="cell-state">filled</span>
+        <div class="dropdown dropdown--vertical dropdown--sm">
+          <label class="dropdown__label">Library</label>
+          <div class="dropdown__trigger dropdown__trigger--filled">
+            <div class="dropdown__content"><span class="dropdown__input">Barcode Scanner</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cell cell--selected">
+        <span class="cell-state">selected (menu open)</span>
+        <div class="dropdown dropdown--vertical dropdown--sm">
+          <label class="dropdown__label">Library</label>
+          <div class="dropdown__trigger dropdown__trigger--selected">
+            <div class="dropdown__content"><span class="dropdown__input">Barcode Scanner</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.2 14C8.05 14 7.9292 13.95 7.8375 13.85C7.7458 13.75 7.7 13.6333 7.7 13.5C7.7 13.4667 7.75 13.35 7.85 13.15L11.475 9.52499C11.5583 9.44165 11.6417 9.38332 11.725 9.34999C11.8083 9.31665 11.9 9.29999 12 9.29999C12.1 9.29999 12.192 9.31665 12.275 9.34999C12.358 9.38332 12.442 9.44165 12.525 9.52499L16.15 13.15C16.2 13.2 16.237 13.2542 16.262 13.3125C16.287 13.3708 16.3 13.4333 16.3 13.5C16.3 13.6333 16.254 13.75 16.162 13.85C16.071 13.95 15.95 14 15.8 14H8.2Z"/></svg></button>
+          </div>
+          <ul class="dropdown__menu">
+            <li class="dropdown__menu-item">Menu item</li>
+            <li class="dropdown__menu-item dropdown__menu-item--selected">Menu item</li>
+            <li class="dropdown__menu-item">Menu item</li>
+            <li class="dropdown__menu-item">Menu item</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="cell">
+        <span class="cell-state">read only</span>
+        <div class="dropdown dropdown--vertical dropdown--sm">
+          <label class="dropdown__label">Library</label>
+          <div class="dropdown__trigger dropdown__trigger--read_only">
+            <div class="dropdown__content"><span class="dropdown__input">Barcode Scanner</span></div>
+            <button class="dropdown__arrow-btn" type="button" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cell">
+        <span class="cell-state">disabled</span>
+        <div class="dropdown dropdown--vertical dropdown--sm dropdown--disabled">
+          <label class="dropdown__label">Label</label>
+          <div class="dropdown__trigger dropdown__trigger--disabled">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cell">
+        <span class="cell-state">error</span>
+        <div class="dropdown dropdown--vertical dropdown--sm">
+          <label class="dropdown__label">Label<span class="dropdown__mandatory">*</span></label>
+          <div class="dropdown__trigger dropdown__trigger--error">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+          <div class="dropdown__helper dropdown__helper--error">This field is mandatory</div>
+        </div>
+      </div>
+
+      <div class="cell">
+        <span class="cell-state">error hover</span>
+        <div class="dropdown dropdown--vertical dropdown--sm">
+          <label class="dropdown__label">Label<span class="dropdown__mandatory">*</span></label>
+          <div class="dropdown__trigger dropdown__trigger--error_hover">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+          <div class="dropdown__helper dropdown__helper--error">This field is mandatory</div>
+        </div>
+      </div>
+
+      <div class="cell cell--selected">
+        <span class="cell-state">error selected</span>
+        <div class="dropdown dropdown--vertical dropdown--sm">
+          <label class="dropdown__label">Label<span class="dropdown__mandatory">*</span></label>
+          <div class="dropdown__trigger dropdown__trigger--error_selected">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.2 14C8.05 14 7.9292 13.95 7.8375 13.85C7.7458 13.75 7.7 13.6333 7.7 13.5C7.7 13.4667 7.75 13.35 7.85 13.15L11.475 9.52499C11.5583 9.44165 11.6417 9.38332 11.725 9.34999C11.8083 9.31665 11.9 9.29999 12 9.29999C12.1 9.29999 12.192 9.31665 12.275 9.34999C12.358 9.38332 12.442 9.44165 12.525 9.52499L16.15 13.15C16.2 13.2 16.237 13.2542 16.262 13.3125C16.287 13.3708 16.3 13.4333 16.3 13.5C16.3 13.6333 16.254 13.75 16.162 13.85C16.071 13.95 15.95 14 15.8 14H8.2Z"/></svg></button>
+          </div>
+          <ul class="dropdown__menu">
+            <li class="dropdown__menu-item">Menu item</li>
+            <li class="dropdown__menu-item">Menu item</li>
+            <li class="dropdown__menu-item">Menu item</li>
+            <li class="dropdown__menu-item">Menu item</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ HORIZONTAL SMALL ═════════════════ -->
+  <h2>Horizontal · Small (286 total: 120 label + 16 gap + 150 trigger)</h2>
+  <div class="panel">
+    <div class="row" style="flex-direction: column; gap: 24px;">
+      <div class="cell"><span class="cell-state">default</span>
+        <div class="dropdown dropdown--horizontal dropdown--sm">
+          <label class="dropdown__label">Label</label>
+          <div class="dropdown__trigger dropdown__trigger--default">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cell"><span class="cell-state">hover</span>
+        <div class="dropdown dropdown--horizontal dropdown--sm">
+          <label class="dropdown__label">Label</label>
+          <div class="dropdown__trigger dropdown__trigger--hover">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cell"><span class="cell-state">filled</span>
+        <div class="dropdown dropdown--horizontal dropdown--sm">
+          <label class="dropdown__label">Library</label>
+          <div class="dropdown__trigger dropdown__trigger--filled">
+            <div class="dropdown__content"><span class="dropdown__input">Barcode Scanner</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cell cell--selected"><span class="cell-state">selected (menu open)</span>
+        <div class="dropdown dropdown--horizontal dropdown--sm">
+          <label class="dropdown__label">Library</label>
+          <div class="dropdown__trigger dropdown__trigger--selected">
+            <div class="dropdown__content"><span class="dropdown__input">Barcode Scanner</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.2 14C8.05 14 7.9292 13.95 7.8375 13.85C7.7458 13.75 7.7 13.6333 7.7 13.5C7.7 13.4667 7.75 13.35 7.85 13.15L11.475 9.52499C11.5583 9.44165 11.6417 9.38332 11.725 9.34999C11.8083 9.31665 11.9 9.29999 12 9.29999C12.1 9.29999 12.192 9.31665 12.275 9.34999C12.358 9.38332 12.442 9.44165 12.525 9.52499L16.15 13.15C16.2 13.2 16.237 13.2542 16.262 13.3125C16.287 13.3708 16.3 13.4333 16.3 13.5C16.3 13.6333 16.254 13.75 16.162 13.85C16.071 13.95 15.95 14 15.8 14H8.2Z"/></svg></button>
+          </div>
+          <ul class="dropdown__menu">
+            <li class="dropdown__menu-item">Menu item</li>
+            <li class="dropdown__menu-item dropdown__menu-item--selected">Menu item</li>
+            <li class="dropdown__menu-item">Menu item</li>
+            <li class="dropdown__menu-item">Menu item</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="cell"><span class="cell-state">read only</span>
+        <div class="dropdown dropdown--horizontal dropdown--sm">
+          <label class="dropdown__label">Library</label>
+          <div class="dropdown__trigger dropdown__trigger--read_only">
+            <div class="dropdown__content"><span class="dropdown__input">Barcode Scanner</span></div>
+            <button class="dropdown__arrow-btn" type="button" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cell"><span class="cell-state">disabled</span>
+        <div class="dropdown dropdown--horizontal dropdown--sm dropdown--disabled">
+          <label class="dropdown__label">Label</label>
+          <div class="dropdown__trigger dropdown__trigger--disabled">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cell"><span class="cell-state">error</span>
+        <div class="dropdown dropdown--horizontal dropdown--sm">
+          <label class="dropdown__label">Label<span class="dropdown__mandatory">*</span></label>
+          <div class="dropdown__trigger dropdown__trigger--error">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+          <div class="dropdown__helper dropdown__helper--error">This field is mandatory</div>
+        </div>
+      </div>
+
+      <div class="cell"><span class="cell-state">error hover</span>
+        <div class="dropdown dropdown--horizontal dropdown--sm">
+          <label class="dropdown__label">Label<span class="dropdown__mandatory">*</span></label>
+          <div class="dropdown__trigger dropdown__trigger--error_hover">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z"/></svg></button>
+          </div>
+          <div class="dropdown__helper dropdown__helper--error">This field is mandatory</div>
+        </div>
+      </div>
+
+      <div class="cell cell--selected"><span class="cell-state">error selected</span>
+        <div class="dropdown dropdown--horizontal dropdown--sm">
+          <label class="dropdown__label">Label<span class="dropdown__mandatory">*</span></label>
+          <div class="dropdown__trigger dropdown__trigger--error_selected">
+            <div class="dropdown__content"><span class="dropdown__input">Input</span></div>
+            <button class="dropdown__arrow-btn" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.2 14C8.05 14 7.9292 13.95 7.8375 13.85C7.7458 13.75 7.7 13.6333 7.7 13.5C7.7 13.4667 7.75 13.35 7.85 13.15L11.475 9.52499C11.5583 9.44165 11.6417 9.38332 11.725 9.34999C11.8083 9.31665 11.9 9.29999 12 9.29999C12.1 9.29999 12.192 9.31665 12.275 9.34999C12.358 9.38332 12.442 9.44165 12.525 9.52499L16.15 13.15C16.2 13.2 16.237 13.2542 16.262 13.3125C16.287 13.3708 16.3 13.4333 16.3 13.5C16.3 13.6333 16.254 13.75 16.162 13.85C16.071 13.95 15.95 14 15.8 14H8.2Z"/></svg></button>
+          </div>
+          <ul class="dropdown__menu">
+            <li class="dropdown__menu-item">Menu item</li>
+            <li class="dropdown__menu-item">Menu item</li>
+            <li class="dropdown__menu-item">Menu item</li>
+            <li class="dropdown__menu-item">Menu item</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

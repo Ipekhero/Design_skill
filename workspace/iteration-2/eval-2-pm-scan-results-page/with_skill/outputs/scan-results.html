@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scan results — Scandit</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ───── Scandit semantic tokens (verbatim from references/design.md) ───── */
+    :root {
+      --color-background-primary:        #FFFFFF;
+      --color-background-secondary-page: #F7F7F7;
+      --color-background-brand:          #141F2E;
+
+      --color-surface-default:           #FFFFFF;
+      --color-surface-hover:             #F3F5F8;
+      --color-surface-pressed:           #E1E7ED;
+      --color-surface-selected:          #EFF5FA;
+      --color-surface-disabled:          #E1E7ED;
+      --color-surface-formcomp:          #F3F5F8;
+      --color-surface-neutral-soft:      #E1E7ED;
+      --color-surface-neutral-softer:    #F3F5F8;
+      --color-surface-interactive:       #1047A1;
+      --color-surface-interactive-hover: #1660D9;
+      --color-surface-neutral-subdued:   #C7CFD6;
+
+      --color-surface-success-soft:      #CEF2DC;
+      --color-surface-success-softer:    #E6F9EE;
+      --color-surface-danger-soft:       #FFD9D9;
+      --color-surface-danger-softer:     #FFE8E8;
+      --color-surface-warning-soft:      #FFE8AB;
+      --color-surface-warning-softer:    #FFF1CC;
+      --color-surface-info-soft:         #D9E7FF;
+      --color-surface-info-softer:       #ECF3FF;
+
+      --color-text-primary:    #16191C;
+      --color-text-secondary:  #525A61;
+      --color-text-tertiary:   #6C7680;
+      --color-text-disabled:   #ACB6BF;
+      --color-text-inverted:   #FFFFFF;
+      --color-text-positive:   #0D853D;
+      --color-text-danger:     #D92121;
+      --color-text-warning:    #4D3800;
+      --color-text-info:       #1660D9;
+      --color-text-info-default: #1660D9;
+
+      --color-border-primary:    #525A61;
+      --color-border-secondary:  #C7CFD6;
+      --color-border-tertiary:   #E1E7ED;
+      --color-border-interactive:#16191C;
+      --color-border-info:       #1660D9;
+
+      --color-icon-primary:   #16191C;
+      --color-icon-secondary: #525A61;
+      --color-icon-info:      #1660D9;
+      --color-icon-warning:   #FFD300;
+
+      --radius-2xl: 16px; --radius-lg: 8px; --radius-md: 6px; --radius-sm: 4px; --radius-round: 999px;
+      --shadow-sm: 0 0 4px 0 rgba(27, 32, 38, 0.08);
+      --shadow-lg: 0 1px 2px 0 rgba(0,0,0,0.30), 0 2px 6px 2px rgba(0,0,0,0.15);
+
+      --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+      --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-12: 48px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      font-size: 16px; line-height: 24px;
+    }
+
+    /* ───── Topbar ───── */
+    .topbar { display: flex; align-items: center; gap: var(--space-4); padding: 12px var(--space-6); background: var(--color-background-brand); color: var(--color-text-inverted); }
+    .topbar__logo { font-size: 14px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+    .topbar__nav { display: flex; gap: var(--space-1); margin-left: var(--space-6); }
+    .topbar__nav a { color: var(--color-text-inverted); text-decoration: none; font-size: 14px; font-weight: 500; padding: 6px var(--space-3); border-radius: var(--radius-md); opacity: 0.7; }
+    .topbar__nav a.is-active { opacity: 1; background: rgba(255, 255, 255, 0.08); }
+    .topbar__nav a:hover { opacity: 1; }
+    .topbar__spacer { flex: 1; }
+    .topbar__user { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 999px; background: var(--color-surface-interactive); color: var(--color-text-inverted); font-size: 12px; font-weight: 600; }
+
+    /* ───── Page layout: sidebar + main ───── */
+    .layout { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-6); max-width: 1440px; margin: 0 auto; padding: var(--space-6); align-items: start; }
+
+    /* ───── Sidebar (tree-view container) ───── */
+    .sidebar {
+      background: var(--color-surface-default);
+      border-radius: var(--radius-2xl);
+      box-shadow: var(--shadow-sm);
+      padding: var(--space-3) 4px;
+      position: sticky; top: var(--space-6);
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+    }
+    .sidebar__title {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      padding: var(--space-2) var(--space-4) var(--space-2);
+      margin: 0;
+    }
+
+    /* ───── Tree view (tree-view.md) ───── */
+    .tree-view { display: flex; flex-direction: column; width: 100%; }
+    .tree-item { display: flex; align-items: center; height: 40px; padding-right: 12px; border-radius: var(--radius-sm); cursor: pointer; background: transparent; transition: background-color 80ms; width: 100%; box-sizing: border-box; border: 0; font-family: inherit; text-align: left; }
+    .tree-item--leaf { padding-left: 24px; }
+    .tree-item:hover { background: var(--color-surface-hover); }
+    .tree-item__chevron { flex-shrink: 0; width: 24px; height: 24px; padding: 2px; display: flex; align-items: center; justify-content: center; color: var(--color-icon-primary); border-radius: var(--radius-md); }
+    .tree-item__chevron svg { width: 20px; height: 20px; display: block; }
+    .tree-item__title { flex: 1 1 0; min-width: 0; font-size: 14px; font-weight: 400; line-height: 20px; letter-spacing: 0.25px; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tree-item__count { flex-shrink: 0; font-size: 12px; color: var(--color-text-secondary); margin-left: 8px; font-variant-numeric: tabular-nums; }
+    .tree-item--selected .tree-item__title { font-weight: 600; color: var(--color-text-info-default); line-height: 1; letter-spacing: 0; }
+
+    /* ───── Main column ───── */
+    .main { min-width: 0; }
+    .page-header { display: flex; align-items: end; justify-content: space-between; gap: var(--space-6); margin-bottom: var(--space-5); }
+    .page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.01em; line-height: 1; margin: 0; }
+    .page-subtitle { font-size: 14px; line-height: 20px; color: var(--color-text-secondary); margin: var(--space-2) 0 0; }
+
+    /* ───── Callout (info) ───── */
+    .callout { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--color-surface-info-softer); border: 1px solid var(--color-border-info); border-radius: var(--radius-lg); margin-bottom: var(--space-5); }
+    .callout__icon { flex-shrink: 0; width: 20px; height: 20px; color: var(--color-icon-info); }
+    .callout__icon svg { width: 20px; height: 20px; display: block; }
+    .callout__body { flex: 1; font-size: 14px; line-height: 20px; color: var(--color-text-primary); }
+
+    /* ───── Table card ───── */
+    .table-card { background: var(--color-surface-default); border-radius: var(--radius-2xl); box-shadow: var(--shadow-sm); overflow: visible; }
+    .table-card__header { padding: var(--space-5) var(--space-5); border-bottom: 1px solid var(--color-border-tertiary); display: flex; flex-direction: column; gap: var(--space-3); }
+    .table-card__title-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+    .table-card__title { font-size: 16px; font-weight: 600; margin: 0; display: inline-flex; align-items: center; gap: 8px; }
+    .table-card__title-meta { font-size: 13px; color: var(--color-text-secondary); font-weight: 400; }
+    .table-card__actions { display: flex; gap: var(--space-2); align-items: center; }
+    .table-card__filters { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+    .table-card__inner { overflow: hidden; border-bottom-left-radius: var(--radius-2xl); border-bottom-right-radius: var(--radius-2xl); }
+
+    /* ───── Search ───── */
+    .search { position: relative; display: flex; align-items: center; gap: var(--space-2); height: 36px; padding: 0 var(--space-3); background: var(--color-surface-formcomp); border: 1px solid var(--color-border-secondary); border-radius: var(--radius-round); box-sizing: border-box; transition: border-color 80ms; flex: 1; min-width: 240px; max-width: 380px; }
+    .search:focus-within { border: 2px solid var(--color-border-interactive); padding: 0 11px; }
+    .search__icon { flex-shrink: 0; width: 18px; height: 18px; color: var(--color-icon-primary); }
+    .search__icon svg { width: 18px; height: 18px; display: block; }
+    .search__input { flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; font-family: inherit; font-size: 14px; line-height: 20px; color: var(--color-text-primary); padding: 0; }
+    .search__input::placeholder { color: var(--color-text-secondary); }
+    .search__input::-webkit-search-cancel-button { display: none; appearance: none; -webkit-appearance: none; }
+
+    /* ───── Chips ───── */
+    .chip-group { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; height: 28px; background: var(--color-surface-default); border: 1px solid var(--color-border-secondary); border-radius: var(--radius-round); font-size: 13px; font-weight: 500; color: var(--color-text-primary); cursor: pointer; transition: background 80ms; }
+    .chip:hover { background: var(--color-surface-hover); }
+    .chip--active { background: var(--color-surface-interactive); border-color: var(--color-surface-interactive); color: var(--color-text-inverted); }
+    .chip--active:hover { background: var(--color-surface-interactive-hover); border-color: var(--color-surface-interactive-hover); }
+
+    /* ───── Dropdown trigger (compact) ───── */
+    .dd-trigger { display: inline-flex; align-items: center; gap: var(--space-2); height: 36px; padding: 0 var(--space-3); background: var(--color-surface-formcomp); border: 1px solid var(--color-border-secondary); border-radius: var(--radius-round); font-family: inherit; font-size: 13px; font-weight: 500; color: var(--color-text-primary); cursor: pointer; }
+    .dd-trigger svg { width: 16px; height: 16px; }
+    .dd-trigger__label-muted { color: var(--color-text-secondary); font-weight: 400; }
+
+    /* ───── Icon button (filter / refresh) — secondary style ───── */
+    .icon-btn { display: inline-flex; align-items: center; gap: var(--space-2); height: 36px; padding: 0 var(--space-3); background: var(--color-surface-default); border: 1px solid var(--color-border-secondary); border-radius: var(--radius-lg); color: var(--color-text-primary); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 80ms; }
+    .icon-btn:hover { background: var(--color-surface-hover); }
+    .icon-btn svg { width: 16px; height: 16px; display: block; color: var(--color-icon-primary); }
+
+    /* ───── Circular indeterminate (progress.md) — sits beside Refresh when active ───── */
+    .progress-circular { position: relative; width: 24px; height: 24px; display: inline-block; vertical-align: middle; flex-shrink: 0; }
+    .progress-circular__svg { width: 24px; height: 24px; display: block; }
+    .progress-circular__track { fill: none; stroke: var(--color-surface-neutral-subdued); stroke-width: 2; }
+    .progress-circular__arc { fill: none; stroke: var(--color-icon-primary); stroke-width: 2; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; animation: progress-spin 1.4s linear infinite; }
+    @keyframes progress-spin { 0% { transform: rotate(-90deg); } 100% { transform: rotate(270deg); } }
+
+    /* ───── Toggle (toggle.md, compact, with inline label) ───── */
+    .toggle-row { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-primary); cursor: pointer; user-select: none; }
+    .toggle-track { position: relative; width: 32px; height: 18px; box-sizing: border-box; background: var(--color-surface-default); border: 1px solid var(--color-border-primary); border-radius: var(--radius-round); flex-shrink: 0; transition: background-color 80ms, border-color 80ms; }
+    .toggle-track--on { background: var(--color-surface-interactive); border-color: transparent; }
+    .toggle-track__knob { position: absolute; background: var(--color-surface-interactive); border-radius: 999px; width: 8px; height: 8px; left: 4px; top: 4px; transition: all 150ms; }
+    .toggle-track--on .toggle-track__knob { background: var(--color-surface-default); width: 14px; height: 14px; left: auto; right: 2px; top: 50%; transform: translateY(-50%); }
+
+    /* ───── Tooltip ───── */
+    .tt-trigger { position: relative; display: inline-flex; }
+    .tt { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 4px); z-index: 50; pointer-events: none; display: flex; flex-direction: column; align-items: center; opacity: 0; transition: opacity 120ms 500ms; }
+    .tt-trigger:hover .tt, .tt-trigger:focus-within .tt { opacity: 1; transition-delay: 500ms; }
+    .tt__label { background: var(--color-surface-interactive); color: var(--color-text-inverted); font-size: 12px; line-height: 16px; padding: 4px 8px; border-radius: 0; min-width: 120px; max-width: 320px; text-align: center; white-space: normal; }
+    .tt__tip { width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid var(--color-surface-interactive); }
+
+    /* ───── Table ───── */
+    table.results { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .results thead th { text-align: left; padding: 10px var(--space-5); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-secondary); background: var(--color-surface-neutral-softer); border-bottom: 1px solid var(--color-border-tertiary); white-space: nowrap; }
+    .results tbody td { padding: 10px var(--space-5); border-bottom: 1px solid var(--color-border-tertiary); vertical-align: middle; line-height: 20px; }
+    .results tbody tr:last-child td { border-bottom: 0; }
+    .results tbody tr:hover { background: var(--color-surface-hover); }
+
+    .ts { color: var(--color-text-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .barcode { font-family: 'JetBrains Mono', Menlo, Consolas, monospace; font-size: 13px; color: var(--color-text-primary); white-space: nowrap; }
+    .product { color: var(--color-text-primary); }
+    .location { color: var(--color-text-secondary); white-space: nowrap; }
+    .actions-cell { width: 40px; text-align: right; }
+
+    /* ───── Badge ───── */
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: var(--radius-round); font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: 0.25px; white-space: nowrap; cursor: default; }
+    .badge::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex-shrink: 0; }
+    .badge--success { background: var(--color-surface-success-softer); color: var(--color-text-positive); }
+    .badge--warning { background: var(--color-surface-warning-softer); color: var(--color-text-warning); cursor: help; }
+    .badge--failed { background: var(--color-surface-danger-softer); color: var(--color-text-danger); }
+    .badge--pending { background: var(--color-surface-neutral-soft); color: var(--color-text-secondary); }
+
+    /* ───── Icon-only kebab + menu ───── */
+    .icon-btn-bare { width: 32px; height: 32px; padding: 4px; background: transparent; border: 0; border-radius: var(--radius-md); color: var(--color-icon-primary); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .icon-btn-bare:hover { background: var(--color-surface-hover); }
+    .icon-btn-bare svg { width: 20px; height: 20px; display: block; }
+
+    .menu-wrap { position: relative; display: inline-block; }
+    .menu { position: absolute; top: 100%; right: 0; margin-top: 4px; min-width: 200px; background: var(--color-surface-default); border-radius: var(--radius-sm); box-shadow: var(--shadow-lg); padding: 8px 0; z-index: 40; display: none; }
+    .menu-wrap:hover .menu { display: flex; flex-direction: column; }
+    .menu-item { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; background: transparent; border: 0; cursor: pointer; font-family: inherit; font-size: 16px; line-height: 24px; letter-spacing: 0.25px; color: var(--color-text-primary); text-align: left; transition: background 80ms; white-space: nowrap; }
+    .menu-item:hover { background: var(--color-surface-hover); }
+    .menu-item--danger { color: var(--color-text-danger); }
+    .menu-divider { height: 1px; background: var(--color-border-tertiary); margin: 4px 0; }
+
+    /* ───── Pagination ───── */
+    .pagination { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-5); border-top: 1px solid var(--color-border-tertiary); font-size: 13px; color: var(--color-text-secondary); }
+    .pagination__controls { display: flex; gap: var(--space-1); }
+    .pagination__btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: transparent; border: 0; border-radius: var(--radius-md); color: var(--color-text-primary); cursor: pointer; font-family: inherit; font-size: 13px; }
+    .pagination__btn:hover { background: var(--color-surface-hover); }
+    .pagination__btn.is-active { background: var(--color-surface-pressed); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <!-- ───── Top bar ───── -->
+  <div class="topbar">
+    <span class="topbar__logo">Scandit</span>
+    <nav class="topbar__nav">
+      <a href="#">Dashboard</a>
+      <a href="#" class="is-active">Scan results</a>
+      <a href="#">Licenses</a>
+      <a href="#">Team</a>
+      <a href="#">Settings</a>
+    </nav>
+    <span class="topbar__spacer"></span>
+    <span class="topbar__user" aria-hidden="true">IK</span>
+  </div>
+
+  <div class="layout">
+
+    <!-- ─────────────────────────────────────────────────────────
+         SIDEBAR — tree-view of sessions → devices (per tree-view.md)
+         "Acme · Dec 12 14:32" / "Device 4823" is the currently-selected leaf
+         ───────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+      <h3 class="sidebar__title">Sessions</h3>
+      <div class="tree-view" role="tree">
+
+        <!-- Expanded session 1 -->
+        <button class="tree-item" type="button" aria-expanded="true" style="padding-left: 0;">
+          <span class="tree-item__chevron"><svg viewBox="0 0 24 24" fill="none"><path d="M11.475 14.475L7.85001 10.85C7.80001 10.8 7.76251 10.7458 7.73751 10.6875C7.71251 10.6292 7.70001 10.5667 7.70001 10.5C7.70001 10.3667 7.74585 10.25 7.83751 10.15C7.92918 10.05 8.05001 10 8.20001 10H15.8C15.95 10 16.0708 10.05 16.1625 10.15C16.2542 10.25 16.3 10.3667 16.3 10.5C16.3 10.5333 16.25 10.65 16.15 10.85L12.525 14.475C12.4417 14.5583 12.3583 14.6167 12.275 14.65C12.1917 14.6833 12.1 14.7 12 14.7C11.9 14.7 11.8083 14.6833 11.725 14.65C11.6417 14.6167 11.5583 14.5583 11.475 14.475Z" fill="currentColor"/></svg></span>
+          <span class="tree-item__title">Acme · Dec 12, 14:32</span>
+          <span class="tree-item__count">412</span>
+        </button>
+        <!-- Selected leaf (text-only treatment, no surface tint) -->
+        <div class="tree-item tree-item--leaf tree-item--selected" style="padding-left: 24px;" aria-selected="true">
+          <span class="tree-item__title">Device 4823</span>
+          <span class="tree-item__count">198</span>
+        </div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 24px;">
+          <span class="tree-item__title">Device 5731</span>
+          <span class="tree-item__count">104</span>
+        </div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 24px;">
+          <span class="tree-item__title">Device 6092</span>
+          <span class="tree-item__count">87</span>
+        </div>
+        <div class="tree-item tree-item--leaf" style="padding-left: 24px;">
+          <span class="tree-item__title">External (web)</span>
+          <span class="tree-item__count">23</span>
+        </div>
+
+        <!-- Collapsed session 2 -->
+        <button class="tree-item" type="button" aria-expanded="false" style="padding-left: 0;">
+          <span class="tree-item__chevron"><svg viewBox="0 0 24 24" fill="none"><path d="M10.5 16.3C10.367 16.3 10.25 16.2542 10.15 16.1625C10.05 16.0708 10 15.95 10 15.8V8.20001C10 8.05001 10.05 7.92918 10.15 7.83751C10.25 7.74585 10.367 7.70001 10.5 7.70001C10.533 7.70001 10.65 7.75001 10.85 7.85001L14.475 11.475C14.558 11.5583 14.617 11.6417 14.65 11.725C14.683 11.8083 14.7 11.9 14.7 12C14.7 12.1 14.683 12.1917 14.65 12.275C14.617 12.3583 14.558 12.4417 14.475 12.525L10.85 16.15C10.8 16.2 10.746 16.2375 10.688 16.2625C10.629 16.2875 10.567 16.3 10.5 16.3Z" fill="currentColor"/></svg></span>
+          <span class="tree-item__title">Acme · Dec 12, 10:08</span>
+          <span class="tree-item__count">238</span>
+        </button>
+
+        <!-- Collapsed session 3 -->
+        <button class="tree-item" type="button" aria-expanded="false" style="padding-left: 0;">
+          <span class="tree-item__chevron"><svg viewBox="0 0 24 24" fill="none"><path d="M10.5 16.3C10.367 16.3 10.25 16.2542 10.15 16.1625C10.05 16.0708 10 15.95 10 15.8V8.20001C10 8.05001 10.05 7.92918 10.15 7.83751C10.25 7.74585 10.367 7.70001 10.5 7.70001C10.533 7.70001 10.65 7.75001 10.85 7.85001L14.475 11.475C14.558 11.5583 14.617 11.6417 14.65 11.725C14.683 11.8083 14.7 11.9 14.7 12C14.7 12.1 14.683 12.1917 14.65 12.275C14.617 12.3583 14.558 12.4417 14.475 12.525L10.85 16.15C10.8 16.2 10.746 16.2375 10.688 16.2625C10.629 16.2875 10.567 16.3 10.5 16.3Z" fill="currentColor"/></svg></span>
+          <span class="tree-item__title">Logistics · Dec 11</span>
+          <span class="tree-item__count">1,847</span>
+        </button>
+
+        <!-- Collapsed session 4 -->
+        <button class="tree-item" type="button" aria-expanded="false" style="padding-left: 0;">
+          <span class="tree-item__chevron"><svg viewBox="0 0 24 24" fill="none"><path d="M10.5 16.3C10.367 16.3 10.25 16.2542 10.15 16.1625C10.05 16.0708 10 15.95 10 15.8V8.20001C10 8.05001 10.05 7.92918 10.15 7.83751C10.25 7.74585 10.367 7.70001 10.5 7.70001C10.533 7.70001 10.65 7.75001 10.85 7.85001L14.475 11.475C14.558 11.5583 14.617 11.6417 14.65 11.725C14.683 11.8083 14.7 11.9 14.7 12C14.7 12.1 14.683 12.1917 14.65 12.275C14.617 12.3583 14.558 12.4417 14.475 12.525L10.85 16.15C10.8 16.2 10.746 16.2375 10.688 16.2625C10.629 16.2875 10.567 16.3 10.5 16.3Z" fill="currentColor"/></svg></span>
+          <span class="tree-item__title">Audit · Dec 10</span>
+          <span class="tree-item__count">512</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ─────────────────────────────────────────────────────────
+         MAIN — page header, callout, table card with toolbar
+         ───────────────────────────────────────────────────────── -->
+    <main class="main">
+
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">Scan results</h1>
+          <p class="page-subtitle">Acme · Dec 12, 14:32 · Device 4823</p>
+        </div>
+      </header>
+
+      <!-- Info callout (lightbulb) -->
+      <div class="callout" role="status">
+        <span class="callout__icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M10 18C9.45 18 8.97917 17.8042 8.5875 17.4125C8.19583 17.0208 8 16.55 8 16V14.75C7.05 14.1 6.3125 13.2667 5.7875 12.25C5.2625 11.2333 5 10.15 5 9C5 7.05 5.67917 5.39583 7.0375 4.0375C8.39583 2.67917 10.05 2 12 2C13.95 2 15.6042 2.67917 16.9625 4.0375C18.3208 5.39583 19 7.05 19 9C19 10.15 18.7375 11.2292 18.2125 12.2375C17.6875 13.2458 16.95 14.0833 16 14.75V16C16 16.55 15.8042 17.0208 15.4125 17.4125C15.0208 17.8042 14.55 18 14 18H10ZM10 16H14V13.7L14.85 13.1C15.5333 12.6333 16.0625 12.0375 16.4375 11.3125C16.8125 10.5875 17 9.81667 17 9C17 7.61667 16.5125 6.4375 15.5375 5.4625C14.5625 4.4875 13.3833 4 12 4C10.6167 4 9.4375 4.4875 8.4625 5.4625C7.4875 6.4375 7 7.61667 7 9C7 9.81667 7.1875 10.5875 7.5625 11.3125C7.9375 12.0375 8.46667 12.6333 9.15 13.1L10 13.7V16ZM10 22C9.71667 22 9.47917 21.9042 9.2875 21.7125C9.09583 21.5208 9 21.2833 9 21V20H15V21C15 21.2833 14.9042 21.5208 14.7125 21.7125C14.5208 21.9042 14.2833 22 14 22H10Z" fill="currentColor"/></svg>
+        </span>
+        <div class="callout__body">Showing results from the last 24 hours.</div>
+      </div>
+
+      <!-- Table card with rich toolbar -->
+      <section class="table-card" aria-label="Scan results">
+        <header class="table-card__header">
+
+          <div class="table-card__title-row">
+            <h2 class="table-card__title">
+              Recent scans
+              <span class="table-card__title-meta">· 198 results · 9 shown</span>
+            </h2>
+
+            <div class="table-card__actions">
+              <!-- Indeterminate spinner: visible while auto-refresh is fetching -->
+              <span class="tt-trigger" aria-label="Auto-refresh in progress">
+                <div class="progress-circular" role="status" aria-label="Refreshing">
+                  <svg class="progress-circular__svg" viewBox="0 0 24 24">
+                    <circle class="progress-circular__track" cx="12" cy="12" r="9"/>
+                    <circle class="progress-circular__arc"   cx="12" cy="12" r="9" stroke-dasharray="56.55" stroke-dashoffset="42.41"/>
+                  </svg>
+                </div>
+                <span class="tt" role="tooltip"><span class="tt__label">Auto-refreshing every 30s</span><span class="tt__tip"></span></span>
+              </span>
+
+              <!-- Auto-refresh toggle -->
+              <label class="toggle-row">
+                <span>Auto-refresh</span>
+                <span class="toggle-track toggle-track--on" role="switch" aria-checked="true"><span class="toggle-track__knob"></span></span>
+              </label>
+
+              <button class="icon-btn" type="button">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M11 18C10.7167 18 10.4792 17.9042 10.2875 17.7125C10.0958 17.5208 10 17.2833 10 17C10 16.7167 10.0958 16.4792 10.2875 16.2875C10.4792 16.0958 10.7167 16 11 16H13C13.2833 16 13.5208 16.0958 13.7125 16.2875C13.9042 16.4792 14 16.7167 14 17C14 17.2833 13.9042 17.5208 13.7125 17.7125C13.5208 17.9042 13.2833 18 13 18H11ZM7 13C6.71667 13 6.47917 12.9042 6.2875 12.7125C6.09583 12.5208 6 12.2833 6 12C6 11.7167 6.09583 11.4792 6.2875 11.2875C6.47917 11.0958 6.71667 11 7 11H17C17.2833 11 17.5208 11.0958 17.7125 11.2875C17.9042 11.4792 18 11.7167 18 12C18 12.2833 17.9042 12.5208 17.7125 12.7125C17.5208 12.9042 17.2833 13 17 13H7ZM4 8C3.71667 8 3.47917 7.90417 3.2875 7.7125C3.09583 7.52083 3 7.28333 3 7C3 6.71667 3.09583 6.47917 3.2875 6.2875C3.47917 6.09583 3.71667 6 4 6H20C20.2833 6 20.5208 6.09583 20.7125 6.2875C20.9042 6.47917 21 6.71667 21 7C21 7.28333 20.9042 7.52083 20.7125 7.7125C20.5208 7.90417 20.2833 8 20 8H4Z" fill="currentColor"/></svg>
+                Filter
+              </button>
+              <button class="icon-btn" type="button">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M8 16C5.76667 16 3.875 15.225 2.325 13.675C0.775 12.125 0 10.2333 0 8C0 5.76667 0.775 3.875 2.325 2.325C3.875 0.775 5.76667 0 8 0C9.15 0 10.25 0.2375 11.3 0.7125C12.35 1.1875 13.25 1.86667 14 2.75V1C14 0.716667 14.0958 0.479167 14.2875 0.2875C14.4792 0.0958333 14.7167 0 15 0C15.2833 0 15.5208 0.0958333 15.7125 0.2875C15.9042 0.479167 16 0.716667 16 1V6C16 6.28333 15.9042 6.52083 15.7125 6.7125C15.5208 6.90417 15.2833 7 15 7H10C9.71667 7 9.47917 6.90417 9.2875 6.7125C9.09583 6.52083 9 6.28333 9 6C9 5.71667 9.09583 5.47917 9.2875 5.2875C9.47917 5.09583 9.71667 5 10 5H13.2C12.6667 4.06667 11.9375 3.33333 11.0125 2.8C10.0875 2.26667 9.08333 2 8 2C6.33333 2 4.91667 2.58333 3.75 3.75C2.58333 4.91667 2 6.33333 2 8C2 9.66667 2.58333 11.0833 3.75 12.25C4.91667 13.4167 6.33333 14 8 14C9.13333 14 10.1708 13.7125 11.1125 13.1375C12.0542 12.5625 12.7833 11.7917 13.3 10.825C13.4333 10.5917 13.6208 10.4292 13.8625 10.3375C14.1042 10.2458 14.35 10.2417 14.6 10.325C14.8667 10.4083 15.0583 10.5833 15.175 10.85C15.2917 11.1167 15.2833 11.3667 15.15 11.6C14.4667 12.9333 13.4917 14 12.225 14.8C10.9583 15.6 9.55 16 8 16Z" fill="currentColor"/></svg>
+                Refresh
+              </button>
+            </div>
+          </div>
+
+          <div class="table-card__filters">
+            <!-- Search -->
+            <div class="search">
+              <span class="search__icon">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M9.5 16C7.68333 16 6.14583 15.3708 4.8875 14.1125C3.62917 12.8542 3 11.3167 3 9.5C3 7.68333 3.62917 6.14583 4.8875 4.8875C6.14583 3.62917 7.68333 3 9.5 3C11.3167 3 12.8542 3.62917 14.1125 4.8875C15.3708 6.14583 16 7.68333 16 9.5C16 10.2333 15.8833 10.925 15.65 11.575C15.4167 12.225 15.1 12.8 14.7 13.3L20.3 18.9C20.4833 19.0833 20.575 19.3167 20.575 19.6C20.575 19.8833 20.4833 20.1167 20.3 20.3C20.1167 20.4833 19.8833 20.575 19.6 20.575C19.3167 20.575 19.0833 20.4833 18.9 20.3L13.3 14.7C12.8 15.1 12.225 15.4167 11.575 15.65C10.925 15.8833 10.2333 16 9.5 16ZM9.5 14C10.75 14 11.8125 13.5625 12.6875 12.6875C13.5625 11.8125 14 10.75 14 9.5C14 8.25 13.5625 7.1875 12.6875 6.3125C11.8125 5.4375 10.75 5 9.5 5C8.25 5 7.1875 5.4375 6.3125 6.3125C5.4375 7.1875 5 8.25 5 9.5C5 10.75 5.4375 11.8125 6.3125 12.6875C7.1875 13.5625 8.25 14 9.5 14Z" fill="currentColor"/></svg>
+              </span>
+              <input type="search" class="search__input" placeholder="Search by barcode, product, or location…">
+            </div>
+
+            <!-- Status filter chips -->
+            <div class="chip-group" role="group" aria-label="Status">
+              <button class="chip chip--active" type="button">All <span style="opacity: 0.7;">· 198</span></button>
+              <button class="chip" type="button">Success <span style="color: var(--color-text-secondary);">· 162</span></button>
+              <button class="chip" type="button">Warning <span style="color: var(--color-text-secondary);">· 19</span></button>
+              <button class="chip" type="button">Failed <span style="color: var(--color-text-secondary);">· 14</span></button>
+              <button class="chip" type="button">Pending <span style="color: var(--color-text-secondary);">· 3</span></button>
+            </div>
+
+            <!-- Sort -->
+            <span class="dd-trigger" role="button" tabindex="0" style="margin-left: auto;">
+              <span class="dd-trigger__label-muted">Sort:</span>
+              <span>Most recent</span>
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 14.975C11.8667 14.975 11.7417 14.9542 11.625 14.9125C11.5083 14.8708 11.4 14.8 11.3 14.7L6.7 10.1C6.51667 9.91667 6.425 9.68333 6.425 9.4C6.425 9.11667 6.51667 8.88333 6.7 8.7C6.88333 8.51667 7.11667 8.425 7.4 8.425C7.68333 8.425 7.91667 8.51667 8.1 8.7L12 12.6L15.9 8.7C16.0833 8.51667 16.3167 8.425 16.6 8.425C16.8833 8.425 17.1167 8.51667 17.3 8.7C17.4833 8.88333 17.575 9.11667 17.575 9.4C17.575 9.68333 17.4833 9.91667 17.3 10.1L12.7 14.7C12.6 14.8 12.4917 14.8708 12.375 14.9125C12.2583 14.9542 12.1333 14.975 12 14.975Z" fill="currentColor"/></svg>
+            </span>
+          </div>
+        </header>
+
+        <div class="table-card__inner">
+          <table class="results">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Barcode</th>
+                <th>Product</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th class="actions-cell"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="ts">14:32:08</td>
+                <td><span class="barcode">5012345678900</span></td>
+                <td class="product">Acme Light Bulb · 60W LED</td>
+                <td class="location">Warehouse A · Aisle 12</td>
+                <td><span class="badge badge--success">Success</span></td>
+                <td class="actions-cell"><div class="menu-wrap"><button class="icon-btn-bare" type="button" aria-label="Row actions"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg></button><div class="menu"><button class="menu-item">View details</button><button class="menu-item">Copy barcode</button><button class="menu-item">Mark as resolved</button><div class="menu-divider"></div><button class="menu-item menu-item--danger">Report issue</button></div></div></td>
+              </tr>
+              <tr>
+                <td class="ts">14:31:55</td>
+                <td><span class="barcode">7290017531915</span></td>
+                <td class="product">Yamaha Wireless Headset</td>
+                <td class="location">Store 042 · Shelf B</td>
+                <td><span class="badge badge--success">Success</span></td>
+                <td class="actions-cell"><div class="menu-wrap"><button class="icon-btn-bare" type="button" aria-label="Row actions"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg></button></div></td>
+              </tr>
+              <tr>
+                <td class="ts">14:31:42</td>
+                <td><span class="barcode">4006381333931</span></td>
+                <td class="product">Faber-Castell Pencil Set</td>
+                <td class="location">Store 102 · Aisle 4</td>
+                <td>
+                  <!-- Tooltip on warning (confidence value) -->
+                  <span class="tt-trigger">
+                    <span class="badge badge--warning" tabindex="0">Warning</span>
+                    <span class="tt" role="tooltip"><span class="tt__label">Low confidence: 0.72 · partial match on EAN check digit</span><span class="tt__tip"></span></span>
+                  </span>
+                </td>
+                <td class="actions-cell"><div class="menu-wrap"><button class="icon-btn-bare" type="button" aria-label="Row actions"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg></button></div></td>
+              </tr>
+              <tr>
+                <td class="ts">14:31:21</td>
+                <td><span class="barcode">8901058831801</span></td>
+                <td class="product">Britannia Marie Gold (200g)</td>
+                <td class="location">Warehouse C · Aisle 03</td>
+                <td><span class="badge badge--success">Success</span></td>
+                <td class="actions-cell"><div class="menu-wrap"><button class="icon-btn-bare" type="button" aria-label="Row actions"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg></button></div></td>
+              </tr>
+              <tr>
+                <td class="ts">14:31:05</td>
+                <td><span class="barcode">— unreadable</span></td>
+                <td class="product"><em style="color: var(--color-text-secondary);">unmatched</em></td>
+                <td class="location">Store 042 · Shelf B</td>
+                <td><span class="badge badge--failed">Failed</span></td>
+                <td class="actions-cell"><div class="menu-wrap"><button class="icon-btn-bare" type="button" aria-label="Row actions"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg></button></div></td>
+              </tr>
+              <tr>
+                <td class="ts">14:30:58</td>
+                <td><span class="barcode">3017620422003</span></td>
+                <td class="product">Nutella (350g)</td>
+                <td class="location">Store 011 · Aisle 8</td>
+                <td><span class="badge badge--success">Success</span></td>
+                <td class="actions-cell"><div class="menu-wrap"><button class="icon-btn-bare" type="button" aria-label="Row actions"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg></button></div></td>
+              </tr>
+              <tr>
+                <td class="ts">14:30:44</td>
+                <td><span class="barcode">5060391620732</span></td>
+                <td class="product">Brewdog Punk IPA (330ml)</td>
+                <td class="location">Store 014 · Cooler 2</td>
+                <td><span class="badge badge--pending">Pending</span></td>
+                <td class="actions-cell"><div class="menu-wrap"><button class="icon-btn-bare" type="button" aria-label="Row actions"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg></button></div></td>
+              </tr>
+              <tr>
+                <td class="ts">14:30:32</td>
+                <td><span class="barcode">0123456789012</span></td>
+                <td class="product">Acme Light Bulb · 60W LED</td>
+                <td class="location">Warehouse A · Aisle 12</td>
+                <td>
+                  <span class="tt-trigger">
+                    <span class="badge badge--warning" tabindex="0">Warning</span>
+                    <span class="tt" role="tooltip"><span class="tt__label">Low confidence: 0.65 · duplicate scan within 12s</span><span class="tt__tip"></span></span>
+                  </span>
+                </td>
+                <td class="actions-cell"><div class="menu-wrap"><button class="icon-btn-bare" type="button" aria-label="Row actions"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg></button></div></td>
+              </tr>
+              <tr>
+                <td class="ts">14:30:18</td>
+                <td><span class="barcode">8806086006903</span></td>
+                <td class="product">Samsung Galaxy Buds3</td>
+                <td class="location">Store 097 · Cabinet 1</td>
+                <td><span class="badge badge--success">Success</span></td>
+                <td class="actions-cell"><div class="menu-wrap"><button class="icon-btn-bare" type="button" aria-label="Row actions"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg></button></div></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="pagination">
+            <span>Showing 1–9 of 198</span>
+            <div class="pagination__controls">
+              <button class="pagination__btn" type="button" aria-label="Previous">‹</button>
+              <button class="pagination__btn is-active" type="button">1</button>
+              <button class="pagination__btn" type="button">2</button>
+              <button class="pagination__btn" type="button">3</button>
+              <span style="padding: 0 8px;">…</span>
+              <button class="pagination__btn" type="button">22</button>
+              <button class="pagination__btn" type="button" aria-label="Next">›</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+</body>
+</html>

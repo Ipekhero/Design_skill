@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Text Field test — 9 states × 3 sizes × 2 layouts + realistic forms</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    :root {
+      --color-surface-default:           #FFFFFF;
+      --color-surface-formcomp-default:  #F3F5F8;
+      --color-surface-formcomp-hover:    rgba(0, 0, 0, 0.05);
+      --color-surface-formcomp-error:    #FFE8E8;
+      --color-surface-hover:             #F3F5F8;
+      --color-border-secondary:          #C7CFD6;
+      --color-border-tertiary:           #E1E7ED;
+      --color-border-interactive:        #16191C;
+      --color-border-danger:             #D92121;
+      --color-border-danger-light:       #FF9494;
+      --color-border-transparent-25:     rgba(0, 0, 0, 0.25);
+      --color-text-primary:              #16191C;
+      --color-text-secondary:            #525A61;
+      --color-text-disabled:             #ACB6BF;
+      --color-text-danger:               #D92121;
+      --color-icon-primary:              #16191C;
+      --color-icon-disabled:             #ACB6BF;
+
+      --size-cornerradius-xs:    4px;
+      --size-cornerradius-s:     6px;
+      --comp-height-3xl: 56px;
+      --comp-height-2xl: 48px;
+      --comp-height-l:   32px;
+      --spacing-padding-xs:  4px;
+      --spacing-padding-s:   8px;
+      --spacing-padding-m:   12px;
+      --spacing-inline-s:    8px;
+
+      --color-background-secondary-page: #F7F7F7;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 32px; max-width: 800px; line-height: 1.5; }
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+      text-transform: none; letter-spacing: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+    .panel {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 20px 24px 24px;
+      margin-bottom: 16px;
+    }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: 200px 360px;
+      gap: 24px 24px;
+      align-items: start;
+    }
+    .state-grid__label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      padding-top: 28px;
+    }
+
+    .size-stack { display: flex; flex-direction: column; gap: 24px; max-width: 480px; }
+    .size-stack__label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 0 0 8px;
+    }
+
+    .scenarios {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 440px));
+      gap: 32px 40px;
+      align-items: start;
+    }
+    .scenario__label {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 0 0 12px;
+    }
+    .scenario__shell {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .scenario__caption {
+      font-size: 12px; color: var(--color-text-secondary);
+      margin: 10px 0 0; line-height: 1.5;
+    }
+    .form-stack { display: flex; flex-direction: column; gap: 16px; }
+    .submit-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 40px; padding: 0 16px;
+      background: #1047A1; color: #FFFFFF;
+      border: 0; border-radius: 6px;
+      font-family: inherit; font-size: 14px; font-weight: 500;
+      cursor: pointer; align-self: flex-start;
+      margin-top: 8px;
+    }
+
+    /* ═══════════════════════ TEXT FIELD ═══════════════════════ */
+    .text-field {
+      display: flex; flex-direction: column;
+      font-family: inherit;
+      width: 100%;
+    }
+    .text-field--horizontal { flex-direction: row; align-items: center; gap: var(--spacing-padding-s); }
+    .text-field--horizontal > .text-field__label {
+      padding-bottom: 0;
+      flex-shrink: 0;
+      width: 80px;
+    }
+    .text-field--horizontal > .text-field__input-wrap { flex: 1; }
+
+    .text-field__label {
+      display: inline-flex; align-items: center;
+      padding-bottom: var(--spacing-padding-xs);
+      font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: 0.25px;
+      color: var(--color-text-secondary); white-space: nowrap;
+    }
+    .text-field--disabled .text-field__label,
+    .text-field--read-only .text-field__label { color: var(--color-text-secondary); }
+    .text-field--disabled .text-field__label { color: var(--color-text-disabled); }
+    .text-field__mandatory {
+      margin-left: 2px;
+      font-size: 9px; font-weight: 500; line-height: 20px;
+      color: var(--color-text-danger);
+    }
+
+    .text-field__input-wrap {
+      display: flex; align-items: center;
+      padding: 0 var(--spacing-padding-s) 0 var(--spacing-padding-m);
+      height: var(--comp-height-2xl);
+      background: var(--color-surface-formcomp-default);
+      border: 1px solid var(--color-border-secondary);
+      border-radius: var(--size-cornerradius-xs);
+      transition: background-color 80ms, border-color 80ms, padding 80ms;
+      box-sizing: border-box;
+      gap: 0;
+    }
+    .text-field--large .text-field__input-wrap    { height: var(--comp-height-3xl); }
+    .text-field--small .text-field__input-wrap    { height: var(--comp-height-l); }
+
+    /* hover */
+    .text-field__input-wrap:not(.is-selected):not(.is-readonly):not(.is-disabled):not(:focus-within):hover,
+    .text-field__input-wrap.is-hover {
+      background-image: linear-gradient(var(--color-surface-formcomp-hover), var(--color-surface-formcomp-hover));
+    }
+
+    /* selected (focused) */
+    .text-field__input-wrap:focus-within:not(.is-readonly):not(.is-disabled),
+    .text-field__input-wrap.is-selected {
+      border: 2px solid var(--color-border-interactive);
+      padding: 0 7px 0 11px;
+      background-image: none;
+    }
+
+    /* read-only — no border */
+    .text-field__input-wrap.is-readonly {
+      border-color: transparent;
+    }
+
+    /* disabled */
+    .text-field--disabled .text-field__input-wrap,
+    .text-field__input-wrap.is-disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* error */
+    .text-field--error .text-field__input-wrap,
+    .text-field__input-wrap.is-error {
+      background: var(--color-surface-formcomp-error);
+      border-color: var(--color-border-danger-light);
+    }
+    .text-field--error .text-field__input-wrap:focus-within,
+    .text-field--error .text-field__input-wrap.is-selected,
+    .text-field__input-wrap.is-error.is-selected,
+    .text-field__input-wrap.is-error:focus-within {
+      border: 2px solid var(--color-border-danger);
+      padding: 0 7px 0 11px;
+    }
+
+    /* icons + input + buttons */
+    .text-field__icon-leading {
+      flex-shrink: 0;
+      width: 20px; height: 20px;
+      margin-right: var(--spacing-inline-s);
+      color: var(--color-icon-primary);
+      display: block;
+    }
+    .text-field--disabled .text-field__icon-leading,
+    .text-field--read-only .text-field__icon-leading { color: var(--color-icon-primary); }
+
+    .text-field__input {
+      flex: 1 1 0; min-width: 0;
+      background: transparent; border: 0; outline: 0;
+      font-family: inherit;
+      font-size: 16px; font-weight: 400; line-height: 24px; letter-spacing: 0.25px;
+      color: var(--color-text-primary);
+      padding: 0;
+    }
+    .text-field__input::placeholder { color: var(--color-text-secondary); }
+    .text-field__input:disabled { cursor: not-allowed; color: var(--color-text-primary); }
+    .text-field__input:read-only { cursor: default; }
+
+    .text-field--small .text-field__input {
+      font-size: 14px; line-height: 20px;
+    }
+
+    .text-field__btn {
+      flex-shrink: 0;
+      width: 32px; height: 32px;
+      padding: 4px;
+      background: transparent;
+      border: 0;
+      border-radius: var(--size-cornerradius-s);
+      color: var(--color-icon-primary);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .text-field__btn:hover { background: var(--color-surface-hover); }
+    .text-field__btn svg   { width: 24px; height: 24px; display: block; }
+
+    .text-field--small .text-field__btn      { width: 24px; height: 24px; padding: 2px; }
+    .text-field--small .text-field__btn svg  { width: 20px; height: 20px; }
+
+    .text-field__divider {
+      flex-shrink: 0;
+      width: 1px;
+      height: 24px;
+      background: var(--color-border-transparent-25);
+      margin: 0 4px;
+    }
+
+    .text-field__helper {
+      padding-top: var(--spacing-padding-xs);
+      font-size: 12px; line-height: 16px; letter-spacing: 0.25px;
+      color: var(--color-text-primary); margin: 0;
+    }
+    .text-field--error .text-field__helper { color: var(--color-text-danger); }
+    .text-field--disabled .text-field__helper { color: var(--color-text-disabled); }
+  </style>
+</head>
+<body>
+  <!-- ───── Icon symbol defs (verbatim from assets/icons/) ───── -->
+  <svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M12 13.4L7.1 18.3C6.91667 18.4833 6.68333 18.575 6.4 18.575C6.11667 18.575 5.88333 18.4833 5.7 18.3C5.51667 18.1167 5.425 17.8833 5.425 17.6C5.425 17.3167 5.51667 17.0833 5.7 16.9L10.6 12L5.7 7.1C5.51667 6.91667 5.425 6.68333 5.425 6.4C5.425 6.11667 5.51667 5.88333 5.7 5.7C5.88333 5.51667 6.11667 5.425 6.4 5.425C6.68333 5.425 6.91667 5.51667 7.1 5.7L12 10.6L16.9 5.7C17.0833 5.51667 17.3167 5.425 17.6 5.425C17.8833 5.425 18.1167 5.51667 18.3 5.7C18.4833 5.88333 18.575 6.11667 18.575 6.4C18.575 6.68333 18.4833 6.91667 18.3 7.1L13.4 12L18.3 16.9C18.4833 17.0833 18.575 17.3167 18.575 17.6C18.575 17.8833 18.4833 18.1167 18.3 18.3C18.1167 18.4833 17.8833 18.575 17.6 18.575C17.3167 18.575 17.0833 18.4833 16.9 18.3L12 13.4Z" fill="currentColor"/>
+      </symbol>
+      <symbol id="i-scan" viewBox="0 0 22 18">
+        <path d="M4 18C3.45 18 2.97917 17.8042 2.5875 17.4125C2.19583 17.0208 2 16.55 2 16V13C2 12.7167 2.09583 12.4792 2.2875 12.2875C2.47917 12.0958 2.71667 12 3 12C3.28333 12 3.52083 12.0958 3.7125 12.2875C3.90417 12.4792 4 12.7167 4 13V16H7C7.28333 16 7.52083 16.0958 7.7125 16.2875C7.90417 16.4792 8 16.7167 8 17C8 17.2833 7.90417 17.5208 7.7125 17.7125C7.52083 17.9042 7.28333 18 7 18H4ZM18 18H15C14.7167 18 14.4792 17.9042 14.2875 17.7125C14.0958 17.5208 14 17.2833 14 17C14 16.7167 14.0958 16.4792 14.2875 16.2875C14.4792 16.0958 14.7167 16 15 16H18V13C18 12.7167 18.0958 12.4792 18.2875 12.2875C18.4792 12.0958 18.7167 12 19 12C19.2833 12 19.5208 12.0958 19.7125 12.2875C19.9042 12.4792 20 12.7167 20 13V16C20 16.55 19.8042 17.0208 19.4125 17.4125C19.0208 17.8042 18.55 18 18 18ZM2 5V2C2 1.45 2.19583 0.979167 2.5875 0.5875C2.97917 0.195833 3.45 0 4 0H7C7.28333 0 7.52083 0.0958333 7.7125 0.2875C7.90417 0.479167 8 0.716667 8 1C8 1.28333 7.90417 1.52083 7.7125 1.7125C7.52083 1.90417 7.28333 2 7 2H4V5C4 5.28333 3.90417 5.52083 3.7125 5.7125C3.52083 5.90417 3.28333 6 3 6C2.71667 6 2.47917 5.90417 2.2875 5.7125C2.09583 5.52083 2 5.28333 2 5ZM18 5V2H15C14.7167 2 14.4792 1.90417 14.2875 1.7125C14.0958 1.52083 14 1.28333 14 1C14 0.716667 14.0958 0.479167 14.2875 0.2875C14.4792 0.0958333 14.7167 0 15 0H18C18.55 0 19.0208 0.195833 19.4125 0.5875C19.8042 0.979167 20 1.45 20 2V5C20 5.28333 19.9042 5.52083 19.7125 5.7125C19.5208 5.90417 19.2833 6 19 6C18.7167 6 18.4792 5.90417 18.2875 5.7125C18.0958 5.52083 18 5.28333 18 5Z" fill="currentColor"/>
+        <path d="M21 8C21.5523 8 22 8.44772 22 9C22 9.55228 21.5523 10 21 10H1C0.447715 10 0 9.55228 0 9C0 8.44772 0.447715 8 1 8H21Z" fill="currentColor"/>
+      </symbol>
+      <symbol id="i-visibility" viewBox="0 0 21.45 15">
+        <path d="M10.725 12C11.975 12 13.0375 11.5625 13.9125 10.6875C14.7875 9.8125 15.225 8.75 15.225 7.5C15.225 6.25 14.7875 5.1875 13.9125 4.3125C13.0375 3.4375 11.975 3 10.725 3C9.475 3 8.4125 3.4375 7.5375 4.3125C6.6625 5.1875 6.225 6.25 6.225 7.5C6.225 8.75 6.6625 9.8125 7.5375 10.6875C8.4125 11.5625 9.475 12 10.725 12ZM10.725 10.2C9.975 10.2 9.3375 9.9375 8.8125 9.4125C8.2875 8.8875 8.025 8.25 8.025 7.5C8.025 6.75 8.2875 6.1125 8.8125 5.5875C9.3375 5.0625 9.975 4.8 10.725 4.8C11.475 4.8 12.1125 5.0625 12.6375 5.5875C13.1625 6.1125 13.425 6.75 13.425 7.5C13.425 8.25 13.1625 8.8875 12.6375 9.4125C12.1125 9.9375 11.475 10.2 10.725 10.2ZM10.725 15C8.49167 15 6.45417 14.4 4.6125 13.2C2.77083 12 1.31667 10.4167 0.25 8.45C0.166667 8.3 0.104167 8.14583 0.0625 7.9875C0.0208333 7.82917 0 7.66667 0 7.5C0 7.33333 0.0208333 7.17083 0.0625 7.0125C0.104167 6.85417 0.166667 6.7 0.25 6.55C1.31667 4.58333 2.77083 3 4.6125 1.8C6.45417 0.6 8.49167 0 10.725 0C12.9583 0 14.9958 0.6 16.8375 1.8C18.6792 3 20.1333 4.58333 21.2 6.55C21.2833 6.7 21.3458 6.85417 21.3875 7.0125C21.4292 7.17083 21.45 7.33333 21.45 7.5C21.45 7.66667 21.4292 7.82917 21.3875 7.9875C21.3458 8.14583 21.2833 8.3 21.2 8.45C20.1333 10.4167 18.6792 12 16.8375 13.2C14.9958 14.4 12.9583 15 10.725 15ZM10.725 13C12.6083 13 14.3375 12.5042 15.9125 11.5125C17.4875 10.5208 18.6917 9.18333 19.525 7.5C18.6917 5.81667 17.4875 4.47917 15.9125 3.4875C14.3375 2.49583 12.6083 2 10.725 2C8.84167 2 7.1125 2.49583 5.5375 3.4875C3.9625 4.47917 2.75833 5.81667 1.925 7.5C2.75833 9.18333 3.9625 10.5208 5.5375 11.5125C7.1125 12.5042 8.84167 13 10.725 13Z" fill="currentColor"/>
+      </symbol>
+      <symbol id="i-info-circle" viewBox="0 0 24 24">
+        <path d="M12 17C12.2833 17 12.5208 16.9042 12.7125 16.7125C12.9042 16.5208 13 16.2833 13 16V12C13 11.7167 12.9042 11.4792 12.7125 11.2875C12.5208 11.0958 12.2833 11 12 11C11.7167 11 11.4792 11.0958 11.2875 11.2875C11.0958 11.4792 11 11.7167 11 12V16C11 16.2833 11.0958 16.5208 11.2875 16.7125C11.4792 16.9042 11.7167 17 12 17ZM12 9C12.2833 9 12.5208 8.90417 12.7125 8.7125C12.9042 8.52083 13 8.28333 13 8C13 7.71667 12.9042 7.47917 12.7125 7.2875C12.5208 7.09583 12.2833 7 12 7C11.7167 7 11.4792 7.09583 11.2875 7.2875C11.0958 7.47917 11 7.71667 11 8C11 8.28333 11.0958 8.52083 11.2875 8.7125C11.4792 8.90417 11.7167 9 12 9ZM12 22C10.6167 22 9.31667 21.7375 8.1 21.2125C6.88333 20.6875 5.825 19.975 4.925 19.075C4.025 18.175 3.3125 17.1167 2.7875 15.9C2.2625 14.6833 2 13.3833 2 12C2 10.6167 2.2625 9.31667 2.7875 8.1C3.3125 6.88333 4.025 5.825 4.925 4.925C5.825 4.025 6.88333 3.3125 8.1 2.7875C9.31667 2.2625 10.6167 2 12 2C13.3833 2 14.6833 2.2625 15.9 2.7875C17.1167 3.3125 18.175 4.025 19.075 4.925C19.975 5.825 20.6875 6.88333 21.2125 8.1C21.7375 9.31667 22 10.6167 22 12C22 13.3833 21.7375 14.6833 21.2125 15.9C20.6875 17.1167 19.975 18.175 19.075 19.075C18.175 19.975 17.1167 20.6875 15.9 21.2125C14.6833 21.7375 13.3833 22 12 22ZM12 20C14.2333 20 16.125 19.225 17.675 17.675C19.225 16.125 20 14.2333 20 12C20 9.76667 19.225 7.875 17.675 6.325C16.125 4.775 14.2333 4 12 4C9.76667 4 7.875 4.775 6.325 6.325C4.775 7.875 4 9.76667 4 12C4 14.2333 4.775 16.125 6.325 17.675C7.875 19.225 9.76667 20 12 20Z" fill="currentColor"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <h1>Text Field — 9 states × 3 sizes × 2 layouts</h1>
+  <p class="lead">
+    Single-line input with optional label, mandatory asterisk, helper text, leading icon, and trailing icon button.
+    State names mirror Figma verbatim: <code>default</code>, <code>hover</code>, <code>selected</code> (focused with caret + clear button),
+    <code>filled</code>, <code>disabled</code>, <code>read_only</code>, <code>error</code>, <code>error_hover</code>, <code>error_selected</code>.
+    The first field in the state grid is interactive — click into it to see <code>selected</code> match its forced sibling.
+    <strong>Border on focus is near-black (#16191C), NOT brand blue</strong> — same call as <a href="search-test.html">search</a>.
+  </p>
+
+  <!-- ═════════════════ STATES (Regular) ═════════════════ -->
+  <h2>States · size = regular</h2>
+  <div class="panel">
+    <div class="state-grid">
+
+      <div class="state-grid__label">Default (interactive — try focusing)</div>
+      <div class="text-field">
+        <label class="text-field__label">Label<span class="text-field__mandatory">*</span></label>
+        <div class="text-field__input-wrap">
+          <input type="text" class="text-field__input" placeholder="Input">
+          <button type="button" class="text-field__btn" aria-label="Scan"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+        </div>
+        <p class="text-field__helper">Mandatory field</p>
+      </div>
+
+      <div class="state-grid__label">Hover (forced)</div>
+      <div class="text-field">
+        <label class="text-field__label">Label<span class="text-field__mandatory">*</span></label>
+        <div class="text-field__input-wrap is-hover">
+          <input type="text" class="text-field__input" placeholder="Input" tabindex="-1">
+          <button type="button" class="text-field__btn" aria-label="Scan" tabindex="-1"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+        </div>
+        <p class="text-field__helper">Mandatory field</p>
+      </div>
+
+      <div class="state-grid__label">Selected (forced — focused, has value)</div>
+      <div class="text-field">
+        <label class="text-field__label">Label<span class="text-field__mandatory">*</span></label>
+        <div class="text-field__input-wrap is-selected">
+          <input type="text" class="text-field__input" value="Input" tabindex="-1">
+          <button type="button" class="text-field__btn" aria-label="Clear" tabindex="-1"><svg viewBox="0 0 24 24"><use href="#i-close"/></svg></button>
+          <span class="text-field__divider"></span>
+          <button type="button" class="text-field__btn" aria-label="Scan" tabindex="-1"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+        </div>
+        <p class="text-field__helper">Mandatory field</p>
+      </div>
+
+      <div class="state-grid__label">Filled (has value, not focused)</div>
+      <div class="text-field">
+        <label class="text-field__label">Label<span class="text-field__mandatory">*</span></label>
+        <div class="text-field__input-wrap">
+          <input type="text" class="text-field__input" value="Input">
+          <button type="button" class="text-field__btn" aria-label="Clear" tabindex="-1"><svg viewBox="0 0 24 24"><use href="#i-close"/></svg></button>
+          <span class="text-field__divider"></span>
+          <button type="button" class="text-field__btn" aria-label="Scan" tabindex="-1"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+        </div>
+        <p class="text-field__helper">Mandatory field</p>
+      </div>
+
+      <div class="state-grid__label">Disabled</div>
+      <div class="text-field text-field--disabled">
+        <label class="text-field__label">Label<span class="text-field__mandatory">*</span></label>
+        <div class="text-field__input-wrap is-disabled">
+          <input type="text" class="text-field__input" placeholder="Input" disabled>
+          <button type="button" class="text-field__btn" aria-label="Scan" disabled tabindex="-1"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+        </div>
+        <p class="text-field__helper">Mandatory field</p>
+      </div>
+
+      <div class="state-grid__label">Read only</div>
+      <div class="text-field text-field--read-only">
+        <label class="text-field__label">Label</label>
+        <div class="text-field__input-wrap is-readonly">
+          <input type="text" class="text-field__input" value="Input" readonly>
+        </div>
+      </div>
+
+      <div class="state-grid__label">Error</div>
+      <div class="text-field text-field--error">
+        <label class="text-field__label">Label<span class="text-field__mandatory">*</span></label>
+        <div class="text-field__input-wrap">
+          <input type="text" class="text-field__input" value="Input">
+          <button type="button" class="text-field__btn" aria-label="Scan" tabindex="-1"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+        </div>
+        <p class="text-field__helper">Mandatory field</p>
+      </div>
+
+      <div class="state-grid__label">Error · Hover (forced)</div>
+      <div class="text-field text-field--error">
+        <label class="text-field__label">Label<span class="text-field__mandatory">*</span></label>
+        <div class="text-field__input-wrap is-hover">
+          <input type="text" class="text-field__input" value="Input" tabindex="-1">
+          <button type="button" class="text-field__btn" aria-label="Scan" tabindex="-1"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+        </div>
+        <p class="text-field__helper">Mandatory field</p>
+      </div>
+
+      <div class="state-grid__label">Error · Selected (forced)</div>
+      <div class="text-field text-field--error">
+        <label class="text-field__label">Label<span class="text-field__mandatory">*</span></label>
+        <div class="text-field__input-wrap is-selected">
+          <input type="text" class="text-field__input" value="Input" tabindex="-1">
+          <button type="button" class="text-field__btn" aria-label="Clear" tabindex="-1"><svg viewBox="0 0 24 24"><use href="#i-close"/></svg></button>
+          <span class="text-field__divider"></span>
+          <button type="button" class="text-field__btn" aria-label="Scan" tabindex="-1"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+        </div>
+        <p class="text-field__helper">Mandatory field</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════════════════ SIZES ═════════════════ -->
+  <h2>Sizes · default state</h2>
+  <div class="panel">
+    <div class="size-stack">
+      <div>
+        <div class="size-stack__label">Large · 56px input</div>
+        <div class="text-field text-field--large">
+          <label class="text-field__label">Label<span class="text-field__mandatory">*</span></label>
+          <div class="text-field__input-wrap">
+            <input type="text" class="text-field__input" placeholder="Input">
+            <button type="button" class="text-field__btn" aria-label="Scan"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+          </div>
+          <p class="text-field__helper">Mandatory field</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="size-stack__label">Regular · 48px input (default for most forms)</div>
+        <div class="text-field">
+          <label class="text-field__label">Label<span class="text-field__mandatory">*</span></label>
+          <div class="text-field__input-wrap">
+            <input type="text" class="text-field__input" placeholder="Input">
+            <button type="button" class="text-field__btn" aria-label="Scan"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+          </div>
+          <p class="text-field__helper">Mandatory field</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="size-stack__label">Small · 32px input (vertical)</div>
+        <div class="text-field text-field--small">
+          <label class="text-field__label">Label<span class="text-field__mandatory">*</span></label>
+          <div class="text-field__input-wrap">
+            <input type="text" class="text-field__input" placeholder="Input">
+            <button type="button" class="text-field__btn" aria-label="Scan"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+          </div>
+          <p class="text-field__helper">Mandatory field</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="size-stack__label">Small · 32px input · horizontal layout (label beside, ONLY valid for small)</div>
+        <div class="text-field text-field--small text-field--horizontal">
+          <label class="text-field__label">Label<span class="text-field__mandatory">*</span></label>
+          <div class="text-field__input-wrap">
+            <input type="text" class="text-field__input" placeholder="Input">
+            <button type="button" class="text-field__btn" aria-label="Scan"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ COMPOSITION ═════════════════ -->
+  <h2>Composition — orthogonal flags on a single component</h2>
+  <div class="panel">
+    <div class="size-stack" style="max-width: 520px;">
+
+      <div>
+        <div class="size-stack__label">No label · no helper · no icons</div>
+        <div class="text-field">
+          <div class="text-field__input-wrap">
+            <input type="text" class="text-field__input" placeholder="Bare input">
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="size-stack__label">Label only (no mandatory, no helper)</div>
+        <div class="text-field">
+          <label class="text-field__label">Email address</label>
+          <div class="text-field__input-wrap">
+            <input type="email" class="text-field__input" placeholder="you@example.com">
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="size-stack__label">Leading icon + helper text (info hint)</div>
+        <div class="text-field">
+          <label class="text-field__label">IMEI</label>
+          <div class="text-field__input-wrap">
+            <svg class="text-field__icon-leading" viewBox="0 0 24 24"><use href="#i-info-circle"/></svg>
+            <input type="text" class="text-field__input" placeholder="15-digit identifier">
+          </div>
+          <p class="text-field__helper">Find this on the device's settings screen.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="size-stack__label">Password — trailing visibility toggle</div>
+        <div class="text-field">
+          <label class="text-field__label">Password<span class="text-field__mandatory">*</span></label>
+          <div class="text-field__input-wrap">
+            <input type="password" class="text-field__input" value="hunter2supersecret">
+            <button type="button" class="text-field__btn" aria-label="Show password"><svg viewBox="0 0 21.45 15"><use href="#i-visibility"/></svg></button>
+          </div>
+          <p class="text-field__helper">At least 12 characters, one uppercase, one number.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════════════════ IN-CONTEXT SCENARIOS ═════════════════ -->
+  <h2>In context — four realistic forms</h2>
+  <div class="panel">
+    <div class="scenarios">
+
+      <div>
+        <div class="scenario__label">1 · Login form (large)</div>
+        <div class="scenario__shell">
+          <div class="form-stack">
+            <div class="text-field text-field--large">
+              <label class="text-field__label">Email<span class="text-field__mandatory">*</span></label>
+              <div class="text-field__input-wrap">
+                <input type="email" class="text-field__input" placeholder="you@scandit.com">
+              </div>
+            </div>
+            <div class="text-field text-field--large">
+              <label class="text-field__label">Password<span class="text-field__mandatory">*</span></label>
+              <div class="text-field__input-wrap">
+                <input type="password" class="text-field__input" placeholder="••••••••">
+                <button type="button" class="text-field__btn" aria-label="Show password"><svg viewBox="0 0 21.45 15"><use href="#i-visibility"/></svg></button>
+              </div>
+            </div>
+            <button type="button" class="submit-btn">Sign in</button>
+          </div>
+        </div>
+        <p class="scenario__caption">Large size for hero forms. Visibility toggle on the password field. Both fields are mandatory (red asterisk).</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">2 · Account form with one validation error</div>
+        <div class="scenario__shell">
+          <div class="form-stack">
+            <div class="text-field">
+              <label class="text-field__label">Full name<span class="text-field__mandatory">*</span></label>
+              <div class="text-field__input-wrap">
+                <input type="text" class="text-field__input" value="Ipek Kahraman">
+              </div>
+            </div>
+            <div class="text-field text-field--error">
+              <label class="text-field__label">Email<span class="text-field__mandatory">*</span></label>
+              <div class="text-field__input-wrap">
+                <input type="email" class="text-field__input" value="ipek@scandit">
+              </div>
+              <p class="text-field__helper">Enter a valid email address including the domain extension.</p>
+            </div>
+            <div class="text-field">
+              <label class="text-field__label">Job title</label>
+              <div class="text-field__input-wrap">
+                <input type="text" class="text-field__input" placeholder="Optional">
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="scenario__caption">Regular size. The Email field is in the <code>error</code> state — light-red surface, light-red border, red helper text. Validation happens on blur; focusing the field flips it to <code>error_selected</code> with the 2px red border.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">3 · Settings panel — small horizontal layout</div>
+        <div class="scenario__shell">
+          <div class="form-stack">
+            <div class="text-field text-field--small text-field--horizontal">
+              <label class="text-field__label">Org name</label>
+              <div class="text-field__input-wrap">
+                <input type="text" class="text-field__input" value="Scandit AG">
+              </div>
+            </div>
+            <div class="text-field text-field--small text-field--horizontal">
+              <label class="text-field__label">Region</label>
+              <div class="text-field__input-wrap">
+                <input type="text" class="text-field__input" value="EMEA">
+              </div>
+            </div>
+            <div class="text-field text-field--small text-field--horizontal text-field--read-only">
+              <label class="text-field__label">Plan</label>
+              <div class="text-field__input-wrap is-readonly">
+                <input type="text" class="text-field__input" value="Enterprise" readonly>
+              </div>
+            </div>
+            <div class="text-field text-field--small text-field--horizontal text-field--disabled">
+              <label class="text-field__label">Tenant ID</label>
+              <div class="text-field__input-wrap is-disabled">
+                <input type="text" class="text-field__input" value="sc-9281-eu" disabled>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="scenario__caption">Compact horizontal layout used inside settings sidebars. "Plan" is <code>read_only</code> (no border, just the value). "Tenant ID" is <code>disabled</code> (border stays but everything mutes).</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">4 · Scan-into-field (the canonical Figma pattern)</div>
+        <div class="scenario__shell">
+          <div class="form-stack">
+            <div class="text-field">
+              <label class="text-field__label">Asset ID<span class="text-field__mandatory">*</span></label>
+              <div class="text-field__input-wrap">
+                <input type="text" class="text-field__input" placeholder="Type or tap the scan icon">
+                <button type="button" class="text-field__btn" aria-label="Scan a barcode"><svg viewBox="0 0 22 18"><use href="#i-scan"/></svg></button>
+              </div>
+              <p class="text-field__helper">Scan the barcode on the asset tag to fill this field automatically.</p>
+            </div>
+          </div>
+        </div>
+        <p class="scenario__caption">The trailing scan button is the canonical Scandit pattern — tap to open the camera and capture a code straight into the field's value. The button is part of the field's slot because its action modifies the field's own value (not a navigation away).</p>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Menu test — 4 variants × 2 sizes × 5 states + realistic menus</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ───── Scandit semantic tokens — verbatim from references/design.md ───── */
+    :root {
+      /* Surfaces (menu items reuse the standard row surface family) */
+      --color-surface-default:        #FFFFFF;
+      --color-surface-hover:          #F3F5F8;
+      --color-surface-pressed:        #E1E7ED;
+      --color-surface-selected:       #EFF5FA;   /* BLUE, not Figma's teal #E7F7F9 */
+      --color-surface-selected-hover: #F3F5F8;
+
+      /* Text */
+      --color-text-primary:           #16191C;
+      --color-text-secondary:         #525A61;
+      --color-text-disabled:          #ACB6BF;
+
+      /* Icon */
+      --color-icon-primary:           #16191C;
+      --color-icon-secondary:         #525A61;
+      --color-icon-disabled:          #ACB6BF;
+
+      /* Brand blue for the filled checkbox / radio */
+      --color-surface-interactive:    #1660D9;
+      --color-border-primary:         #525A61;
+      --color-border-tertiary:        #E1E7ED;
+      --color-on-color-default:       #FFFFFF;
+
+      /* Sizes & spacing */
+      --size-comp-height-l:  32px;       /* sm */
+      --size-comp-height-xl: 40px;       /* lg */
+      --size-cornerradius-s: 4px;
+      --size-cornerradius-xs: 4px;
+      --size-cornerradius-round: 999px;
+      --spacing-padding-xs: 4px;
+      --spacing-padding-s:  8px;
+      --spacing-padding-m:  12px;
+
+      /* Page bg */
+      --color-background-secondary-page: #F7F7F7;
+
+      /* Shadow */
+      --shadow-lg: 0 1px 2px 0 rgba(0,0,0,0.30), 0 2px 6px 2px rgba(0,0,0,0.15);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 32px; max-width: 800px; line-height: 1.5; }
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+      text-transform: none; letter-spacing: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+    .panel {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 20px 24px 24px;
+      margin-bottom: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 140px repeat(5, 280px);
+      gap: 16px 24px;
+      align-items: center;
+    }
+    .grid--narrow { grid-template-columns: 140px repeat(5, 220px); }
+    .col-header, .row-header {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+    }
+    .col-header {
+      text-align: left;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+    }
+
+    .scenarios {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 380px));
+      gap: 32px 40px;
+      align-items: start;
+    }
+    .scenario__label {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 0 0 12px;
+    }
+    .scenario__trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 8px;
+      background: var(--color-surface-default);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      margin-bottom: 8px;
+    }
+    .scenario__trigger svg { color: var(--color-text-secondary); }
+    .scenario__caption {
+      font-size: 12px; color: var(--color-text-secondary);
+      margin: 10px 0 0; line-height: 1.5;
+    }
+
+    /* ═══════════════════════ MENU ═══════════════════════ */
+    .menu {
+      background: var(--color-surface-default);
+      border-radius: var(--size-cornerradius-s);
+      box-shadow: var(--shadow-lg);
+      padding: var(--spacing-padding-s) 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .menu--sm { padding: var(--spacing-padding-xs) 0; }
+    .menu--inline {
+      /* used in the state-matrix cells so the items don't shadow-collide */
+      box-shadow: none;
+      border: 1px solid var(--color-border-tertiary);
+      padding: 0;
+      width: 100%;
+    }
+
+    /* ═══════════════════════ ITEM ═══════════════════════ */
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-padding-s);
+      width: 100%;
+      padding: 0 var(--spacing-padding-m);
+      height: var(--size-comp-height-xl);
+      background: var(--color-surface-default);
+      border: 0;
+      cursor: pointer;
+      text-align: left;
+      transition: background 80ms;
+      font-family: inherit;
+    }
+    .menu-item--sm { height: var(--size-comp-height-l); }
+
+    .menu-item__label {
+      flex: 1 1 0;
+      min-width: 0;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 24px;
+      letter-spacing: 0.25px;
+      color: var(--color-text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .menu-item__leading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      flex-shrink: 0;
+      color: var(--color-icon-primary);
+    }
+    .menu-item__leading svg { display: block; width: 24px; height: 24px; }
+    .menu-item__trailing { flex-shrink: 0; }
+
+    /* state ladder — guard against disabled/selected */
+    .menu-item:not(.menu-item--disabled):not(.menu-item--selected):hover,
+    .menu-item.is-hover { background: var(--color-surface-hover); }
+
+    .menu-item:not(.menu-item--disabled):not(.menu-item--selected):active,
+    .menu-item.is-pressed { background: var(--color-surface-pressed); }
+
+    /* selected (+ hover/pressed combos) */
+    .menu-item--selected { background: var(--color-surface-selected); }
+    .menu-item--selected:not(.menu-item--disabled):hover,
+    .menu-item--selected.is-hover { background: var(--color-surface-selected-hover); }
+    .menu-item--selected:not(.menu-item--disabled):active,
+    .menu-item--selected.is-pressed { background: var(--color-surface-pressed); }
+
+    /* disabled — wins over everything */
+    .menu-item--disabled,
+    .menu-item.is-disabled {
+      cursor: not-allowed;
+      background: var(--color-surface-default);
+    }
+    .menu-item--disabled .menu-item__label,
+    .menu-item.is-disabled .menu-item__label { color: var(--color-text-disabled); }
+    .menu-item--disabled .menu-item__leading,
+    .menu-item.is-disabled .menu-item__leading { color: var(--color-icon-disabled); }
+
+    /* ─── leading checkbox / radio ─── */
+    .leading-cb {
+      width: 20px; height: 20px;
+      border: 2px solid var(--color-border-primary);
+      border-radius: 4px;
+      background: var(--color-surface-default);
+      display: flex; align-items: center; justify-content: center;
+      box-sizing: border-box;
+    }
+    .leading-cb--checked {
+      background: var(--color-surface-interactive);
+      border-color: var(--color-surface-interactive);
+    }
+    .leading-cb--checked svg {
+      width: 16px; height: 16px; color: var(--color-on-color-default);
+    }
+    .menu-item--disabled .leading-cb,
+    .menu-item.is-disabled .leading-cb { border-color: var(--color-icon-disabled); }
+
+    .leading-radio {
+      width: 20px; height: 20px;
+      border: 2px solid var(--color-border-primary);
+      border-radius: var(--size-cornerradius-round);
+      background: var(--color-surface-default);
+      box-sizing: border-box;
+      position: relative;
+    }
+    .leading-radio--checked {
+      border-color: var(--color-surface-interactive);
+    }
+    .leading-radio--checked::after {
+      content: '';
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: var(--size-cornerradius-round);
+      background: var(--color-surface-interactive);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .menu-item--disabled .leading-radio,
+    .menu-item.is-disabled .leading-radio { border-color: var(--color-icon-disabled); }
+
+    /* ─── trailing num-badge ─── */
+    .num-badge {
+      min-width: 20px; height: 20px;
+      padding: 0 6px;
+      background: var(--color-surface-pressed);
+      border-radius: var(--size-cornerradius-round);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 500; letter-spacing: 0.25px;
+      color: var(--color-text-primary);
+      line-height: 20px;
+    }
+
+    /* divider (used only in grouped menus) */
+    .menu-divider {
+      height: 1px;
+      background: var(--color-border-tertiary);
+      margin: var(--spacing-padding-xs) 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Menu — 4 variants × 2 sizes × 5 states</h1>
+  <p class="lead">
+    Menu items reuse the standard row surface family (<code>surface/hover</code>, <code>surface/pressed</code>,
+    <code>surface/selected</code>). The container is always a white floating surface with <code>shadow-lg</code>
+    (Elevation/2, directional). The first cell in each row uses real CSS <code>:hover</code> /
+    <code>:active</code> — hover it to verify the natural state matches the forced state next to it.
+    <strong>Selected uses brand-blue softer (#EFF5FA), NOT Figma's teal (#E7F7F9)</strong> per the web colour rule.
+  </p>
+
+  <!-- ═════════════════ STANDARD — LG ═════════════════ -->
+  <h2>Standard items · size = lg (40px)</h2>
+  <div class="panel">
+    <div class="grid">
+      <div></div>
+      <div class="col-header">default</div>
+      <div class="col-header">hover</div>
+      <div class="col-header">pressed</div>
+      <div class="col-header">selected</div>
+      <div class="col-header">disabled</div>
+
+      <div class="row-header">Standard · lg</div>
+      <div class="menu menu--inline"><button class="menu-item"><span class="menu-item__label">Menu item</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item is-hover"><span class="menu-item__label">Menu item</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item is-pressed"><span class="menu-item__label">Menu item</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--selected"><span class="menu-item__label">Menu item</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--disabled" disabled aria-disabled="true"><span class="menu-item__label">Menu item</span></button></div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ STANDARD — SM ═════════════════ -->
+  <h2>Standard items · size = sm (32px)</h2>
+  <div class="panel">
+    <div class="grid">
+      <div></div>
+      <div class="col-header">default</div>
+      <div class="col-header">hover</div>
+      <div class="col-header">pressed</div>
+      <div class="col-header">selected</div>
+      <div class="col-header">disabled</div>
+
+      <div class="row-header">Standard · sm</div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--sm"><span class="menu-item__label">Menu item</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--sm is-hover"><span class="menu-item__label">Menu item</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--sm is-pressed"><span class="menu-item__label">Menu item</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--sm menu-item--selected"><span class="menu-item__label">Menu item</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--sm menu-item--disabled" disabled aria-disabled="true"><span class="menu-item__label">Menu item</span></button></div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ WITH-ICON — LG ═════════════════ -->
+  <h2>With-icon items · size = lg (40px)</h2>
+  <div class="panel">
+    <div class="grid">
+      <div></div>
+      <div class="col-header">default</div>
+      <div class="col-header">hover</div>
+      <div class="col-header">pressed</div>
+      <div class="col-header">selected</div>
+      <div class="col-header">disabled</div>
+
+      <div class="row-header">With icon · lg</div>
+      <div class="menu menu--inline">
+        <button class="menu-item">
+          <span class="menu-item__leading">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.825 22C10.375 22 9.9875 21.85 9.6625 21.55C9.3375 21.25 9.14167 20.8833 9.075 20.45L8.85 18.8C8.63333 18.7167 8.42917 18.6167 8.2375 18.5C8.04583 18.3833 7.85833 18.2583 7.675 18.125L6.125 18.775C5.70833 18.9583 5.29167 18.975 4.875 18.825C4.45833 18.675 4.13333 18.4083 3.9 18.025L2.725 15.975C2.49167 15.5917 2.425 15.1833 2.525 14.75C2.625 14.3167 2.85 13.9583 3.2 13.675L4.525 12.675C4.50833 12.5583 4.5 12.4458 4.5 12.3375V11.6625C4.5 11.5542 4.50833 11.4417 4.525 11.325L3.2 10.325C2.85 10.0417 2.625 9.68333 2.525 9.25C2.425 8.81667 2.49167 8.40833 2.725 8.025L3.9 5.975C4.13333 5.59167 4.45833 5.325 4.875 5.175C5.29167 5.025 5.70833 5.04167 6.125 5.225L7.675 5.875C7.85833 5.74167 8.05 5.61667 8.25 5.5C8.45 5.38333 8.65 5.28333 8.85 5.2L9.075 3.55C9.14167 3.11667 9.3375 2.75 9.6625 2.45C9.9875 2.15 10.375 2 10.825 2H13.175C13.625 2 14.0125 2.15 14.3375 2.45C14.6625 2.75 14.8583 3.11667 14.925 3.55L15.15 5.2C15.3667 5.28333 15.5708 5.38333 15.7625 5.5C15.9542 5.61667 16.1417 5.74167 16.325 5.875L17.875 5.225C18.2917 5.04167 18.7083 5.025 19.125 5.175C19.5417 5.325 19.8667 5.59167 20.1 5.975L21.275 8.025C21.5083 8.40833 21.575 8.81667 21.475 9.25C21.375 9.68333 21.15 10.0417 20.8 10.325L19.475 11.325C19.4917 11.4417 19.5 11.5542 19.5 11.6625V12.3375C19.5 12.4458 19.4833 12.5583 19.45 12.675L20.775 13.675C21.125 13.9583 21.35 14.3167 21.45 14.75C21.55 15.1833 21.4833 15.5917 21.25 15.975L20.05 18.025C19.8167 18.4083 19.4917 18.675 19.075 18.825C18.6583 18.975 18.2417 18.9583 17.825 18.775L16.325 18.125C16.1417 18.2583 15.95 18.3833 15.75 18.5C15.55 18.6167 15.35 18.7167 15.15 18.8L14.925 20.45C14.8583 20.8833 14.6625 21.25 14.3375 21.55C14.0125 21.85 13.625 22 13.175 22H10.825ZM11 20H12.975L13.325 17.35C13.8417 17.2167 14.3208 17.0208 14.7625 16.7625C15.2042 16.5042 15.6083 16.1917 15.975 15.825L18.45 16.85L19.425 15.15L17.275 13.525C17.3583 13.2917 17.4167 13.0458 17.45 12.7875C17.4833 12.5292 17.5 12.2667 17.5 12C17.5 11.7333 17.4833 11.4708 17.45 11.2125C17.4167 10.9542 17.3583 10.7083 17.275 10.475L19.425 8.85L18.45 7.15L15.975 8.2C15.6083 7.81667 15.2042 7.49583 14.7625 7.2375C14.3208 6.97917 13.8417 6.78333 13.325 6.65L13 4H11.025L10.675 6.65C10.1583 6.78333 9.67917 6.97917 9.2375 7.2375C8.79583 7.49583 8.39167 7.80833 8.025 8.175L5.55 7.15L4.575 8.85L6.725 10.45C6.64167 10.7 6.58333 10.95 6.55 11.2C6.51667 11.45 6.5 11.7167 6.5 12C6.5 12.2667 6.51667 12.525 6.55 12.775C6.58333 13.025 6.64167 13.275 6.725 13.525L4.575 15.15L5.55 16.85L8.025 15.8C8.39167 16.1833 8.79583 16.5042 9.2375 16.7625C9.67917 17.0208 10.1583 17.2167 10.675 17.35L11 20ZM12.05 15.5C13.0167 15.5 13.8417 15.1583 14.525 14.475C15.2083 13.7917 15.55 12.9667 15.55 12C15.55 11.0333 15.2083 10.2083 14.525 9.525C13.8417 8.84167 13.0167 8.5 12.05 8.5C11.0667 8.5 10.2375 8.84167 9.5625 9.525C8.8875 10.2083 8.55 11.0333 8.55 12C8.55 12.9667 8.8875 13.7917 9.5625 14.475C10.2375 15.1583 11.0667 15.5 12.05 15.5Z" fill="currentColor"/></svg>
+          </span>
+          <span class="menu-item__label">Settings</span>
+        </button>
+      </div>
+      <div class="menu menu--inline">
+        <button class="menu-item is-hover">
+          <span class="menu-item__leading">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 23C5.45 23 4.97917 22.8042 4.5875 22.4125C4.19583 22.0208 4 21.55 4 21V10C4 9.45 4.19583 8.97917 4.5875 8.5875C4.97917 8.19583 5.45 8 6 8H8C8.28333 8 8.52083 8.09583 8.7125 8.2875C8.90417 8.47917 9 8.71667 9 9C9 9.28333 8.90417 9.52083 8.7125 9.7125C8.52083 9.90417 8.28333 10 8 10H6V21H18V10H16C15.7167 10 15.4792 9.90417 15.2875 9.7125C15.0958 9.52083 15 9.28333 15 9C15 8.71667 15.0958 8.47917 15.2875 8.2875C15.4792 8.09583 15.7167 8 16 8H18C18.55 8 19.0208 8.19583 19.4125 8.5875C19.8042 8.97917 20 9.45 20 10V21C20 21.55 19.8042 22.0208 19.4125 22.4125C19.0208 22.8042 18.55 23 18 23H6ZM11 4.825L10.1 5.725C9.9 5.925 9.66667 6.02083 9.4 6.0125C9.13333 6.00417 8.9 5.9 8.7 5.7C8.51667 5.5 8.42083 5.26667 8.4125 5C8.40417 4.73333 8.5 4.5 8.7 4.3L11.3 1.7C11.5 1.5 11.7333 1.4 12 1.4C12.2667 1.4 12.5 1.5 12.7 1.7L15.3 4.3C15.4833 4.48333 15.575 4.7125 15.575 4.9875C15.575 5.2625 15.4833 5.5 15.3 5.7C15.1 5.9 14.8625 6 14.5875 6C14.3125 6 14.075 5.9 13.875 5.7L13 4.825V15C13 15.2833 12.9042 15.5208 12.7125 15.7125C12.5208 15.9042 12.2833 16 12 16C11.7167 16 11.4792 15.9042 11.2875 15.7125C11.0958 15.5208 11 15.2833 11 15V4.825Z" fill="currentColor"/></svg>
+          </span>
+          <span class="menu-item__label">Share</span>
+        </button>
+      </div>
+      <div class="menu menu--inline">
+        <button class="menu-item is-pressed">
+          <span class="menu-item__leading">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15.575C11.8667 15.575 11.7417 15.5542 11.625 15.5125C11.5083 15.4708 11.4 15.4 11.3 15.3L7.7 11.7C7.5 11.5 7.40417 11.2667 7.4125 11C7.42083 10.7333 7.51667 10.5 7.7 10.3C7.9 10.1 8.1375 9.99583 8.4125 9.9875C8.6875 9.97917 8.925 10.075 9.125 10.275L11 12.15V5C11 4.71667 11.0958 4.47917 11.2875 4.2875C11.4792 4.09583 11.7167 4 12 4C12.2833 4 12.5208 4.09583 12.7125 4.2875C12.9042 4.47917 13 4.71667 13 5V12.15L14.875 10.275C15.075 10.075 15.3125 9.97917 15.5875 9.9875C15.8625 9.99583 16.1 10.1 16.3 10.3C16.4833 10.5 16.5792 10.7333 16.5875 11C16.5958 11.2667 16.5 11.5 16.3 11.7L12.7 15.3C12.6 15.4 12.4917 15.4708 12.375 15.5125C12.2583 15.5542 12.1333 15.575 12 15.575ZM6 20C5.45 20 4.97917 19.8042 4.5875 19.4125C4.19583 19.0208 4 18.55 4 18V16C4 15.7167 4.09583 15.4792 4.2875 15.2875C4.47917 15.0958 4.71667 15 5 15C5.28333 15 5.52083 15.0958 5.7125 15.2875C5.90417 15.4792 6 15.7167 6 16V18H18V16C18 15.7167 18.0958 15.4792 18.2875 15.2875C18.4792 15.0958 18.7167 15 19 15C19.2833 15 19.5208 15.0958 19.7125 15.2875C19.9042 15.4792 20 15.7167 20 16V18C20 18.55 19.8042 19.0208 19.4125 19.4125C19.0208 19.8042 18.55 20 18 20H6Z" fill="currentColor"/></svg>
+          </span>
+          <span class="menu-item__label">Download</span>
+        </button>
+      </div>
+      <div class="menu menu--inline">
+        <button class="menu-item menu-item--selected">
+          <span class="menu-item__leading">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 19H6.425L16.2 9.225L14.775 7.8L5 17.575V19ZM4 21C3.71667 21 3.47917 20.9042 3.2875 20.7125C3.09583 20.5208 3 20.2833 3 20V17.575C3 17.3083 3.05 17.0542 3.15 16.8125C3.25 16.5708 3.39167 16.3583 3.575 16.175L16.2 3.575C16.4 3.39167 16.6208 3.25 16.8625 3.15C17.1042 3.05 17.3583 3 17.625 3C17.8917 3 18.15 3.05 18.4 3.15C18.65 3.25 18.8667 3.4 19.05 3.6L20.425 5C20.625 5.18333 20.7708 5.4 20.8625 5.65C20.9542 5.9 21 6.15 21 6.4C21 6.66667 20.9542 6.92083 20.8625 7.1625C20.7708 7.40417 20.625 7.625 20.425 7.825L7.825 20.425C7.64167 20.6083 7.42917 20.75 7.1875 20.85C6.94583 20.95 6.69167 21 6.425 21H4ZM15.475 8.525L14.775 7.8L16.2 9.225L15.475 8.525Z" fill="currentColor"/></svg>
+          </span>
+          <span class="menu-item__label">Edit</span>
+        </button>
+      </div>
+      <div class="menu menu--inline">
+        <button class="menu-item menu-item--disabled" disabled aria-disabled="true">
+          <span class="menu-item__leading">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 21C6.45 21 5.97917 20.8042 5.5875 20.4125C5.19583 20.0208 5 19.55 5 19V6C4.71667 6 4.47917 5.90417 4.2875 5.7125C4.09583 5.52083 4 5.28333 4 5C4 4.71667 4.09583 4.47917 4.2875 4.2875C4.47917 4.09583 4.71667 4 5 4H9C9 3.71667 9.09583 3.47917 9.2875 3.2875C9.47917 3.09583 9.71667 3 10 3H14C14.2833 3 14.5208 3.09583 14.7125 3.2875C14.9042 3.47917 15 3.71667 15 4H19C19.2833 4 19.5208 4.09583 19.7125 4.2875C19.9042 4.47917 20 4.71667 20 5C20 5.28333 19.9042 5.52083 19.7125 5.7125C19.5208 5.90417 19.2833 6 19 6V19C19 19.55 18.8042 20.0208 18.4125 20.4125C18.0208 20.8042 17.55 21 17 21H7ZM17 6H7V19H17V6ZM10 17C10.2833 17 10.5208 16.9042 10.7125 16.7125C10.9042 16.5208 11 16.2833 11 16V9C11 8.71667 10.9042 8.47917 10.7125 8.2875C10.5208 8.09583 10.2833 8 10 8C9.71667 8 9.47917 8.09583 9.2875 8.2875C9.09583 8.47917 9 8.71667 9 9V16C9 16.2833 9.09583 16.5208 9.2875 16.7125C9.47917 16.9042 9.71667 17 10 17ZM14 17C14.2833 17 14.5208 16.9042 14.7125 16.7125C14.9042 16.5208 15 16.2833 15 16V9C15 8.71667 14.9042 8.47917 14.7125 8.2875C14.5208 8.09583 14.2833 8 14 8C13.7167 8 13.4792 8.09583 13.2875 8.2875C13.0958 8.47917 13 8.71667 13 9V16C13 16.2833 13.0958 16.5208 13.2875 16.7125C13.4792 16.9042 13.7167 17 14 17Z" fill="currentColor"/></svg>
+          </span>
+          <span class="menu-item__label">Delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ CHECKBOX ═════════════════ -->
+  <h2>Checkbox items · size = lg — unchecked + checked rows</h2>
+  <div class="panel">
+    <div class="grid">
+      <div></div>
+      <div class="col-header">default</div>
+      <div class="col-header">hover</div>
+      <div class="col-header">pressed</div>
+      <div class="col-header">selected</div>
+      <div class="col-header">disabled</div>
+
+      <div class="row-header">Checkbox unchecked</div>
+      <div class="menu menu--inline"><button class="menu-item"><span class="menu-item__leading"><span class="leading-cb"></span></span><span class="menu-item__label">Option A</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item is-hover"><span class="menu-item__leading"><span class="leading-cb"></span></span><span class="menu-item__label">Option A</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item is-pressed"><span class="menu-item__leading"><span class="leading-cb"></span></span><span class="menu-item__label">Option A</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--selected"><span class="menu-item__leading"><span class="leading-cb"></span></span><span class="menu-item__label">Option A</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--disabled" disabled aria-disabled="true"><span class="menu-item__leading"><span class="leading-cb"></span></span><span class="menu-item__label">Option A</span></button></div>
+
+      <div class="row-header">Checkbox checked</div>
+      <div class="menu menu--inline"><button class="menu-item"><span class="menu-item__leading"><span class="leading-cb leading-cb--checked"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.55 15.15L18.025 6.675C18.225 6.475 18.4583 6.375 18.725 6.375C18.9917 6.375 19.225 6.475 19.425 6.675C19.625 6.875 19.725 7.1125 19.725 7.3875C19.725 7.6625 19.625 7.9 19.425 8.1L10.25 17.3C10.05 17.5 9.81667 17.6 9.55 17.6C9.28333 17.6 9.05 17.5 8.85 17.3L4.55 13C4.35 12.8 4.25417 12.5625 4.2625 12.2875C4.27083 12.0125 4.375 11.775 4.575 11.575C4.775 11.375 5.0125 11.275 5.2875 11.275C5.5625 11.275 5.8 11.375 6 11.575L9.55 15.15Z" fill="currentColor"/></svg></span></span><span class="menu-item__label">Option B</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item is-hover"><span class="menu-item__leading"><span class="leading-cb leading-cb--checked"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.55 15.15L18.025 6.675C18.225 6.475 18.4583 6.375 18.725 6.375C18.9917 6.375 19.225 6.475 19.425 6.675C19.625 6.875 19.725 7.1125 19.725 7.3875C19.725 7.6625 19.625 7.9 19.425 8.1L10.25 17.3C10.05 17.5 9.81667 17.6 9.55 17.6C9.28333 17.6 9.05 17.5 8.85 17.3L4.55 13C4.35 12.8 4.25417 12.5625 4.2625 12.2875C4.27083 12.0125 4.375 11.775 4.575 11.575C4.775 11.375 5.0125 11.275 5.2875 11.275C5.5625 11.275 5.8 11.375 6 11.575L9.55 15.15Z" fill="currentColor"/></svg></span></span><span class="menu-item__label">Option B</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item is-pressed"><span class="menu-item__leading"><span class="leading-cb leading-cb--checked"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.55 15.15L18.025 6.675C18.225 6.475 18.4583 6.375 18.725 6.375C18.9917 6.375 19.225 6.475 19.425 6.675C19.625 6.875 19.725 7.1125 19.725 7.3875C19.725 7.6625 19.625 7.9 19.425 8.1L10.25 17.3C10.05 17.5 9.81667 17.6 9.55 17.6C9.28333 17.6 9.05 17.5 8.85 17.3L4.55 13C4.35 12.8 4.25417 12.5625 4.2625 12.2875C4.27083 12.0125 4.375 11.775 4.575 11.575C4.775 11.375 5.0125 11.275 5.2875 11.275C5.5625 11.275 5.8 11.375 6 11.575L9.55 15.15Z" fill="currentColor"/></svg></span></span><span class="menu-item__label">Option B</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--selected"><span class="menu-item__leading"><span class="leading-cb leading-cb--checked"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.55 15.15L18.025 6.675C18.225 6.475 18.4583 6.375 18.725 6.375C18.9917 6.375 19.225 6.475 19.425 6.675C19.625 6.875 19.725 7.1125 19.725 7.3875C19.725 7.6625 19.625 7.9 19.425 8.1L10.25 17.3C10.05 17.5 9.81667 17.6 9.55 17.6C9.28333 17.6 9.05 17.5 8.85 17.3L4.55 13C4.35 12.8 4.25417 12.5625 4.2625 12.2875C4.27083 12.0125 4.375 11.775 4.575 11.575C4.775 11.375 5.0125 11.275 5.2875 11.275C5.5625 11.275 5.8 11.375 6 11.575L9.55 15.15Z" fill="currentColor"/></svg></span></span><span class="menu-item__label">Option B</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--disabled" disabled aria-disabled="true"><span class="menu-item__leading"><span class="leading-cb leading-cb--checked" style="background:var(--color-icon-disabled);border-color:var(--color-icon-disabled);"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.55 15.15L18.025 6.675C18.225 6.475 18.4583 6.375 18.725 6.375C18.9917 6.375 19.225 6.475 19.425 6.675C19.625 6.875 19.725 7.1125 19.725 7.3875C19.725 7.6625 19.625 7.9 19.425 8.1L10.25 17.3C10.05 17.5 9.81667 17.6 9.55 17.6C9.28333 17.6 9.05 17.5 8.85 17.3L4.55 13C4.35 12.8 4.25417 12.5625 4.2625 12.2875C4.27083 12.0125 4.375 11.775 4.575 11.575C4.775 11.375 5.0125 11.275 5.2875 11.275C5.5625 11.275 5.8 11.375 6 11.575L9.55 15.15Z" fill="currentColor"/></svg></span></span><span class="menu-item__label">Option B</span></button></div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ RADIO ═════════════════ -->
+  <h2>Radio items · size = lg — unselected + selected rows</h2>
+  <div class="panel">
+    <div class="grid">
+      <div></div>
+      <div class="col-header">default</div>
+      <div class="col-header">hover</div>
+      <div class="col-header">pressed</div>
+      <div class="col-header">selected</div>
+      <div class="col-header">disabled</div>
+
+      <div class="row-header">Radio unselected</div>
+      <div class="menu menu--inline"><button class="menu-item"><span class="menu-item__leading"><span class="leading-radio"></span></span><span class="menu-item__label">Option 1</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item is-hover"><span class="menu-item__leading"><span class="leading-radio"></span></span><span class="menu-item__label">Option 1</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item is-pressed"><span class="menu-item__leading"><span class="leading-radio"></span></span><span class="menu-item__label">Option 1</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--selected"><span class="menu-item__leading"><span class="leading-radio"></span></span><span class="menu-item__label">Option 1</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--disabled" disabled aria-disabled="true"><span class="menu-item__leading"><span class="leading-radio"></span></span><span class="menu-item__label">Option 1</span></button></div>
+
+      <div class="row-header">Radio selected</div>
+      <div class="menu menu--inline"><button class="menu-item"><span class="menu-item__leading"><span class="leading-radio leading-radio--checked"></span></span><span class="menu-item__label">Option 2</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item is-hover"><span class="menu-item__leading"><span class="leading-radio leading-radio--checked"></span></span><span class="menu-item__label">Option 2</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item is-pressed"><span class="menu-item__leading"><span class="leading-radio leading-radio--checked"></span></span><span class="menu-item__label">Option 2</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--selected"><span class="menu-item__leading"><span class="leading-radio leading-radio--checked"></span></span><span class="menu-item__label">Option 2</span></button></div>
+      <div class="menu menu--inline"><button class="menu-item menu-item--disabled" disabled aria-disabled="true"><span class="menu-item__leading"><span class="leading-radio leading-radio--checked" style="border-color:var(--color-icon-disabled);"></span></span><span class="menu-item__label">Option 2</span></button></div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ REALISTIC MENUS ═════════════════ -->
+  <h2>In context — four realistic menu scenarios</h2>
+  <div class="panel">
+    <div class="scenarios">
+
+      <!-- Scenario 1: kebab menu (standard items) -->
+      <div>
+        <div class="scenario__label">1 · Kebab menu (row actions)</div>
+        <div class="scenario__trigger">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg>
+        </div>
+        <div class="menu" style="width: 200px;">
+          <button class="menu-item menu-item--sm"><span class="menu-item__label">View details</span></button>
+          <button class="menu-item menu-item--sm"><span class="menu-item__label">Duplicate</span></button>
+          <button class="menu-item menu-item--sm"><span class="menu-item__label">Rename</span></button>
+          <div class="menu-divider"></div>
+          <button class="menu-item menu-item--sm menu-item--disabled" disabled aria-disabled="true"><span class="menu-item__label">Delete (read-only)</span></button>
+        </div>
+        <p class="scenario__caption">Small menu (sm). Standard items, one disabled because the row is read-only. Divider separates destructive from non-destructive actions.</p>
+      </div>
+
+      <!-- Scenario 2: with-icon menu -->
+      <div>
+        <div class="scenario__label">2 · User profile menu (with-icon)</div>
+        <div class="scenario__trigger">
+          <span style="width:24px;height:24px;border-radius:999px;background:#1660D9;color:#FFF;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;">IK</span>
+          Ipek Kahraman
+        </div>
+        <div class="menu" style="width: 240px;">
+          <button class="menu-item">
+            <span class="menu-item__leading">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.825 22C10.375 22 9.9875 21.85 9.6625 21.55C9.3375 21.25 9.14167 20.8833 9.075 20.45L8.85 18.8C8.63333 18.7167 8.42917 18.6167 8.2375 18.5C8.04583 18.3833 7.85833 18.2583 7.675 18.125L6.125 18.775C5.70833 18.9583 5.29167 18.975 4.875 18.825C4.45833 18.675 4.13333 18.4083 3.9 18.025L2.725 15.975C2.49167 15.5917 2.425 15.1833 2.525 14.75C2.625 14.3167 2.85 13.9583 3.2 13.675L4.525 12.675C4.50833 12.5583 4.5 12.4458 4.5 12.3375V11.6625C4.5 11.5542 4.50833 11.4417 4.525 11.325L3.2 10.325C2.85 10.0417 2.625 9.68333 2.525 9.25C2.425 8.81667 2.49167 8.40833 2.725 8.025L3.9 5.975C4.13333 5.59167 4.45833 5.325 4.875 5.175C5.29167 5.025 5.70833 5.04167 6.125 5.225L7.675 5.875C7.85833 5.74167 8.05 5.61667 8.25 5.5C8.45 5.38333 8.65 5.28333 8.85 5.2L9.075 3.55C9.14167 3.11667 9.3375 2.75 9.6625 2.45C9.9875 2.15 10.375 2 10.825 2H13.175C13.625 2 14.0125 2.15 14.3375 2.45C14.6625 2.75 14.8583 3.11667 14.925 3.55L15.15 5.2C15.3667 5.28333 15.5708 5.38333 15.7625 5.5C15.9542 5.61667 16.1417 5.74167 16.325 5.875L17.875 5.225C18.2917 5.04167 18.7083 5.025 19.125 5.175C19.5417 5.325 19.8667 5.59167 20.1 5.975L21.275 8.025C21.5083 8.40833 21.575 8.81667 21.475 9.25C21.375 9.68333 21.15 10.0417 20.8 10.325L19.475 11.325C19.4917 11.4417 19.5 11.5542 19.5 11.6625V12.3375C19.5 12.4458 19.4833 12.5583 19.45 12.675L20.775 13.675C21.125 13.9583 21.35 14.3167 21.45 14.75C21.55 15.1833 21.4833 15.5917 21.25 15.975L20.05 18.025C19.8167 18.4083 19.4917 18.675 19.075 18.825C18.6583 18.975 18.2417 18.9583 17.825 18.775L16.325 18.125C16.1417 18.2583 15.95 18.3833 15.75 18.5C15.55 18.6167 15.35 18.7167 15.15 18.8L14.925 20.45C14.8583 20.8833 14.6625 21.25 14.3375 21.55C14.0125 21.85 13.625 22 13.175 22H10.825ZM11 20H12.975L13.325 17.35C13.8417 17.2167 14.3208 17.0208 14.7625 16.7625C15.2042 16.5042 15.6083 16.1917 15.975 15.825L18.45 16.85L19.425 15.15L17.275 13.525C17.3583 13.2917 17.4167 13.0458 17.45 12.7875C17.4833 12.5292 17.5 12.2667 17.5 12C17.5 11.7333 17.4833 11.4708 17.45 11.2125C17.4167 10.9542 17.3583 10.7083 17.275 10.475L19.425 8.85L18.45 7.15L15.975 8.2C15.6083 7.81667 15.2042 7.49583 14.7625 7.2375C14.3208 6.97917 13.8417 6.78333 13.325 6.65L13 4H11.025L10.675 6.65C10.1583 6.78333 9.67917 6.97917 9.2375 7.2375C8.79583 7.49583 8.39167 7.80833 8.025 8.175L5.55 7.15L4.575 8.85L6.725 10.45C6.64167 10.7 6.58333 10.95 6.55 11.2C6.51667 11.45 6.5 11.7167 6.5 12C6.5 12.2667 6.51667 12.525 6.55 12.775C6.58333 13.025 6.64167 13.275 6.725 13.525L4.575 15.15L5.55 16.85L8.025 15.8C8.39167 16.1833 8.79583 16.5042 9.2375 16.7625C9.67917 17.0208 10.1583 17.2167 10.675 17.35L11 20ZM12.05 15.5C13.0167 15.5 13.8417 15.1583 14.525 14.475C15.2083 13.7917 15.55 12.9667 15.55 12C15.55 11.0333 15.2083 10.2083 14.525 9.525C13.8417 8.84167 13.0167 8.5 12.05 8.5C11.0667 8.5 10.2375 8.84167 9.5625 9.525C8.8875 10.2083 8.55 11.0333 8.55 12C8.55 12.9667 8.8875 13.7917 9.5625 14.475C10.2375 15.1583 11.0667 15.5 12.05 15.5Z" fill="currentColor"/></svg>
+            </span>
+            <span class="menu-item__label">Account settings</span>
+          </button>
+          <button class="menu-item">
+            <span class="menu-item__leading">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15.575C11.8667 15.575 11.7417 15.5542 11.625 15.5125C11.5083 15.4708 11.4 15.4 11.3 15.3L7.7 11.7C7.5 11.5 7.40417 11.2667 7.4125 11C7.42083 10.7333 7.51667 10.5 7.7 10.3C7.9 10.1 8.1375 9.99583 8.4125 9.9875C8.6875 9.97917 8.925 10.075 9.125 10.275L11 12.15V5C11 4.71667 11.0958 4.47917 11.2875 4.2875C11.4792 4.09583 11.7167 4 12 4C12.2833 4 12.5208 4.09583 12.7125 4.2875C12.9042 4.47917 13 4.71667 13 5V12.15L14.875 10.275C15.075 10.075 15.3125 9.97917 15.5875 9.9875C15.8625 9.99583 16.1 10.1 16.3 10.3C16.4833 10.5 16.5792 10.7333 16.5875 11C16.5958 11.2667 16.5 11.5 16.3 11.7L12.7 15.3C12.6 15.4 12.4917 15.4708 12.375 15.5125C12.2583 15.5542 12.1333 15.575 12 15.575ZM6 20C5.45 20 4.97917 19.8042 4.5875 19.4125C4.19583 19.0208 4 18.55 4 18V16C4 15.7167 4.09583 15.4792 4.2875 15.2875C4.47917 15.0958 4.71667 15 5 15C5.28333 15 5.52083 15.0958 5.7125 15.2875C5.90417 15.4792 6 15.7167 6 16V18H18V16C18 15.7167 18.0958 15.4792 18.2875 15.2875C18.4792 15.0958 18.7167 15 19 15C19.2833 15 19.5208 15.0958 19.7125 15.2875C19.9042 15.4792 20 15.7167 20 16V18C20 18.55 19.8042 19.0208 19.4125 19.4125C19.0208 19.8042 18.55 20 18 20H6Z" fill="currentColor"/></svg>
+            </span>
+            <span class="menu-item__label">Download API key</span>
+            <span class="menu-item__trailing"><span class="num-badge">2</span></span>
+          </button>
+          <div class="menu-divider"></div>
+          <button class="menu-item">
+            <span class="menu-item__leading">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 21C4.45 21 3.97917 20.8042 3.5875 20.4125C3.19583 20.0208 3 19.55 3 19V5C3 4.45 3.19583 3.97917 3.5875 3.5875C3.97917 3.19583 4.45 3 5 3H11C11.2833 3 11.5208 3.09583 11.7125 3.2875C11.9042 3.47917 12 3.71667 12 4C12 4.28333 11.9042 4.52083 11.7125 4.7125C11.5208 4.90417 11.2833 5 11 5H5V19H11C11.2833 19 11.5208 19.0958 11.7125 19.2875C11.9042 19.4792 12 19.7167 12 20C12 20.2833 11.9042 20.5208 11.7125 20.7125C11.5208 20.9042 11.2833 21 11 21H5ZM17.175 13H10C9.71667 13 9.47917 12.9042 9.2875 12.7125C9.09583 12.5208 9 12.2833 9 12C9 11.7167 9.09583 11.4792 9.2875 11.2875C9.47917 11.0958 9.71667 11 10 11H17.175L15.3 9.125C15.1167 8.94167 15.025 8.71667 15.025 8.45C15.025 8.18333 15.1167 7.95 15.3 7.75C15.4833 7.55 15.7167 7.44583 16 7.4375C16.2833 7.42917 16.525 7.525 16.725 7.725L20.3 11.3C20.5 11.5 20.6 11.7333 20.6 12C20.6 12.2667 20.5 12.5 20.3 12.7L16.725 16.275C16.525 16.475 16.2875 16.5708 16.0125 16.5625C15.7375 16.5542 15.5 16.45 15.3 16.25C15.1167 16.05 15.0292 15.8125 15.0375 15.5375C15.0458 15.2625 15.1417 15.0333 15.325 14.85L17.175 13Z" fill="currentColor"/></svg>
+            </span>
+            <span class="menu-item__label">Sign out</span>
+          </button>
+        </div>
+        <p class="scenario__caption">Default size (lg). With-icon items. Trailing num-badge on "Download API key" shows 2 unused keys. Divider separates the destructive "Sign out" action.</p>
+      </div>
+
+      <!-- Scenario 3: checkbox list -->
+      <div>
+        <div class="scenario__label">3 · Show columns (checkbox list)</div>
+        <div class="scenario__trigger">
+          Show columns
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="menu" style="width: 240px;">
+          <button class="menu-item">
+            <span class="menu-item__leading"><span class="leading-cb leading-cb--checked"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.55 15.15L18.025 6.675C18.225 6.475 18.4583 6.375 18.725 6.375C18.9917 6.375 19.225 6.475 19.425 6.675C19.625 6.875 19.725 7.1125 19.725 7.3875C19.725 7.6625 19.625 7.9 19.425 8.1L10.25 17.3C10.05 17.5 9.81667 17.6 9.55 17.6C9.28333 17.6 9.05 17.5 8.85 17.3L4.55 13C4.35 12.8 4.25417 12.5625 4.2625 12.2875C4.27083 12.0125 4.375 11.775 4.575 11.575C4.775 11.375 5.0125 11.275 5.2875 11.275C5.5625 11.275 5.8 11.375 6 11.575L9.55 15.15Z" fill="currentColor"/></svg></span></span>
+            <span class="menu-item__label">Status</span>
+          </button>
+          <button class="menu-item">
+            <span class="menu-item__leading"><span class="leading-cb leading-cb--checked"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.55 15.15L18.025 6.675C18.225 6.475 18.4583 6.375 18.725 6.375C18.9917 6.375 19.225 6.475 19.425 6.675C19.625 6.875 19.725 7.1125 19.725 7.3875C19.725 7.6625 19.625 7.9 19.425 8.1L10.25 17.3C10.05 17.5 9.81667 17.6 9.55 17.6C9.28333 17.6 9.05 17.5 8.85 17.3L4.55 13C4.35 12.8 4.25417 12.5625 4.2625 12.2875C4.27083 12.0125 4.375 11.775 4.575 11.575C4.775 11.375 5.0125 11.275 5.2875 11.275C5.5625 11.275 5.8 11.375 6 11.575L9.55 15.15Z" fill="currentColor"/></svg></span></span>
+            <span class="menu-item__label">Customer</span>
+          </button>
+          <button class="menu-item">
+            <span class="menu-item__leading"><span class="leading-cb"></span></span>
+            <span class="menu-item__label">Last scanned</span>
+          </button>
+          <button class="menu-item">
+            <span class="menu-item__leading"><span class="leading-cb leading-cb--checked"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.55 15.15L18.025 6.675C18.225 6.475 18.4583 6.375 18.725 6.375C18.9917 6.375 19.225 6.475 19.425 6.675C19.625 6.875 19.725 7.1125 19.725 7.3875C19.725 7.6625 19.625 7.9 19.425 8.1L10.25 17.3C10.05 17.5 9.81667 17.6 9.55 17.6C9.28333 17.6 9.05 17.5 8.85 17.3L4.55 13C4.35 12.8 4.25417 12.5625 4.2625 12.2875C4.27083 12.0125 4.375 11.775 4.575 11.575C4.775 11.375 5.0125 11.275 5.2875 11.275C5.5625 11.275 5.8 11.375 6 11.575L9.55 15.15Z" fill="currentColor"/></svg></span></span>
+            <span class="menu-item__label">Tags</span>
+          </button>
+          <button class="menu-item">
+            <span class="menu-item__leading"><span class="leading-cb"></span></span>
+            <span class="menu-item__label">Notes</span>
+          </button>
+        </div>
+        <p class="scenario__caption">Checkbox list — pick any subset. Multi-select pattern. Notice no row is "selected" (selected blue is reserved for radio-like single-pick semantics).</p>
+      </div>
+
+      <!-- Scenario 4: radio list -->
+      <div>
+        <div class="scenario__label">4 · Sort by (radio list — current pick selected)</div>
+        <div class="scenario__trigger">
+          Sort: Date (newest)
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="menu" style="width: 240px;">
+          <button class="menu-item menu-item--selected">
+            <span class="menu-item__leading"><span class="leading-radio leading-radio--checked"></span></span>
+            <span class="menu-item__label">Date (newest first)</span>
+          </button>
+          <button class="menu-item">
+            <span class="menu-item__leading"><span class="leading-radio"></span></span>
+            <span class="menu-item__label">Date (oldest first)</span>
+          </button>
+          <button class="menu-item">
+            <span class="menu-item__leading"><span class="leading-radio"></span></span>
+            <span class="menu-item__label">Name (A → Z)</span>
+          </button>
+          <button class="menu-item">
+            <span class="menu-item__leading"><span class="leading-radio"></span></span>
+            <span class="menu-item__label">Name (Z → A)</span>
+          </button>
+          <button class="menu-item">
+            <span class="menu-item__leading"><span class="leading-radio"></span></span>
+            <span class="menu-item__label">Most scans</span>
+          </button>
+        </div>
+        <p class="scenario__caption">Radio list — pick one. Current pick is both <em>selected</em> (blue softer surface) and has its radio dot filled. Hover the selected row to see the brighter <code>selected hover</code> tone.</p>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

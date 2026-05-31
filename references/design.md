@@ -54,6 +54,7 @@ colors:
   "primitive/green/200": "#CEF2DC"
   "primitive/green/300": "#A1E5BC"
   "primitive/green/600": "#0D853D"
+  "primitive/green/800": "#05612A"
   "primitive/green/900": "#03401B"
 
   # Yellow (warning & highlight)
@@ -70,6 +71,7 @@ colors:
   "primitive/red/300": "#FFB8B8"
   "primitive/red/400": "#FF9494"
   "primitive/red/600": "#D92121"
+  "primitive/red/800": "#AD1111"
   "primitive/red/900": "#800606"
 
   # Teal (brand secondary — marketing accent & teal brand outline)
@@ -149,6 +151,11 @@ colors:
   "surface/danger/soft": "#FFD9D9"
   "surface/danger/softer": "#FFE8E8"
 
+  # Surface — button-danger (interactive states for the Danger style on Primary)
+  # Default uses the existing surface/danger/full (#D92121).
+  "surface/button-danger/primary/hover": "#F24949"
+  "surface/button-danger/primary/pressed": "#AD1111"
+
   # Surface — neutral ramp (gray)
   "surface/neutral/dark": "#292E33"
   "surface/neutral/full": "#525A61"
@@ -181,10 +188,10 @@ colors:
   "text/info/pressed": "#1047A1"
 
   # Text — on-color (4.5:1 contrast pairs)
-  "text/on-color/blue": "#063073"
+  "text/on-color/blue": "#1047A1"
   "text/on-color/yellow": "#4D3800"
-  "text/on-color/green": "#03401B"
-  "text/on-color/red": "#800606"
+  "text/on-color/green": "#05612A"
+  "text/on-color/red": "#AD1111"
 
   # Border
   "border/primary": "#525A61"
@@ -217,7 +224,7 @@ colors:
   "icon/highlight": "#FFD300"
   "icon/brand": "#0A3390"
   "icon/brand dark": "#077F8A"
-  "icon/info": "#3683FF"
+  "icon/info": "#1660D9"
   "icon/positive": "#0D853D"
   "icon/warning": "#F0BD30"
   "icon/danger": "#D92121"
@@ -228,52 +235,76 @@ colors:
 
 
 typography:
-  heading-xl:
+  # Naming mirrors Figma variables (heading/large, body/small, etc.).
+  # Inter is the sole typeface — Figma may show Roboto as a placeholder
+  # but the rendered web font is always Inter.
+  #
+  # Values flagged "Figma-confirmed" came from get_variable_defs on a real
+  # component frame. Values flagged "TODO: verify from Figma" preserve the
+  # design.md legacy values and need confirmation when that token's component
+  # is populated.
+
+  # Headings
+  "heading/x-large":           # TODO: verify from Figma
     fontFamily: Inter
     fontSize: 30px
     fontWeight: 600
     lineHeight: 1.2
-  heading-lg:
+  "heading/large":             # Figma-confirmed via accordion (size + weight); lh TODO
     fontFamily: Inter
     fontSize: 24px
     fontWeight: 600
     lineHeight: 1.25
-  heading-md:
+  "heading/medium":            # Figma-confirmed via dialog (lineHeight 1.0)
     fontFamily: Inter
     fontSize: 20px
     fontWeight: 600
-    lineHeight: 1.3
-  heading-sm:
+    lineHeight: 1.0
+  "heading/small":             # TODO: verify from Figma
     fontFamily: Inter
     fontSize: 18px
     fontWeight: 600
     lineHeight: 1.4
-  body-lg:
+
+  # Body
+  "body/large":                # TODO: verify from Figma
+    fontFamily: Inter
+    fontSize: 18px
+    fontWeight: 400
+    lineHeight: 1.5
+  "body/medium":               # Figma-confirmed via callout
     fontFamily: Inter
     fontSize: 16px
     fontWeight: 400
-    lineHeight: 1.5
-  body-md:
+    lineHeight: 24px
+    letterSpacing: 0.25px
+  "body/small":                # Figma-confirmed via breadcrumbs
     fontFamily: Inter
     fontSize: 14px
     fontWeight: 400
-    lineHeight: 1.5
-  body-sm:
+    lineHeight: 20px
+    letterSpacing: 0.25px
+
+  # Labels (medium weight, fixed tracking)
+  "label/large":               # TODO: verify from Figma
+    fontFamily: Inter
+    fontSize: 16px
+    fontWeight: 500
+    letterSpacing: 0.25px
+  "label/medium":              # TODO: verify from Figma
+    fontFamily: Inter
+    fontSize: 14px
+    fontWeight: 500
+    letterSpacing: 0.25px
+  "label/small":               # Figma-confirmed via badge
     fontFamily: Inter
     fontSize: 12px
-    fontWeight: 400
-    lineHeight: 1.4
-  label-lg:
-    fontFamily: Inter
-    fontSize: 16px
     fontWeight: 500
+    lineHeight: 16px
     letterSpacing: 0.25px
-  label-md:
-    fontFamily: Inter
-    fontSize: 14px
-    fontWeight: 500
-    letterSpacing: 0.25px
-  caption-xs:
+
+  # Caption
+  "caption/small":             # TODO: verify from Figma — was caption-xs in legacy
     fontFamily: Inter
     fontSize: 10px
     fontWeight: 400
@@ -288,7 +319,7 @@ spacing:
   2xl: 48px
   sidebar: 300px
   content-max: 1650px
-  dialog: 704px
+  dialog: 676px              # Figma-confirmed via dialog frame (was 704px in legacy)
   dialog-xl-width: 749px
   dialog-xl-height: 765px
 
@@ -302,6 +333,14 @@ rounded:
   full: 9999px
 
 
+buttons:
+  # Button-specific shape and border tokens (per Figma button/* namespace).
+  # button/border/radius is the corner radius used on the Default size button;
+  # value matches size/cornerRadius/m (8px) but Figma exposes it under this name.
+  "button/border/radius": 8px
+  "button/border/secondary/width": 1px
+
+
 components:
   # Each component enumerates its variants, sizes, and states.
   # Detailed token bindings (backgroundColor, padding, etc.) live
@@ -313,84 +352,92 @@ components:
     states: [collapsed, expanded, hover, focused, disabled]
 
   badge:
-    variants: [neutral, info, success, warning, danger, brand, new]
-    sizes: [sm, md]
+    variants: [neutral, info, success, warning, danger]
+    sizes: [md]
     states: [default]
 
-  branding:
-    variants: [logo, wordmark, lockup]
-    sizes: [sm, md, lg]
-    states: [default, inverted]
-
   button:
-    variants: [primary, secondary, ghost, destructive]
-    sizes: [sm, md, lg]
-    states: [default, hover, focused, pressed, disabled, loading]
+    variants: [primary, secondary, ghost]
+    styles: [standard, danger]    # applies to primary; secondary/ghost may add their own styles when documented
+    sizes: [sm, md]
+    states: [default, hover, pressed, disabled]
 
   breadcrumbs:
     variants: [default]
     sizes: [md]
-    states: [default, hover, current, truncated]
+    states: [default, current]
 
   callout:
-    variants: [info, success, warning, danger, neutral]
+    variants: [info, success, warning, danger]
     sizes: [md]
-    states: [default, dismissible]
+    states: [default]
 
   card:
-    variants: [default, interactive, elevated, bordered]
-    sizes: [sm, md, lg]
-    states: [default, hover, pressed, selected, disabled]
+    variants: [rectangle, square, expandable]   # shape-based; each variant has its own intrinsic dimensions (no sizes axis)
+    states: [default, hover, pressed, expanded] # expanded only applies to the expandable variant
 
   checkbox:
-    variants: [default]
-    sizes: [sm, md]
-    states: [unchecked, checked, indeterminate, hover, focused, disabled, error]
+    variants: [default]                              # only one variant — no styles
+    states:  [default, hover, pressed, disabled]     # interactive state
+    checked: [no, yes, indeterminate]                # selection state (orthogonal to interactive state)
 
   chip:
-    variants: [neutral, filter, choice, action]
-    sizes: [sm, md]
-    states: [default, hover, focused, selected, disabled, removable]
+    variants: [filter, input]                                       # filter = toggleable with leading check; input = removable with trailing close_small
+    states: [default, hover, selected, selected_hover, disabled]    # no pressed — chip uses hover as the active-interaction state
 
   dialog:
-    variants: [default, alert, confirmation, fullscreen]
-    sizes: [md, lg, xl]
-    states: [open, closing]
+    variants: [default]                # only the default variant exists at this Figma node
+    states: [open, closing]            # `closing` is a real animation state even though Figma only draws `open`
 
   dropdown:
-    variants: [single-select, multi-select, with-search]
-    sizes: [sm, md, lg]
-    states: [default, hover, focused, open, filled, disabled, error]
+    variants: [vertical, horizontal]                                                                                # label position
+    sizes:    [sm, lg]                                                                                              # Small (32px) / Large (48px); no md
+    states:   [default, hover, selected, filled, read_only, disabled, error, error_hover, error_selected]           # selected = menu open
+    # Selection-behaviour variants (single-select / multi-select / with-search) live in separate Figma frames; populate when extracted
 
   link:
-    variants: [default, inline, standalone, external]
-    sizes: [sm, md, lg]
-    states: [default, hover, focused, pressed, visited, disabled]
+    variants: [default, neutral, context_link]                  # visual-treatment types per Figma
+    states: [default, hover, pressed, disabled]                 # one size only — label/large (16/500/24/0.25)
 
   list:
-    variants: [default, with-actions, with-icons, interactive]
-    sizes: [sm, md, lg]
-    states: [default, hover, focused, selected, disabled]
+    variants: [1-line, 2-line, 3-line, multi-line, draggable]    # Figma's "type" axis = row density. 1-line=48px, 2-line=72px, 3-line=88px, multi-line=variable, draggable=48px + drag handle.
+    leading: [none, icon, checkbox, radio, thumbnail]            # Orthogonal slot. `thumbnail` (48×48) only valid for 2-line/3-line/multi-line — the 48px image doesn't fit a 48px-tall 1-line row.
+    states: [default, hover, pressed, selected, disabled]        # `pressed` per Figma. `selected` added (NOT in Figma's list-item node) — uses `surface/selected` (#EFF5FA blue) for the master-detail pattern, matching [[menu]] and [[dropdown]]. No `focused` — keyboard focus follows :focus-visible outline.
+    # No `sizes` axis — row density IS the variant. Item surface uses catalog `surface/default/hover/pressed/selected` tokens (Figma's `surface/list-item/*` namespace maps 1:1). Border: 1px `border/tertiary` on bottom of each row, inset 12px from left. Section header (sibling component): 40px tall, `surface/hover` bg, `label/medium` `text/secondary`, optional num-badge in `surface/info/full` (#1660D9 — blue is correct here, info-coded count).
 
   menu:
-    variants: [default, with-icons, with-shortcuts, contextual]
-    sizes: [md]
-    states: [default, hover, focused, selected, disabled]
+    variants: [standard, with-icon, checkbox, radio]               # Figma-aligned item types — no shortcuts/contextual variants in the UI Kit
+    sizes: [sm, lg]                                                # lg=40px (comp-height/xl), sm=32px (comp-height/l)
+    states: [default, hover, pressed, selected, disabled]          # no `focused` (matches dropdown). selected uses `surface/selected` (#EFF5FA blue), NOT Figma's teal `list item/selected` (#E7F7F9)
+    # Container: white surface, `cornerradius/s` (4px), `shadow-lg` (Elevation/2 — directional), vertical padding `padding/s` (lg) or `padding/xs` (sm).
 
   progress:
-    variants: [linear, circular]
-    sizes: [sm, md, lg]
-    states: [indeterminate, determinate, complete, error]
+    variants: [linear, circular]                                 # Figma-aligned. Linear and circular do different jobs — see notes.
+    # No `sizes` axis — linear is one height (8px bar in 16px container, fluid width), circular is one size (24×24).
+    # Modes: linear is ALWAYS determinate (0–100% value). Circular supports `determinate` (with value) OR `indeterminate` (animated rotating arc, no value).
+    # Linear fill: `surface/success/full` (#0D853D — green) on `surface/disabled` (#E1E7ED) track. Linear reads as "value progressing positively" → semantic green.
+    # Circular arc: `icon/primary` (#16191C — dark) on `surface/neutral/subdued` (#C7CFD6) track. Circular reads as "task in progress, possibly stoppable" → neutral dark. Figma names the track `default/subdued`; same hex, catalogued as `neutral/subdued`.
+    # Linear optional: `showValue` (default true) renders right-aligned `body/small` "XX %" label, 44px wide (nowrap so "100 %" fits), 8px gap from bar.
+    # Circular optional: `stoppable` (default false) overlays a 6×6 `icon/primary` rounded-1px square in the center (stop button affordance).
+    # ONE COLOUR ONLY — linear is always `surface/success/full` green, circular is always `icon/primary` dark. No semantic info/danger/error variants — the progress bar shows value, not status. For status, use [[callout]].
 
   radio:
-    variants: [default]
-    sizes: [sm, md]
-    states: [unchecked, checked, hover, focused, disabled, error]
+    variants: [default]                                          # One variant only
+    states: [default, hover, pressed, disabled]                  # Figma-aligned. No `focused` (use :focus-visible outline). No `error` (error treatment lives on the surrounding form group, not the radio).
+    selected: [yes, no]                                          # Orthogonal axis — the radio value. Same model as [[checkbox]] (`checked: yes/no/indeterminate`).
+    # No `sizes` axis — one size only (20×20 ring, 2px border, `cornerradius/round` 999px).
+    # SELECTED=YES fill — uses BRAND BLUE per the web colour rule, NOT Figma's dark `#16191C`. Default `surface/interactive` (`#1047A1`), hover `#1660D9`, pressed `#063073`. Same call as [[checkbox]] — the two controls are siblings and must look consistent.
+    # SELECTED=NO ring — 2px `border/primary` (`#525A61`) stroke. Border stays constant across states; the ring's INNER FILL tints to signal interactivity: `surface/default` (`#FFFFFF`) default → `surface/hover` (`#F3F5F8`) hover → `surface/pressed` (`#E1E7ED`) pressed.
+    # DISABLED — solid `surface/disabled` (`#E1E7ED`) fill regardless of selected. Selected=yes adds a small white `icon/on-color` dot.
 
   search:
-    variants: [default, with-suggestions, with-filters]
-    sizes: [sm, md, lg]
-    states: [default, hover, focused, filled, disabled]
+    variants: [default]                                          # One variant only. `with-suggestions` is a Combobox/Autocomplete pattern (search wrapped in a [[menu]]); `with-filters` is a composition with adjacent [[chip]]s or [[button]]s. Neither lives in this component.
+    states: [default, hover, selected, filled, disabled]         # Figma-aligned naming kept verbatim (`selected` = input has keyboard focus + caret + clear button). `disabled` added — not in Figma but required for product use.
+    # No `sizes` axis — one size only: 48px tall (`comp-height/2xl`), pill (`cornerradius/round` 999px), fluid width.
+    # Surface: `surface/formcomp/default` (`#F3F5F8` — light gray, NOT white). Same `formcomp/*` namespace used by [[dropdown]].
+    # Border: 1px `border/secondary` (`#C7CFD6`) for default/hover/filled. 2px `border/interactive` (`#16191C` — near-black, stays dark per the catalog — NOT brand blue) when `selected`.
+    # Hover state: overlay `surface/formcomp/hover` (`rgba(0,0,0,0.05)`) — translucent tint on top of the default surface, NOT a surface swap.
+    # Leading icon: 20×20 `search` from icons.md, `icon/primary` (`#16191C`). Trailing clear button (close_small, 24×24 wrapper, 8px padding, `cornerradius/s` 6px) only when `filled` or `selected`.
 
   sidebar:
     variants: [default, collapsed]
@@ -398,19 +445,50 @@ components:
     states: [default, scrolled]
 
   text-field:
-    variants: [default, with-label, with-helper, with-icon, textarea]
-    sizes: [sm, md, lg]
-    states: [default, hover, focused, filled, error, disabled, read-only]
+    variants: [default]                                                                # One component. Compositional booleans: `label`, `mandatory` (red asterisk), `helperText`, `iconLeading`, `iconTrailing`. These are NOT variants — they're orthogonal flags.
+    sizes: [large, regular, small]                                                     # Figma-aligned names verbatim. Input heights: 56 / 48 / 32 px.
+    layouts: [vertical, horizontal]                                                    # `horizontal` (label beside input) valid ONLY for `size: small`. Vertical (label above) for everything else.
+    states: [default, hover, selected, filled, disabled, read_only, error, error_hover, error_selected]   # Figma-aligned naming verbatim. `selected` = focused with caret.
+    # Surface: `surface/formcomp/default` (#F3F5F8). Error surface: `surface/formcomp/error` (#FFE8E8 — light red).
+    # Border default/hover/filled: 1px `border/secondary` (#C7CFD6). Border selected: 2px `border/interactive` (#16191C — near-black, NOT brand blue, same call as [[search]] / [[dropdown]]).
+    # Border error / error_hover: 1px `border/danger-light` (#FF9494). Border error_selected: 2px `border/danger` (#D92121).
+    # Read-only state has NO border — just the gray surface, no helper text, no asterisk.
+    # Corner radius: `cornerradius/xs` (4px) — rectangle, NOT pill like [[search]].
+    # Label: `label/medium` 14/500/20/0.25, `text/secondary` (#525A61). Mandatory asterisk: 9px `text/danger` (#D92121) verbatim per Figma.
+    # Helper text: `body/xs` 12/400/16/0.25, `text/primary` (#16191C) — NOT secondary (Figma kept primary for legibility at 12px). Error helper: `text/danger`.
+    # Multi-line textarea is a SEPARATE component → see `textarea:` below (when populated). This text-field is single-line only.
+
+  textarea:                                                                            # Separate component for multi-line input. Not yet populated — extract from Figma when needed.
+    variants: [default]
+    sizes: [large, regular, small]
+    states: [default, hover, selected, filled, disabled, read_only, error, error_hover, error_selected]   # Same state machine as text-field; geometry and resize behaviour differ.
 
   toggle:
-    variants: [default]
-    sizes: [sm, md]
-    states: [off, on, hover, focused, disabled]
+    variants: [default]                                          # One variant only
+    states: [default, hover, pressed, disabled]                  # Figma-aligned. No `focused` (use :focus-visible outline). Same model as [[checkbox]] / [[radio]].
+    switchOn: [true, false]                                      # Orthogonal axis — the toggle value. 4 × 2 = 8 visual variants.
+    # No `sizes` axis — one size only (32 × 18 px track, `cornerradius/round` pill).
+    # OFF knob: 8×8 brand-blue dot (`surface/interactive` #1047A1) positioned 4px from the left. The blue dot is intentional — it previews "this is the colour you'd see if you turned it on." Disabled OFF mutes the dot to white.
+    # ON knob: 14×14 white circle (`surface/default`) positioned 2px from the right. The knob GROWS from 8→14 when switched on (not just slides) — Figma-verbatim, signals "the value is committed."
+    # Track surface — OFF: white default (with surface/hover / surface/pressed for interactivity), 1px `border/primary` (#525A61) border. ON: `surface/interactive` brand-blue family (hover → #1660D9, pressed → #063073), NO border.
+    # Disabled: track `surface/disabled` (#E1E7ED), white knob, no border. Same treatment for ON and OFF disabled (only knob position differs).
+
+  tooltip:
+    variants: [default]                                          # One visual variant — brand-blue label with caret. Multiline allowed; wraps within max-width.
+    tipPosition: [bottom, top]                                   # Figma-aligned naming verbatim. `bottom` = tip on the bottom of the label (tooltip sits ABOVE the trigger). `top` = tip on the top of the label (tooltip sits BELOW the trigger). `left`/`right` placements not in Figma — add when needed.
+    # No `states` axis — tooltips are presentation-only (the trigger has the interactive state, not the tooltip itself). They appear on hover/focus of the trigger and disappear when the trigger blurs.
+    # Surface: `surface/interactive` (#1047A1 brand blue). Text: `text/inverted` (#FFFFFF), `copy/caption` 12/400/16 (Roboto in Figma — ship Inter). Padding: 8px horizontal, 4px vertical (Figma variable names are transposed — `padding/v: 8` and `padding/h: 4` — but the applied values are px-8/py-4, so 8px horizontal and 4px vertical).
+    # Corner radius: 0 (`tooltip/border/radius: 0`) — SHARP rectangle, NOT rounded. Tip arrow: 16×8 triangle, same brand-blue fill, centred on the trigger.
+    # Width: `min-width: 120px` / `max-width: 320px` — tooltips read more naturally horizontal than square; the min keeps short labels feeling like tooltips, the max forces brevity. Figma's reference frame is 137 px which is too tight for one-line short labels — use the catalog values in production.
 
   tree-view:
-    variants: [default, with-icons, with-actions]
-    sizes: [md]
-    states: [default, hover, focused, selected, expanded, collapsed, disabled]
+    variants: [default]                                          # One variant only. `with-icons` / `with-actions` patterns aren't in Figma — extend when needed.
+    states: [default, hover, selected]                           # Figma-aligned. `selected` only valid for non-expandable LEAVES (parent nodes can't be selected — they're navigation-only). No `focused` (use :focus-visible). No `disabled` in Figma — add when product needs it (permission-locked branch, etc.). `expanded` and `collapsed` are NOT states — they're the `expanded` boolean on expandable items.
+    # Data props (not visual axes): `expandable: boolean`, `expanded: boolean` (only when expandable), `level: number` (depth, starts at 0).
+    # No `sizes` axis — one size (40px row, `comp-height/xl`).
+    # Surface: none at rest (transparent). Hover: `surface/hover` (#F3F5F8). Selected: **NO surface tint** — selected state is TEXT-ONLY (font-weight 600 SemiBold + color `text/info/default` #1660D9 info blue). Unusual on purpose: keeps the selected leaf from competing visually with parent expand/collapse affordances.
+    # Indentation: 24px per level. Non-expandable leaves get `pl-24` (reserves the chevron slot); expandable nodes have the chevron at the left and use the level spacer alone. Effective title left-edge = 24px × (level + 1).
+    # Chevron: 20×20 icon (`arrow_triangle_right` collapsed → `arrow_triangle_down` expanded) inside a 24×24 button wrapper (8px padding, `cornerradius/s` 6px).
 ---
 
 # Design System 
@@ -507,11 +585,11 @@ The foundation palette. Each step is named `primitive/<hue>/<step>`, where `<ste
 | `primitive/blue/200` | `surface/brand/soft` |
 | `primitive/blue/300` | Legacy `newblue-light` |
 | `primitive/blue/400` | `surface/brand/subdued` |
-| `primitive/blue/500` | `surface/interactive hover`, `surface/info/full`, `text/info/default`, `border/info` |
-| `primitive/blue/600` | `surface/interactive`, `surface/brand/full`, `text/info/pressed` |
+| `primitive/blue/500` | `surface/interactive hover`, `surface/info/full`, `text/info/default`, `border/info`, `icon/info` |
+| `primitive/blue/600` | `surface/interactive`, `surface/brand/full`, `text/info/pressed`, `text/on-color/blue` |
 | `primitive/blue/700` | Legacy `newblue-dark` |
 | `primitive/blue/800` | `text/brand`, `icon/brand` |
-| `primitive/blue/900` | `surface/interactive pressed`, `text/on-color/blue` |
+| `primitive/blue/900` | `surface/interactive pressed` |
 
 #### Sky (lighter info accents)
 
@@ -520,7 +598,7 @@ The foundation palette. Each step is named `primitive/<hue>/<step>`, where `<ste
 | `primitive/sky/100` | `surface/info/softer` |
 | `primitive/sky/200` | `surface/info/soft` |
 | `primitive/sky/300` | `surface/info/subdued`, `border/notification/info` |
-| `primitive/sky/400` | `text/info/hover`, `icon/info` |
+| `primitive/sky/400` | `text/info/hover` |
 
 #### Green (success)
 
@@ -530,7 +608,8 @@ The foundation palette. Each step is named `primitive/<hue>/<step>`, where `<ste
 | `primitive/green/200` | `surface/success/soft` |
 | `primitive/green/300` | `surface/success/subdued`, `border/notification/success` |
 | `primitive/green/600` | `surface/success/full`, `text/positive`, `icon/positive`, `border/success` |
-| `primitive/green/900` | `text/on-color/green` |
+| `primitive/green/800` | `text/on-color/green` |
+| `primitive/green/900` | — *(unused)* |
 
 #### Yellow (warning & highlight)
 
@@ -552,7 +631,8 @@ The foundation palette. Each step is named `primitive/<hue>/<step>`, where `<ste
 | `primitive/red/300` | `surface/danger/subdued`, `border/notification/error` |
 | `primitive/red/400` | `border/danger-light` |
 | `primitive/red/600` | `surface/danger/full`, `text/danger`, `icon/danger`, `border/danger` |
-| `primitive/red/900` | `text/on-color/red` |
+| `primitive/red/800` | `text/on-color/red` |
+| `primitive/red/900` | — *(unused)* |
 
 #### Teal (brand secondary)
 
@@ -787,14 +867,14 @@ These Tailwind classes appear in code but do not match the Figma Web tokens. Pre
 
 | Class | Size | Token | Usage |
 |-------|------|-------|-------|
-| `text-xxs` | 10px | `caption-xs` | Fine print, badges |
-| `text-xs` | 12px | `body-sm` | Legacy — do not use in new work |
-| `text-sm` | 14px | `body-md` / `label-md` | Body text, form labels, subtitles |
-| `text-base` | 16px | `body-lg` / `label-lg` | Default body, primary button label |
-| `text-lg` | 18px | `heading-sm` | Card titles, banner headlines |
-| `text-xl` | 20px | `heading-md` | Section headings |
-| `text-2xl` | 24px | `heading-lg` | Page sub-headings |
-| `text-3xl` | 30px | `heading-xl` | Page headings |
+| `text-xxs` | 10px | `caption/small` | Fine print |
+| `text-xs` | 12px | `label/small` | Badge labels, uppercase metadata — body-only 12px is retired |
+| `text-sm` | 14px | `body/small` / `label/medium` | Body text, form labels, subtitles, breadcrumbs |
+| `text-base` | 16px | `body/medium` / `label/large` | Default body, primary button label |
+| `text-lg` | 18px | `heading/small` / `body/large` | Card titles, banner headlines |
+| `text-xl` | 20px | `heading/medium` | Section headings |
+| `text-2xl` | 24px | `heading/large` | Page sub-headings |
+| `text-3xl` | 30px | `heading/x-large` | Page headings |
 
 ### Named type styles
 
@@ -804,7 +884,7 @@ Canonical pairings to use across components. Apply both size and weight together
 |---|---|---|---|---|
 | **heading-card** | `text-lg font-semibold` | 18px / 600 | `heading/small` | Card titles, banner headlines |
 | **body-card** | `text-sm font-normal text-typo-secondary` | 14px / 400 | `body/small` | Card subtitles, banner sublines |
-| **label-button** | `text-base font-medium` | 16px / 500 | `label/xl` | Primary button labels |
+| **label-button** | `text-base font-medium` | 16px / 500 | `label/large` | Primary button labels |
 | **label-medium** | `text-sm font-medium tracking-[0.25px]` | 14px / 500 | `label/medium` | Ghost button labels, secondary actions |
 
 ---
@@ -841,13 +921,18 @@ The dashboard uses a **fixed left sidebar (300px) + fluid main content (max 1650
 
 > **Figma:** [Elevation page](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=10-2)
 
-Elevation is **subtle and ambient**, never directional. All shadows are pure-vertical (offset 0, varying blur) at low opacity (`rgba(27,32,38,0.08)`) so cards lift off the page without casting harsh edges. Modals and popovers use heavier scrims (`rgba(0,0,0,0.25)`–`0.40`) defined under [Background](#background).
+Elevation has **two registers**:
+
+- **Card tier** (`shadow`, `shadow-md`) — subtle and ambient, pure-vertical (offset 0, varying blur) at low opacity (`rgba(27,32,38,0.08)`). Cards and hovered cards lift off the page without casting harsh edges.
+- **Floating tier** (`shadow-lg`, `shadow-xl`) — **directional** two-layer drop shadows (Figma Elevation/2 and /3). Popover menus, dropdowns, and modal dialogs need stronger separation from their underlying surface (the menu floats above a scrim or busy content), so they use Material-style directional shadows with vertical offsets and higher opacity.
+
+Modals and popovers also use heavier scrims (`rgba(0,0,0,0.25)`–`0.40`) defined under [Background](#background).
 
 | Class | Value | Usage |
 |-------|-------|-------|
 | `shadow` | `0 0 4px 0 rgba(27,32,38,0.08)` | Resting card lift |
 | `shadow-md` | `0 0 8px 0 rgba(27,32,38,0.08)` | Hovered card, sticky header |
-| `shadow-lg` | `0 0 16px 0 rgba(27,32,38,0.08)` | Popover, dropdown |
+| `shadow-lg` | `0 1px 2px 0 rgba(0,0,0,0.30), 0 2px 6px 2px rgba(0,0,0,0.15)` (Figma Elevation/2 — **directional**) | Popover, dropdown menu, floating list |
 | `shadow-xl` | `0 0 32px 0 rgba(27,32,38,0.08)` | Modal dialog |
 
 Shadow colour stops (Figma): `shadows/light` `rgba(0,0,0,0.25)` · `shadows/strong` `rgba(0,0,0,0.5)`.
@@ -869,6 +954,16 @@ Corner radii are **measured and modest** — sharp enough to feel engineered, so
 
 ---
 
+## Brand assets
+
+The Scandit logo is not modelled as a component — it's a static SVG asset. Pick it up directly from [`../assets/scandit-logo.svg`](../assets/scandit-logo.svg) when you need the wordmark in chrome (top bar, auth screens, marketing surfaces).
+
+- **Dimensions:** 136 × 20 at native viewBox; scale uniformly.
+- **Default ink:** `color/text/primary` (`#16191C`), hard-coded in the `fill` attribute.
+- **Inverted use:** for dark surfaces (`color/background/brand`), inline the SVG and swap the `fill` to `color/text/inverted` (`#FFFFFF`) — don't ship a duplicate dark-mode asset.
+
+---
+
 ## Components
 
 High-level overview of every component in the system. Each entry links to its Figma page; detailed token bindings (variant × size × state) live in the per-component `.md` files alongside this document, and variant/size/state enumerations are in the YAML `components:` block above.
@@ -877,7 +972,6 @@ High-level overview of every component in the system. Each entry links to its Fi
 |---|---|---|
 | **Accordion** | Disclose sections of content one at a time to reduce vertical density. | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=2934-5760) |
 | **Badge** | Tag a status or count next to a label (e.g. "New", "3 issues"). | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=4832-11808) |
-| **Branding** | Place the Scandit identity in the chrome and on auth / marketing surfaces. | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=2934-5540) |
 | **Button** | The primary affordance for an action. One primary button per view; ghost for secondary navigation. | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=2803-4942) |
 | **Breadcrumbs** | Show the user's location in a multi-level page hierarchy. | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=2934-6290) |
 | **Callout** | Inline status message tied to a section (info, success, warning, danger). | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=7031-931) |
@@ -953,7 +1047,6 @@ Every page in the [UI Kit](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/U
 |------|----------|-------|
 | Accordion | `accordion` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=2934-5760) |
 | Badge | `badge` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=4832-11808) |
-| Branding | `branding` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=2934-5540) |
 | Buttons | `button` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=2803-4942) |
 | Breadcrumbs | `breadcrumbs` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=2934-6290) |
 | Callout | `callout` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=7031-931) |
@@ -963,12 +1056,14 @@ Every page in the [UI Kit](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/U
 | Dialogs | `dialog` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=2934-5695) |
 | Dropdown | `dropdown` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=2934-5921) |
 | Link | `link` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=2934-5429) |
-| Lists | `list` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=3152-150) |
-| Menu | `menu` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=5992-5045) |
-| Progress | `progress` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=4995-7653) |
+| Lists | `list` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=3152-150) — item node `6661:2262`, section header `6669:2031` |
+| Menu | `menu` | [items](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=6481-8736) · [containers](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=6481-8758) |
+| Progress | `progress` | [linear](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=6614-679) · [circular](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=4995-7636) |
 | Radio Button | `radio` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=4788-85) |
 | Search | `search` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=4052-3806) |
 | Sidebar | `sidebar` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=2934-5545) |
-| Text Fields | `text-field` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=5294-1106) |
-| Toggle Switch | `toggle` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=2934-5542) |
+| Text Fields | `text-field` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=5724-463) |
+| Textarea | `textarea` | (Figma node not yet identified — extract when populating) |
+| Toggle Switch | `toggle` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=10953-20508) |
+| Tooltip | `tooltip` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=10956-20525) |
 | Tree View | `tree-view` | [open](https://www.figma.com/design/wzrIzPpikfyF9K6Y3UHUf8/UI-Kit?node-id=6639-1940) |

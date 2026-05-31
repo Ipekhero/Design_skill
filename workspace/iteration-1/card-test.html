@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Card test — all variants × all states</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ───── Scandit semantic tokens — from references/design.md ───── */
+    :root {
+      --color-surface-default:        #FFFFFF;
+      --color-surface-hover:          #F3F5F8;
+      --color-surface-pressed:        #E1E7ED;
+      --color-surface-brand-softer:   #EFF5FA;   /* Square icon-wrapper bg — BLUE, not Figma's teal #E7F7F9 */
+      --color-border-tertiary:        #E1E7ED;
+      --color-text-primary:           #16191C;
+      --color-text-secondary:         #525A61;
+      --color-icon-secondary:         #6C7680;
+      --color-icon-brand:             #0A3390;   /* brand BLUE per design.md, NOT Figma's teal #1AA1AD */
+      --color-gray-primitive-400:     #ACB6BF;   /* LeadingElement placeholder */
+
+      /* Page chrome */
+      --color-background-secondary:   #F7F7F7;
+      --color-text-secondary-page:    #525A61;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary-page); font-size: 14px; margin: 0 0 32px; max-width: 760px; line-height: 1.5; }
+
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+
+    .panel {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 20px 24px 24px;
+      margin-bottom: 16px;
+    }
+
+    .row-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary-page);
+      margin: 16px 0 12px;
+    }
+    .row-label:first-child { margin-top: 0; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, max-content);
+      gap: 16px;
+      align-items: start;
+    }
+    .grid-state {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .state-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary-page);
+    }
+
+    /* ═══════════════════════ CARD BASE ═══════════════════════ */
+    .card {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 8px;            /* size/cornerRadius/m */
+      font-family: inherit;
+      color: var(--color-text-primary);
+      cursor: pointer;
+      transition: background-color 120ms;
+      text-decoration: none;
+    }
+    .card:not([disabled]):not(.is-disabled):hover,
+    .card.is-hover    { background: var(--color-surface-hover); }
+    .card:not([disabled]):not(.is-disabled):active,
+    .card.is-pressed  { background: var(--color-surface-pressed); }
+
+    /* Shared header (Rectangle + Expandable) */
+    .card__header {
+      display: flex; align-items: center; gap: 16px;
+      padding: 12px 16px;
+      width: 100%;
+      background: transparent;
+      border: 0; color: inherit; font: inherit;
+      cursor: inherit;
+      text-align: left;
+    }
+    .card__leading {
+      width: 48px; height: 48px; flex-shrink: 0;
+      border-radius: 2px;
+      background: var(--color-gray-primitive-400);
+    }
+    .card__text {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .card__label {
+      font-size: 16px; font-weight: 500; line-height: 24px; letter-spacing: 0.25px;
+      color: var(--color-text-primary);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .card__desc {
+      font-size: 14px; font-weight: 400; line-height: 20px; letter-spacing: 0.25px;
+      color: var(--color-text-secondary);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .card__trailing {
+      width: 24px; height: 24px; flex-shrink: 0;
+      color: var(--color-icon-secondary);
+      display: inline-grid; place-items: center;
+    }
+
+    /* ───── Rectangle ───── */
+    .card--rectangle {
+      width: 343px;
+      min-height: 72px;
+      display: flex; flex-direction: column;
+    }
+
+    /* ───── Expandable ───── */
+    .card--expandable {
+      width: 343px;
+      display: flex; flex-direction: column;
+    }
+    .card--expandable .card__divider {
+      height: 1px; background: var(--color-border-tertiary);
+    }
+    .card--expandable .card__content {
+      padding: 16px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    /* Placeholder image inside the expanded content area */
+    .card--expandable .content-placeholder {
+      height: 200px;
+      border-radius: 8px;
+      background: var(--color-gray-primitive-400);
+      opacity: 0.2;
+      display: grid; place-items: center;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+    }
+
+    /* ───── Square ───── */
+    .card--square {
+      width: 160px; height: 150px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 16px;
+      text-align: left;
+    }
+    .card__top {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card__icon-wrapper {
+      width: 36px; height: 36px;
+      border-radius: 4px;
+      background: var(--color-surface-brand-softer);  /* BLUE, not teal */
+      display: grid; place-items: center;
+    }
+    .card__icon-glyph {
+      width: 24px; height: 24px;
+      color: var(--color-icon-brand);                 /* deep blue per design.md */
+      display: inline-grid; place-items: center;
+    }
+    .card__bottom {
+      display: flex; flex-direction: column;
+    }
+  </style>
+</head>
+<body>
+  <h1>Card — all variants × all states</h1>
+  <p class="lead">
+    Three variants stacked top to bottom (Rectangle, Square, Expandable). Each section shows
+    all states side-by-side: <em>default</em>, <em>hover</em>, <em>pressed</em>, and
+    (for Expandable only) <em>expanded</em>. Hover and pressed are force-rendered via
+    <code>.is-hover</code> / <code>.is-pressed</code>; the first cell uses real
+    <code>:hover</code> / <code>:active</code> so you can verify natural CSS matches the
+    forced state. The Square card's icon-wrapper uses <strong>brand blue</strong>
+    (<code>color/surface/brand/softer</code> + <code>color/icon/brand</code>), <strong>not
+    Figma's teal</strong> — per the web brand rule.
+  </p>
+
+  <!-- ═════════════════ RECTANGLE ═════════════════ -->
+  <h2>Rectangle</h2>
+  <div class="panel">
+    <div class="row-label">343 × auto (min-height 72px) · leading 48×48 + label/large + body/small + chevron_right</div>
+    <div class="grid">
+      <div class="grid-state">
+        <span class="state-label">default</span>
+        <a class="card card--rectangle" href="#">
+          <span class="card__header">
+            <span class="card__leading"></span>
+            <span class="card__text">
+              <span class="card__label">Warehouse pilot — Zurich DC</span>
+              <span class="card__desc">12 scanners · last sync 2 minutes ago</span>
+            </span>
+            <span class="card__trailing">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 18 8 16.6l4.6-4.6L8 7.4 9.4 6l6 6-6 6Z"/></svg>
+            </span>
+          </span>
+        </a>
+      </div>
+
+      <div class="grid-state">
+        <span class="state-label">hover</span>
+        <a class="card card--rectangle is-hover" href="#">
+          <span class="card__header">
+            <span class="card__leading"></span>
+            <span class="card__text">
+              <span class="card__label">Warehouse pilot — Zurich DC</span>
+              <span class="card__desc">12 scanners · last sync 2 minutes ago</span>
+            </span>
+            <span class="card__trailing">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 18 8 16.6l4.6-4.6L8 7.4 9.4 6l6 6-6 6Z"/></svg>
+            </span>
+          </span>
+        </a>
+      </div>
+
+      <div class="grid-state">
+        <span class="state-label">pressed</span>
+        <a class="card card--rectangle is-pressed" href="#">
+          <span class="card__header">
+            <span class="card__leading"></span>
+            <span class="card__text">
+              <span class="card__label">Warehouse pilot — Zurich DC</span>
+              <span class="card__desc">12 scanners · last sync 2 minutes ago</span>
+            </span>
+            <span class="card__trailing">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 18 8 16.6l4.6-4.6L8 7.4 9.4 6l6 6-6 6Z"/></svg>
+            </span>
+          </span>
+        </a>
+      </div>
+
+      <div class="grid-state">
+        <span class="state-label">(no expanded — rectangle doesn't expand)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ SQUARE ═════════════════ -->
+  <h2>Square</h2>
+  <div class="panel">
+    <div class="row-label">160 × 150 · top icon-wrapper (brand blue, NOT teal) + chevron_right + bottom label/desc</div>
+    <div class="grid">
+      <div class="grid-state">
+        <span class="state-label">default</span>
+        <a class="card card--square" href="#">
+          <span class="card__top">
+            <span class="card__icon-wrapper">
+              <span class="card__icon-glyph">
+                <!-- assets/icons/scan.svg path (simplified) -->
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 8V5q0-.825.588-1.412Q4.175 3 5 3h3v2H5v3H3Zm0 13v-3h2v3H3Zm5 0v-2h3v2H8Zm8 0v-2h3v-3h2v3q0 .825-.588 1.413Q19.825 21 19 21h-3Zm3-13V5h-3V3h3q.825 0 1.413.588Q21 4.175 21 5v3h-2Z"/></svg>
+              </span>
+            </span>
+            <span class="card__trailing">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 18 8 16.6l4.6-4.6L8 7.4 9.4 6l6 6-6 6Z"/></svg>
+            </span>
+          </span>
+          <span class="card__bottom">
+            <span class="card__label">Start scan</span>
+            <span class="card__desc">Open the scanner</span>
+          </span>
+        </a>
+      </div>
+
+      <div class="grid-state">
+        <span class="state-label">hover</span>
+        <a class="card card--square is-hover" href="#">
+          <span class="card__top">
+            <span class="card__icon-wrapper">
+              <span class="card__icon-glyph">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 8V5q0-.825.588-1.412Q4.175 3 5 3h3v2H5v3H3Zm0 13v-3h2v3H3Zm5 0v-2h3v2H8Zm8 0v-2h3v-3h2v3q0 .825-.588 1.413Q19.825 21 19 21h-3Zm3-13V5h-3V3h3q.825 0 1.413.588Q21 4.175 21 5v3h-2Z"/></svg>
+              </span>
+            </span>
+            <span class="card__trailing">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 18 8 16.6l4.6-4.6L8 7.4 9.4 6l6 6-6 6Z"/></svg>
+            </span>
+          </span>
+          <span class="card__bottom">
+            <span class="card__label">Start scan</span>
+            <span class="card__desc">Open the scanner</span>
+          </span>
+        </a>
+      </div>
+
+      <div class="grid-state">
+        <span class="state-label">pressed</span>
+        <a class="card card--square is-pressed" href="#">
+          <span class="card__top">
+            <span class="card__icon-wrapper">
+              <span class="card__icon-glyph">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 8V5q0-.825.588-1.412Q4.175 3 5 3h3v2H5v3H3Zm0 13v-3h2v3H3Zm5 0v-2h3v2H8Zm8 0v-2h3v-3h2v3q0 .825-.588 1.413Q19.825 21 19 21h-3Zm3-13V5h-3V3h3q.825 0 1.413.588Q21 4.175 21 5v3h-2Z"/></svg>
+              </span>
+            </span>
+            <span class="card__trailing">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 18 8 16.6l4.6-4.6L8 7.4 9.4 6l6 6-6 6Z"/></svg>
+            </span>
+          </span>
+          <span class="card__bottom">
+            <span class="card__label">Start scan</span>
+            <span class="card__desc">Open the scanner</span>
+          </span>
+        </a>
+      </div>
+
+      <div class="grid-state">
+        <span class="state-label">(no expanded — square doesn't expand)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ EXPANDABLE ═════════════════ -->
+  <h2>Expandable</h2>
+  <div class="panel">
+    <div class="row-label">343 × auto · header (chevron_down collapsed / chevron_up expanded) + optional content slot below 1px divider</div>
+    <div class="grid">
+      <div class="grid-state">
+        <span class="state-label">default (collapsed)</span>
+        <div class="card card--expandable">
+          <button class="card__header" type="button">
+            <span class="card__leading"></span>
+            <span class="card__text">
+              <span class="card__label">License key</span>
+              <span class="card__desc">AmGq·BvJp·KZ4d·R2sM</span>
+            </span>
+            <span class="card__trailing">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="m12 15-6-6 1.4-1.4 4.6 4.6 4.6-4.6L18 9l-6 6Z"/></svg>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid-state">
+        <span class="state-label">hover</span>
+        <div class="card card--expandable is-hover">
+          <button class="card__header" type="button">
+            <span class="card__leading"></span>
+            <span class="card__text">
+              <span class="card__label">License key</span>
+              <span class="card__desc">AmGq·BvJp·KZ4d·R2sM</span>
+            </span>
+            <span class="card__trailing">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="m12 15-6-6 1.4-1.4 4.6 4.6 4.6-4.6L18 9l-6 6Z"/></svg>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid-state">
+        <span class="state-label">pressed</span>
+        <div class="card card--expandable is-pressed">
+          <button class="card__header" type="button">
+            <span class="card__leading"></span>
+            <span class="card__text">
+              <span class="card__label">License key</span>
+              <span class="card__desc">AmGq·BvJp·KZ4d·R2sM</span>
+            </span>
+            <span class="card__trailing">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="m12 15-6-6 1.4-1.4 4.6 4.6 4.6-4.6L18 9l-6 6Z"/></svg>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid-state">
+        <span class="state-label">expanded</span>
+        <div class="card card--expandable">
+          <button class="card__header" type="button">
+            <span class="card__leading"></span>
+            <span class="card__text">
+              <span class="card__label">License key</span>
+              <span class="card__desc">AmGq·BvJp·KZ4d·R2sM</span>
+            </span>
+            <span class="card__trailing">
+              <!-- chevron_up — pointing up when expanded -->
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="m6 15 6-6 6 6-1.4 1.4L12 11.8l-4.6 4.6L6 15Z"/></svg>
+            </span>
+          </button>
+          <div class="card__divider"></div>
+          <div class="card__content">
+            <div class="content-placeholder">expanded content slot</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

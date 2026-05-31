@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Search test — 5 states + interactive examples</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    :root {
+      --color-surface-default:           #FFFFFF;
+      --color-surface-formcomp-default:  #F3F5F8;
+      --color-surface-formcomp-hover:    rgba(0, 0, 0, 0.05);
+      --color-surface-hover:             #F3F5F8;
+      --color-surface-disabled:          #E1E7ED;
+      --color-border-secondary:          #C7CFD6;
+      --color-border-tertiary:           #E1E7ED;
+      --color-border-interactive:        #16191C;
+      --color-text-primary:              #16191C;
+      --color-text-secondary:            #525A61;
+      --color-text-disabled:             #ACB6BF;
+      --color-icon-primary:              #16191C;
+      --color-icon-disabled:             #ACB6BF;
+
+      --size-comp-height-2xl:    48px;
+      --size-cornerradius-round: 999px;
+      --size-cornerradius-s:     6px;
+      --spacing-padding-s:       8px;
+      --spacing-padding-m:       12px;
+
+      --color-background-secondary-page: #F7F7F7;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 32px; max-width: 800px; line-height: 1.5; }
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+      text-transform: none; letter-spacing: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+    .panel {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 20px 24px 24px;
+      margin-bottom: 16px;
+    }
+
+    .state-stack {
+      display: flex; flex-direction: column; gap: 16px;
+      max-width: 480px;
+    }
+    .state-stack__label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 0 0 8px;
+    }
+
+    .scenarios {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 440px));
+      gap: 32px 40px;
+      align-items: start;
+    }
+    .scenario__label {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 0 0 12px;
+    }
+    .scenario__shell {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 12px;
+      padding: 20px 24px;
+    }
+    .scenario__caption {
+      font-size: 12px; color: var(--color-text-secondary);
+      margin: 10px 0 0; line-height: 1.5;
+    }
+    .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .filter-chip {
+      display: inline-flex; align-items: center;
+      padding: 4px 12px; height: 28px;
+      background: var(--color-surface-formcomp-default);
+      border: 1px solid var(--color-border-secondary);
+      border-radius: var(--size-cornerradius-round);
+      font-size: 14px; color: var(--color-text-primary);
+      cursor: pointer;
+    }
+    .filter-chip--active {
+      background: #1047A1;
+      border-color: #1047A1;
+      color: #FFFFFF;
+    }
+    .result-list {
+      list-style: none; padding: 0; margin: 12px 0 0;
+      display: flex; flex-direction: column; gap: 1px;
+      background: var(--color-border-tertiary);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .result-list li {
+      padding: 12px 16px;
+      background: var(--color-surface-default);
+      font-size: 14px;
+    }
+
+    /* ═══════════════════════ SEARCH ═══════════════════════ */
+    .search {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-padding-s);
+      height: var(--size-comp-height-2xl);
+      padding: 0 var(--spacing-padding-m);
+      background: var(--color-surface-formcomp-default);
+      border: 1px solid var(--color-border-secondary);
+      border-radius: var(--size-cornerradius-round);
+      transition: background-color 80ms, border-color 80ms, padding 80ms;
+      box-sizing: border-box;
+    }
+
+    /* hover — translucent black overlay on the default surface */
+    .search:not(.search--selected):not(.search--disabled):not(:focus-within):hover,
+    .search.is-hover {
+      background-image: linear-gradient(var(--color-surface-formcomp-hover), var(--color-surface-formcomp-hover));
+    }
+
+    /* selected (Figma's "focused with caret") — 2px near-black border */
+    .search:focus-within:not(.search--disabled),
+    .search.is-selected {
+      border: 2px solid var(--color-border-interactive);
+      padding: 0 11px;
+      background-image: none;
+    }
+
+    /* disabled */
+    .search--disabled {
+      background: var(--color-surface-disabled);
+      border-color: transparent;
+      cursor: not-allowed;
+    }
+
+    .search__icon {
+      flex-shrink: 0;
+      width: 20px; height: 20px;
+      color: var(--color-icon-primary);
+      display: block;
+    }
+    .search--disabled .search__icon { color: var(--color-icon-disabled); }
+
+    .search__input {
+      flex: 1 1 0;
+      min-width: 0;
+      background: transparent;
+      border: 0; outline: 0;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 24px;
+      letter-spacing: 0.25px;
+      color: var(--color-text-primary);
+      font-family: inherit;
+      padding: 0;
+    }
+    .search__input::placeholder { color: var(--color-text-secondary); }
+    .search--disabled .search__input { cursor: not-allowed; }
+    .search--disabled .search__input::placeholder { color: var(--color-text-disabled); }
+
+    /* Suppress the browser's NATIVE clear button on type="search" so only our close-small icon shows.
+       Safari/Chrome render a default "×" on search inputs; Firefox doesn't but it's harmless to leave. */
+    .search__input::-webkit-search-cancel-button,
+    .search__input::-webkit-search-decoration,
+    .search__input::-webkit-search-results-button,
+    .search__input::-webkit-search-results-decoration {
+      -webkit-appearance: none;
+      appearance: none;
+      display: none;
+    }
+
+    .search__clear {
+      flex-shrink: 0;
+      width: 24px; height: 24px;
+      padding: 2px;
+      background: transparent;
+      border: 0;
+      border-radius: var(--size-cornerradius-s);
+      color: var(--color-icon-primary);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .search__clear:hover { background: var(--color-surface-hover); }
+    .search__clear svg { width: 20px; height: 20px; display: block; }
+  </style>
+</head>
+<body>
+  <!-- ───── Icon symbol defs (verbatim from assets/icons/) ───── -->
+  <svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <path d="M9.5 16C7.68333 16 6.14583 15.3708 4.8875 14.1125C3.62917 12.8542 3 11.3167 3 9.5C3 7.68333 3.62917 6.14583 4.8875 4.8875C6.14583 3.62917 7.68333 3 9.5 3C11.3167 3 12.8542 3.62917 14.1125 4.8875C15.3708 6.14583 16 7.68333 16 9.5C16 10.2333 15.8833 10.925 15.65 11.575C15.4167 12.225 15.1 12.8 14.7 13.3L20.3 18.9C20.4833 19.0833 20.575 19.3167 20.575 19.6C20.575 19.8833 20.4833 20.1167 20.3 20.3C20.1167 20.4833 19.8833 20.575 19.6 20.575C19.3167 20.575 19.0833 20.4833 18.9 20.3L13.3 14.7C12.8 15.1 12.225 15.4167 11.575 15.65C10.925 15.8833 10.2333 16 9.5 16ZM9.5 14C10.75 14 11.8125 13.5625 12.6875 12.6875C13.5625 11.8125 14 10.75 14 9.5C14 8.25 13.5625 7.1875 12.6875 6.3125C11.8125 5.4375 10.75 5 9.5 5C8.25 5 7.1875 5.4375 6.3125 6.3125C5.4375 7.1875 5 8.25 5 9.5C5 10.75 5.4375 11.8125 6.3125 12.6875C7.1875 13.5625 8.25 14 9.5 14Z" fill="currentColor"/>
+      </symbol>
+      <symbol id="i-close-small" viewBox="0 0 24 24">
+        <path d="M12 13.4L9.08325 16.325C8.89875 16.5083 8.664 16.6 8.379 16.6C8.094 16.6 7.85933 16.5083 7.675 16.325C7.49167 16.1417 7.4 15.9083 7.4 15.625C7.4 15.3417 7.49167 15.1083 7.675 14.925L10.6 12L7.675 9.10825C7.49167 8.92375 7.4 8.689 7.4 8.404C7.4 8.119 7.49167 7.88433 7.675 7.7C7.85833 7.51667 8.09167 7.425 8.375 7.425C8.65833 7.425 8.89167 7.51667 9.075 7.7L12 10.625L14.8917 7.7C15.0762 7.51667 15.311 7.425 15.596 7.425C15.881 7.425 16.1157 7.51667 16.3 7.7C16.5 7.9 16.6 8.1375 16.6 8.4125C16.6 8.6875 16.5 8.91667 16.3 9.1L13.375 12L16.3 14.9167C16.4833 15.1012 16.575 15.336 16.575 15.621C16.575 15.906 16.4833 16.1407 16.3 16.325C16.1 16.525 15.8625 16.625 15.5875 16.625C15.3125 16.625 15.0833 16.525 14.9 16.325L12 13.4Z" fill="currentColor"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <h1>Search — 5 states</h1>
+  <p class="lead">
+    Single pill-shaped 48px-tall searchbar on a gray <code>surface/formcomp/default</code> surface. State names mirror
+    Figma verbatim: <code>default</code>, <code>hover</code>, <code>selected</code> (keyboard focus + caret + clear
+    button), <code>filled</code>, <code>disabled</code>. The first search bar in the "States" panel uses real CSS
+    <code>:hover</code> and <code>:focus-within</code> &mdash; click into it to see the natural <code>selected</code>
+    state match the forced one below.
+  </p>
+
+  <!-- ═════════════════ STATE STACK ═════════════════ -->
+  <h2>States</h2>
+  <div class="panel">
+    <div class="state-stack">
+
+      <div>
+        <div class="state-stack__label">Default (interactive — try hovering / clicking)</div>
+        <div class="search">
+          <svg class="search__icon" viewBox="0 0 24 24"><use href="#i-search"/></svg>
+          <input type="search" class="search__input" placeholder="Search">
+        </div>
+      </div>
+
+      <div>
+        <div class="state-stack__label">Hover (forced)</div>
+        <div class="search is-hover">
+          <svg class="search__icon" viewBox="0 0 24 24"><use href="#i-search"/></svg>
+          <input type="search" class="search__input" placeholder="Search" tabindex="-1">
+        </div>
+      </div>
+
+      <div>
+        <div class="state-stack__label">Selected (forced — focused + clear button, no value)</div>
+        <div class="search is-selected">
+          <svg class="search__icon" viewBox="0 0 24 24"><use href="#i-search"/></svg>
+          <input type="search" class="search__input" placeholder="Search" tabindex="-1">
+          <button type="button" class="search__clear" aria-label="Clear" tabindex="-1">
+            <svg viewBox="0 0 24 24"><use href="#i-close-small"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="state-stack__label">Filled (has value, not focused)</div>
+        <div class="search">
+          <svg class="search__icon" viewBox="0 0 24 24"><use href="#i-search"/></svg>
+          <input type="search" class="search__input" value="Lorem ipsum">
+          <button type="button" class="search__clear" aria-label="Clear" tabindex="-1">
+            <svg viewBox="0 0 24 24"><use href="#i-close-small"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="state-stack__label">Disabled (not in Figma — added for product use)</div>
+        <div class="search search--disabled">
+          <svg class="search__icon" viewBox="0 0 24 24"><use href="#i-search"/></svg>
+          <input type="search" class="search__input" placeholder="Search" disabled>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════════════════ IN-CONTEXT SCENARIOS ═════════════════ -->
+  <h2>In context — four realistic searchbar scenarios</h2>
+  <div class="panel">
+    <div class="scenarios">
+
+      <div>
+        <div class="scenario__label">1 · Standalone page-level search</div>
+        <div class="scenario__shell">
+          <div class="search">
+            <svg class="search__icon" viewBox="0 0 24 24"><use href="#i-search"/></svg>
+            <input type="search" class="search__input" placeholder="Search 4,823 records">
+          </div>
+        </div>
+        <p class="scenario__caption">Top-of-page filter for the records list. Placeholder hints at the dataset size — useful when the list is long.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">2 · With scoping chips above</div>
+        <div class="scenario__shell">
+          <div class="chip-row">
+            <span class="filter-chip filter-chip--active">All</span>
+            <span class="filter-chip">Found</span>
+            <span class="filter-chip">Missing</span>
+            <span class="filter-chip">Pending</span>
+          </div>
+          <div class="search">
+            <svg class="search__icon" viewBox="0 0 24 24"><use href="#i-search"/></svg>
+            <input type="search" class="search__input" placeholder="Search within current filter">
+          </div>
+        </div>
+        <p class="scenario__caption">Composition: scoping <code>[[chip]]</code> row + the search input. The chip narrows the scope; the search filters inside that scope. Search and chips are independent controls.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">3 · Filled with live results below</div>
+        <div class="scenario__shell">
+          <div class="search">
+            <svg class="search__icon" viewBox="0 0 24 24"><use href="#i-search"/></svg>
+            <input type="search" class="search__input" value="acme">
+            <button type="button" class="search__clear" aria-label="Clear" tabindex="-1">
+              <svg viewBox="0 0 24 24"><use href="#i-close-small"/></svg>
+            </button>
+          </div>
+          <ul class="result-list">
+            <li>Acme Corp · 12 items</li>
+            <li>Acme Logistics · 4 items</li>
+            <li>Acme Subsidiary Ltd · 2 items</li>
+          </ul>
+        </div>
+        <p class="scenario__caption">Filled state with the clear button visible. Below, the result list updates as the user types (debounce in product code). Clicking ✕ wipes the query and the list resets.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">4 · Disabled while data is loading</div>
+        <div class="scenario__shell">
+          <div class="search search--disabled">
+            <svg class="search__icon" viewBox="0 0 24 24"><use href="#i-search"/></svg>
+            <input type="search" class="search__input" placeholder="Loading records…" disabled>
+          </div>
+          <p style="font-size: 12px; color: var(--color-text-secondary); margin: 12px 0 0;">
+            The search input is locked until the dataset finishes loading. Disabled treatment mirrors other form controls.
+          </p>
+        </div>
+        <p class="scenario__caption">Real product need not in Figma's set — search input disabled while waiting for data. Surface goes <code>surface/disabled</code>, placeholder + icon both <code>*/disabled</code>.</p>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

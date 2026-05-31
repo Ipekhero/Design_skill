@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="arrow_triangle_left">
+<mask id="mask0_arrow_tl" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+<rect id="Bounding box" width="24" height="24" fill="var(--fill-0, #D9D9D9)"/>
+</mask>
+<g mask="url(#mask0_arrow_tl)">
+<path id="arrow_triangle_left_2" d="M13.15 16.15L9.525 12.525C9.442 12.4417 9.383 12.3583 9.35 12.275C9.317 12.1917 9.3 12.1 9.3 12C9.3 11.9 9.317 11.8083 9.35 11.725C9.383 11.6417 9.442 11.5583 9.525 11.475L13.15 7.85001C13.2 7.80001 13.254 7.76251 13.313 7.73751C13.371 7.71251 13.433 7.70001 13.5 7.70001C13.633 7.70001 13.75 7.74585 13.85 7.83751C13.95 7.92918 14 8.05001 14 8.20001V15.8C14 15.95 13.95 16.0708 13.85 16.1625C13.75 16.2542 13.633 16.3 13.5 16.3C13.467 16.3 13.35 16.25 13.15 16.15Z" fill="var(--fill-0, #16191C)"/>
+</g>
+</g>
+</svg>

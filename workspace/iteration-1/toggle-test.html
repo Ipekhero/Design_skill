@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Toggle test — 4 states × 2 switchOn values + realistic settings</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    :root {
+      --color-surface-default:             #FFFFFF;
+      --color-surface-hover:               #F3F5F8;
+      --color-surface-pressed:             #E1E7ED;
+      --color-surface-disabled:            #E1E7ED;
+      --color-surface-interactive:         #1047A1;
+      --color-surface-interactive-hover:   #1660D9;
+      --color-surface-interactive-pressed: #063073;
+      --color-border-primary:              #525A61;
+      --color-border-tertiary:             #E1E7ED;
+      --color-text-primary:                #16191C;
+      --color-text-secondary:              #525A61;
+      --color-text-disabled:               #ACB6BF;
+      --size-cornerradius-round:           999px;
+      --spacing-padding-m:                 12px;
+      --color-background-secondary-page:   #F7F7F7;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 32px; max-width: 800px; line-height: 1.5; }
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+      text-transform: none; letter-spacing: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+    .panel {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 20px 24px 24px;
+      margin-bottom: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 140px repeat(4, 96px);
+      gap: 24px 32px;
+      align-items: center;
+      justify-items: start;
+    }
+    .col-header, .row-header {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+    }
+    .col-header {
+      text-align: left;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+      width: 100%;
+    }
+
+    .scenarios {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 440px));
+      gap: 32px 40px;
+      align-items: start;
+    }
+    .scenario__label {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 0 0 12px;
+    }
+    .scenario__shell {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+    .scenario__caption {
+      font-size: 12px; color: var(--color-text-secondary);
+      margin: 10px 0 0; line-height: 1.5;
+    }
+    .settings-list {
+      display: flex; flex-direction: column;
+    }
+    .settings-list .toggle {
+      width: 100%;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--color-border-tertiary);
+    }
+    .settings-list .toggle:last-child { border-bottom: 0; }
+
+    /* ═══════════════════════ TOGGLE ═══════════════════════ */
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-padding-m);
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle--disabled { cursor: not-allowed; }
+
+    .toggle__body { display: flex; flex-direction: column; gap: 2px; }
+    .toggle__label {
+      font-size: 16px; font-weight: 400; line-height: 24px; letter-spacing: 0.25px;
+      color: var(--color-text-primary);
+    }
+    .toggle__description {
+      font-size: 14px; font-weight: 400; line-height: 20px; letter-spacing: 0.25px;
+      color: var(--color-text-secondary);
+    }
+    .toggle--disabled .toggle__label,
+    .toggle--disabled .toggle__description { color: var(--color-text-disabled); }
+
+    .toggle__input {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0, 0, 0, 0);
+      white-space: nowrap; border: 0;
+    }
+
+    /* Track — OFF default */
+    .toggle__track {
+      position: relative;
+      width: 32px; height: 18px;
+      box-sizing: border-box;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-primary);
+      border-radius: var(--size-cornerradius-round);
+      flex-shrink: 0;
+      transition: background-color 80ms, border-color 80ms;
+    }
+
+    /* OFF hover / pressed — track tints, border stays. Guarded against disabled. */
+    .toggle:not(.toggle--disabled):hover .toggle__track:not(.toggle__track--on),
+    .toggle__track:not(.toggle__track--on).is-hover {
+      background: var(--color-surface-hover);
+    }
+    .toggle:not(.toggle--disabled):active .toggle__track:not(.toggle__track--on),
+    .toggle__track:not(.toggle__track--on).is-pressed {
+      background: var(--color-surface-pressed);
+    }
+
+    /* ON — brand-blue track, no border */
+    .toggle__track--on {
+      background: var(--color-surface-interactive);
+      border-color: transparent;
+    }
+    .toggle:not(.toggle--disabled):hover .toggle__track--on,
+    .toggle__track--on.is-hover {
+      background: var(--color-surface-interactive-hover);
+    }
+    .toggle:not(.toggle--disabled):active .toggle__track--on,
+    .toggle__track--on.is-pressed {
+      background: var(--color-surface-interactive-pressed);
+    }
+
+    /* Disabled — both ON and OFF show gray track, no border */
+    .toggle__track--disabled {
+      background: var(--color-surface-disabled) !important;
+      border-color: transparent !important;
+    }
+
+    /* Knob — OFF (8×8 brand-blue dot, top-left position) */
+    .toggle__knob {
+      position: absolute;
+      background: var(--color-surface-interactive);
+      border-radius: var(--size-cornerradius-round);
+      transition: left 150ms, right 150ms, width 150ms, height 150ms, background 80ms;
+      width: 8px; height: 8px;
+      left: 4px; top: 4px;
+      right: auto;
+    }
+
+    /* Knob — ON (14×14 white circle, right) */
+    .toggle__track--on .toggle__knob {
+      width: 14px; height: 14px;
+      left: auto;
+      right: 2px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--color-surface-default);
+    }
+
+    /* Knob — disabled (white, both ON and OFF) */
+    .toggle__track--disabled .toggle__knob { background: var(--color-surface-default); }
+    .toggle__track--disabled:not(.toggle__track--on) .toggle__knob {
+      left: 5px; top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Toggle — 4 states × 2 switchOn values</h1>
+  <p class="lead">
+    Binary on/off switch for changes that take effect immediately. Two orthogonal axes:
+    <strong>state</strong> (default / hover / pressed / disabled) and <strong>switchOn</strong> (true / false).
+    The first cell in each row uses real CSS <code>:hover</code> / <code>:active</code> — hover it to verify the
+    natural state matches the forced one next to it.
+    <strong>ON track uses brand blue (#1047A1)</strong>, same as <a href="checkbox-test.html">checkbox</a> /
+    <a href="radio-test.html">radio</a>. The 8×8 OFF knob is intentionally brand-blue — it previews the ON colour.
+  </p>
+
+  <!-- ═════════════════ STATE × SWITCHON MATRIX ═════════════════ -->
+  <h2>State × switchOn matrix — 4 × 2 = 8 variants</h2>
+  <div class="panel">
+    <div class="grid">
+      <div></div>
+      <div class="col-header">default</div>
+      <div class="col-header">hover</div>
+      <div class="col-header">pressed</div>
+      <div class="col-header">disabled</div>
+
+      <div class="row-header">switchOn = false</div>
+      <span class="toggle__track" aria-hidden="true"><span class="toggle__knob"></span></span>
+      <span class="toggle__track is-hover" aria-hidden="true"><span class="toggle__knob"></span></span>
+      <span class="toggle__track is-pressed" aria-hidden="true"><span class="toggle__knob"></span></span>
+      <span class="toggle__track toggle__track--disabled" aria-hidden="true"><span class="toggle__knob"></span></span>
+
+      <div class="row-header">switchOn = true</div>
+      <span class="toggle__track toggle__track--on" aria-hidden="true"><span class="toggle__knob"></span></span>
+      <span class="toggle__track toggle__track--on is-hover" aria-hidden="true"><span class="toggle__knob"></span></span>
+      <span class="toggle__track toggle__track--on is-pressed" aria-hidden="true"><span class="toggle__knob"></span></span>
+      <span class="toggle__track toggle__track--on toggle__track--disabled" aria-hidden="true"><span class="toggle__knob"></span></span>
+    </div>
+  </div>
+
+  <!-- ═════════════════ INTERACTIVE EXAMPLES ═════════════════ -->
+  <h2>Interactive — click to toggle (real-world feel)</h2>
+  <div class="panel">
+    <div style="display: flex; flex-direction: column; gap: 16px; max-width: 480px;">
+
+      <label class="toggle">
+        <div class="toggle__body">
+          <span class="toggle__label">Live setting (click to flip)</span>
+          <span class="toggle__description">Real <code>&lt;input type="checkbox" role="switch"&gt;</code> drives the visual.</span>
+        </div>
+        <span class="toggle__track">
+          <input type="checkbox" role="switch" class="toggle__input" onchange="this.parentElement.classList.toggle('toggle__track--on', this.checked)">
+          <span class="toggle__knob" aria-hidden="true"></span>
+        </span>
+      </label>
+
+      <label class="toggle">
+        <div class="toggle__body">
+          <span class="toggle__label">Pre-checked (starts ON)</span>
+        </div>
+        <span class="toggle__track toggle__track--on">
+          <input type="checkbox" role="switch" checked class="toggle__input" onchange="this.parentElement.classList.toggle('toggle__track--on', this.checked)">
+          <span class="toggle__knob" aria-hidden="true"></span>
+        </span>
+      </label>
+
+      <label class="toggle toggle--disabled">
+        <div class="toggle__body">
+          <span class="toggle__label">Disabled (locked)</span>
+          <span class="toggle__description">This setting requires admin permission.</span>
+        </div>
+        <span class="toggle__track toggle__track--disabled">
+          <input type="checkbox" role="switch" disabled class="toggle__input">
+          <span class="toggle__knob" aria-hidden="true"></span>
+        </span>
+      </label>
+
+      <label class="toggle toggle--disabled">
+        <div class="toggle__body">
+          <span class="toggle__label">Disabled ON (was previously enabled)</span>
+        </div>
+        <span class="toggle__track toggle__track--on toggle__track--disabled">
+          <input type="checkbox" role="switch" disabled checked class="toggle__input">
+          <span class="toggle__knob" aria-hidden="true"></span>
+        </span>
+      </label>
+
+    </div>
+  </div>
+
+  <!-- ═════════════════ IN-CONTEXT SCENARIOS ═════════════════ -->
+  <h2>In context — four realistic settings panels</h2>
+  <div class="panel">
+    <div class="scenarios">
+
+      <div>
+        <div class="scenario__label">1 · Notification settings</div>
+        <div class="scenario__shell">
+          <div class="settings-list">
+            <label class="toggle">
+              <div class="toggle__body">
+                <span class="toggle__label">Email notifications</span>
+                <span class="toggle__description">Receive updates on scan activity to your inbox.</span>
+              </div>
+              <span class="toggle__track toggle__track--on">
+                <input type="checkbox" role="switch" checked class="toggle__input" onchange="this.parentElement.classList.toggle('toggle__track--on', this.checked)">
+                <span class="toggle__knob" aria-hidden="true"></span>
+              </span>
+            </label>
+            <label class="toggle">
+              <div class="toggle__body">
+                <span class="toggle__label">SMS alerts on critical errors</span>
+                <span class="toggle__description">Only for production-impacting issues.</span>
+              </div>
+              <span class="toggle__track toggle__track--on">
+                <input type="checkbox" role="switch" checked class="toggle__input" onchange="this.parentElement.classList.toggle('toggle__track--on', this.checked)">
+                <span class="toggle__knob" aria-hidden="true"></span>
+              </span>
+            </label>
+            <label class="toggle">
+              <div class="toggle__body">
+                <span class="toggle__label">Daily summary digest</span>
+              </div>
+              <span class="toggle__track">
+                <input type="checkbox" role="switch" class="toggle__input" onchange="this.parentElement.classList.toggle('toggle__track--on', this.checked)">
+                <span class="toggle__knob" aria-hidden="true"></span>
+              </span>
+            </label>
+            <label class="toggle toggle--disabled">
+              <div class="toggle__body">
+                <span class="toggle__label">Push notifications</span>
+                <span class="toggle__description">Requires mobile app — not installed.</span>
+              </div>
+              <span class="toggle__track toggle__track--disabled">
+                <input type="checkbox" role="switch" disabled class="toggle__input">
+                <span class="toggle__knob" aria-hidden="true"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+        <p class="scenario__caption">Settings list with toggles. Each change applies immediately (no Save button needed). The bottom row is disabled because the mobile app isn't installed.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">2 · Feature flags (developer panel)</div>
+        <div class="scenario__shell">
+          <div class="settings-list">
+            <label class="toggle">
+              <div class="toggle__body">
+                <span class="toggle__label">Camera v2 (beta)</span>
+                <span class="toggle__description">Lower latency, requires recent device.</span>
+              </div>
+              <span class="toggle__track">
+                <input type="checkbox" role="switch" class="toggle__input" onchange="this.parentElement.classList.toggle('toggle__track--on', this.checked)">
+                <span class="toggle__knob" aria-hidden="true"></span>
+              </span>
+            </label>
+            <label class="toggle">
+              <div class="toggle__body">
+                <span class="toggle__label">MatrixScan UI</span>
+                <span class="toggle__description">Multi-target scanning overlay.</span>
+              </div>
+              <span class="toggle__track toggle__track--on">
+                <input type="checkbox" role="switch" checked class="toggle__input" onchange="this.parentElement.classList.toggle('toggle__track--on', this.checked)">
+                <span class="toggle__knob" aria-hidden="true"></span>
+              </span>
+            </label>
+            <label class="toggle">
+              <div class="toggle__body">
+                <span class="toggle__label">Verbose logging</span>
+                <span class="toggle__description">Outputs SDK internals to the JS console.</span>
+              </div>
+              <span class="toggle__track">
+                <input type="checkbox" role="switch" class="toggle__input" onchange="this.parentElement.classList.toggle('toggle__track--on', this.checked)">
+                <span class="toggle__knob" aria-hidden="true"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+        <p class="scenario__caption">Feature flags — each toggle commits the change live. Description text justifies risk/cost of enabling.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">3 · Single inline toggle (no row chrome)</div>
+        <div class="scenario__shell">
+          <label class="toggle" style="width: 100%;">
+            <div class="toggle__body">
+              <span class="toggle__label">Auto-rotate camera</span>
+            </div>
+            <span class="toggle__track toggle__track--on">
+              <input type="checkbox" role="switch" checked class="toggle__input" onchange="this.parentElement.classList.toggle('toggle__track--on', this.checked)">
+              <span class="toggle__knob" aria-hidden="true"></span>
+            </span>
+          </label>
+        </div>
+        <p class="scenario__caption">A single label + toggle, no list chrome. Common in dialog footers ("Remember my choice") or quick-action panels.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">4 · Card with toggle in header</div>
+        <div class="scenario__shell">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--color-border-tertiary); margin-bottom: 12px;">
+            <span style="font-size: 18px; font-weight: 600;">Sync to cloud</span>
+            <span class="toggle__track toggle__track--on" onclick="this.classList.toggle('toggle__track--on')">
+              <span class="toggle__knob" aria-hidden="true"></span>
+            </span>
+          </div>
+          <p style="font-size: 14px; line-height: 20px; color: var(--color-text-secondary); margin: 0;">
+            Scanned records will be uploaded to Scandit Cloud every 5 minutes. Last sync: 3 minutes ago.
+          </p>
+        </div>
+        <p class="scenario__caption">Toggle as the right-aligned affordance in a card header — turns the whole card's behaviour on/off. The card body below describes what the toggle does.</p>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

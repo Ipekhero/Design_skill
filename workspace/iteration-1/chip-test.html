@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chip test — Filter + Input · all states · Chip Group</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ───── Scandit semantic tokens — from references/design.md ───── */
+    :root {
+      --color-surface-default-chip:        #F7F7F7;   /* background/secondary — Figma alias color/surface/chip/default */
+      --color-surface-chip-hover:          #E6E6E6;   /* Figma color/surface/chip/hover — NOT surface/hover #F3F5F8 */
+      --color-surface-chip-disabled:       #E6E6E6;   /* Figma color/surface/chip/disabled — same hex as chip-hover */
+      --color-surface-interactive:         #1047A1;   /* BLUE per design.md, NOT Figma's near-black #16191C */
+      --color-surface-interactive-hover:   #1660D9;
+      --color-border-secondary:            #C7CFD6;
+      --color-text-primary:                #16191C;
+      --color-text-inverted:               #FFFFFF;
+      --color-text-disabled:               #ACB6BF;
+
+      /* Page chrome */
+      --color-background-secondary-page:   #F7F7F7;
+      --color-surface-default-page:        #FFFFFF;
+      --color-border-tertiary:             #E1E7ED;
+      --color-text-secondary-page:         #525A61;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary-page); font-size: 14px; margin: 0 0 32px; max-width: 800px; line-height: 1.5; }
+
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default-page);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+
+    .panel {
+      background: var(--color-surface-default-page);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 20px 24px 24px;
+      margin-bottom: 16px;
+      max-width: 1000px;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: 140px repeat(5, max-content);
+      gap: 16px 24px;
+      align-items: center;
+    }
+    .matrix-corner { /* empty */ }
+    .matrix-col-header {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary-page);
+      text-align: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+    }
+    .matrix-row-header {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary-page);
+    }
+
+    /* Chip Group example */
+    .chip-group {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 8px 0;
+    }
+
+    /* ═══════════════════════ CHIP ═══════════════════════ */
+    .chip {
+      display: inline-flex; align-items: center;
+      height: 32px;
+      border-radius: 999px;                /* size/cornerRadius/round */
+      font-family: inherit;
+      font-size: 14px; line-height: 20px;  /* body/small */
+      letter-spacing: 0.25px;
+      white-space: nowrap;
+      background: var(--color-surface-default-chip);
+      border: 1px solid var(--color-border-secondary);
+      color: var(--color-text-primary);
+      padding: 0 12px;
+      transition: background-color 120ms;
+      cursor: pointer;
+    }
+    .chip:focus-visible {
+      outline: 2px solid var(--color-surface-interactive);
+      outline-offset: 2px;
+    }
+
+    /* Unselected hover (real CSS + forced) — uses chip-specific hover gray */
+    .chip:not(.chip--selected):not(.is-disabled):not([disabled]):hover,
+    .chip:not(.chip--selected).is-hover  { background: var(--color-surface-chip-hover); }
+
+    /* Selected — filled BLUE per design.md (NOT Figma's near-black) */
+    .chip--selected {
+      background: var(--color-surface-interactive);
+      color: var(--color-text-inverted);
+      border: 0;
+      gap: 4px;                            /* spacing/padding/xs */
+    }
+    /* Filter selected: leading check, pl 8 / pr 12 */
+    .chip--filter.chip--selected   { padding: 0 12px 0 8px; }
+    /* Input selected: trailing close, pl 12 / pr 4 */
+    .chip--input.chip--selected    { padding: 0 4px 0 12px; }
+
+    .chip--selected:not(.is-disabled):not([disabled]):hover,
+    .chip--selected.is-hover { background: var(--color-surface-interactive-hover); }
+
+    .chip__icon { width: 20px; height: 20px; display: inline-grid; place-items: center; color: currentColor; }
+
+    /* Input × button — invisible 48×48 tap area */
+    .chip__remove {
+      width: 20px; height: 20px;
+      display: inline-grid; place-items: center;
+      background: transparent; border: 0; padding: 0;
+      color: inherit; cursor: pointer;
+      border-radius: 999px;
+      position: relative;
+    }
+    .chip__remove::before {
+      content: '';
+      position: absolute; inset: -14px;     /* extends to 48×48 */
+    }
+
+    /* Disabled — applies to both unselected and selected; flattens both to chip-disabled gray */
+    .chip[disabled], .chip.is-disabled {
+      background: var(--color-surface-chip-disabled);
+      color: var(--color-text-disabled);
+      border: 0;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chip — all 10 cells × 2 types · Chip Group</h1>
+  <p class="lead">
+    Two types (Filter, Input) × five states (default, hover, selected, selected_hover, disabled) = 10 cells per type.
+    Hover and selected-hover are force-rendered with <code>.is-hover</code>; the first cell in each row uses real
+    <code>:hover</code> so you can verify natural state matches the forced state next to it. The Selected fill uses
+    <strong>brand blue</strong> (<code>#1047A1</code>) — <strong>not</strong> Figma's near-black <code>#16191C</code>.
+    Disabled cells don't pick up hover effects (guarded by <code>:not([disabled]):not(.is-disabled)</code>).
+  </p>
+
+  <!-- ═════════════════ FILTER ═════════════════ -->
+  <h2>Filter chips</h2>
+  <div class="panel">
+    <div class="matrix">
+      <div class="matrix-corner"></div>
+      <div class="matrix-col-header">default</div>
+      <div class="matrix-col-header">hover</div>
+      <div class="matrix-col-header">selected</div>
+      <div class="matrix-col-header">selected_hover</div>
+      <div class="matrix-col-header">disabled</div>
+
+      <div class="matrix-row-header">Filter</div>
+
+      <div>
+        <span class="chip chip--filter" role="checkbox" aria-checked="false">Active</span>
+      </div>
+
+      <div>
+        <span class="chip chip--filter is-hover" role="checkbox" aria-checked="false">Active</span>
+      </div>
+
+      <div>
+        <span class="chip chip--filter chip--selected" role="checkbox" aria-checked="true">
+          <span class="chip__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg>
+          </span>
+          Active
+        </span>
+      </div>
+
+      <div>
+        <span class="chip chip--filter chip--selected is-hover" role="checkbox" aria-checked="true">
+          <span class="chip__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg>
+          </span>
+          Active
+        </span>
+      </div>
+
+      <div>
+        <span class="chip chip--filter is-disabled" role="checkbox" aria-checked="false" aria-disabled="true">Archived</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ INPUT ═════════════════ -->
+  <h2>Input chips</h2>
+  <div class="panel">
+    <div class="matrix">
+      <div class="matrix-corner"></div>
+      <div class="matrix-col-header">default</div>
+      <div class="matrix-col-header">hover</div>
+      <div class="matrix-col-header">selected</div>
+      <div class="matrix-col-header">selected_hover</div>
+      <div class="matrix-col-header">disabled</div>
+
+      <div class="matrix-row-header">Input</div>
+
+      <div>
+        <span class="chip chip--input">jane@scandit.com</span>
+      </div>
+
+      <div>
+        <span class="chip chip--input is-hover">jane@scandit.com</span>
+      </div>
+
+      <div>
+        <span class="chip chip--input chip--selected">
+          jane@scandit.com
+          <button class="chip__remove" type="button" aria-label="Remove jane@scandit.com">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 13.4L9.08325 16.325C8.89875 16.5083 8.664 16.6 8.379 16.6C8.094 16.6 7.85933 16.5083 7.675 16.325C7.49167 16.1417 7.4 15.9083 7.4 15.625C7.4 15.3417 7.49167 15.1083 7.675 14.925L10.6 12L7.675 9.10825C7.49167 8.92375 7.4 8.689 7.4 8.404C7.4 8.119 7.49167 7.88433 7.675 7.7C7.85833 7.51667 8.09167 7.425 8.375 7.425C8.65833 7.425 8.89167 7.51667 9.075 7.7L12 10.625L14.8917 7.7C15.0762 7.51667 15.311 7.425 15.596 7.425C15.881 7.425 16.1157 7.51667 16.3 7.7C16.5 7.9 16.6 8.1375 16.6 8.4125C16.6 8.6875 16.5 8.91667 16.3 9.1L13.375 12L16.3 14.9167C16.4833 15.1012 16.575 15.336 16.575 15.621C16.575 15.906 16.4833 16.1407 16.3 16.325C16.1 16.525 15.8625 16.625 15.5875 16.625C15.3125 16.625 15.0833 16.525 14.9 16.325L12 13.4Z"/>
+            </svg>
+          </button>
+        </span>
+      </div>
+
+      <div>
+        <span class="chip chip--input chip--selected is-hover">
+          jane@scandit.com
+          <button class="chip__remove" type="button" aria-label="Remove jane@scandit.com">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 13.4L9.08325 16.325C8.89875 16.5083 8.664 16.6 8.379 16.6C8.094 16.6 7.85933 16.5083 7.675 16.325C7.49167 16.1417 7.4 15.9083 7.4 15.625C7.4 15.3417 7.49167 15.1083 7.675 14.925L10.6 12L7.675 9.10825C7.49167 8.92375 7.4 8.689 7.4 8.404C7.4 8.119 7.49167 7.88433 7.675 7.7C7.85833 7.51667 8.09167 7.425 8.375 7.425C8.65833 7.425 8.89167 7.51667 9.075 7.7L12 10.625L14.8917 7.7C15.0762 7.51667 15.311 7.425 15.596 7.425C15.881 7.425 16.1157 7.51667 16.3 7.7C16.5 7.9 16.6 8.1375 16.6 8.4125C16.6 8.6875 16.5 8.91667 16.3 9.1L13.375 12L16.3 14.9167C16.4833 15.1012 16.575 15.336 16.575 15.621C16.575 15.906 16.4833 16.1407 16.3 16.325C16.1 16.525 15.8625 16.625 15.5875 16.625C15.3125 16.625 15.0833 16.525 14.9 16.325L12 13.4Z"/>
+            </svg>
+          </button>
+        </span>
+      </div>
+
+      <div>
+        <span class="chip chip--input is-disabled" aria-disabled="true">jane@scandit.com</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ CHIP GROUP ═════════════════ -->
+  <h2>Chip Group — in context</h2>
+  <div class="panel">
+
+    <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-secondary-page); margin: 4px 0 8px;">
+      Filter Chips group — multi-select status filter
+    </div>
+    <div class="chip-group" role="group" aria-label="Filter scans by status">
+      <span class="chip chip--filter chip--selected" role="checkbox" aria-checked="true">
+        <span class="chip__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg>
+        </span>
+        Success
+      </span>
+      <span class="chip chip--filter chip--selected" role="checkbox" aria-checked="true">
+        <span class="chip__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/></svg>
+        </span>
+        Warning
+      </span>
+      <span class="chip chip--filter" role="checkbox" aria-checked="false">Failed</span>
+      <span class="chip chip--filter" role="checkbox" aria-checked="false">Pending</span>
+      <span class="chip chip--filter is-disabled" role="checkbox" aria-checked="false" aria-disabled="true">Archived</span>
+    </div>
+
+    <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-secondary-page); margin: 32px 0 8px;">
+      Input Chips group — share-with recipients (all selected by default, removable via ×)
+    </div>
+    <div class="chip-group" role="group" aria-label="Recipients">
+      <span class="chip chip--input chip--selected">
+        ipek.kahraman@scandit.com
+        <button class="chip__remove" type="button" aria-label="Remove ipek.kahraman@scandit.com">
+          <!-- assets/icons/close-small.svg — exact path copied from the asset file --><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 13.4L9.08325 16.325C8.89875 16.5083 8.664 16.6 8.379 16.6C8.094 16.6 7.85933 16.5083 7.675 16.325C7.49167 16.1417 7.4 15.9083 7.4 15.625C7.4 15.3417 7.49167 15.1083 7.675 14.925L10.6 12L7.675 9.10825C7.49167 8.92375 7.4 8.689 7.4 8.404C7.4 8.119 7.49167 7.88433 7.675 7.7C7.85833 7.51667 8.09167 7.425 8.375 7.425C8.65833 7.425 8.89167 7.51667 9.075 7.7L12 10.625L14.8917 7.7C15.0762 7.51667 15.311 7.425 15.596 7.425C15.881 7.425 16.1157 7.51667 16.3 7.7C16.5 7.9 16.6 8.1375 16.6 8.4125C16.6 8.6875 16.5 8.91667 16.3 9.1L13.375 12L16.3 14.9167C16.4833 15.1012 16.575 15.336 16.575 15.621C16.575 15.906 16.4833 16.1407 16.3 16.325C16.1 16.525 15.8625 16.625 15.5875 16.625C15.3125 16.625 15.0833 16.525 14.9 16.325L12 13.4Z"/></svg>
+        </button>
+      </span>
+      <span class="chip chip--input chip--selected">
+        jane.smith@scandit.com
+        <button class="chip__remove" type="button" aria-label="Remove jane.smith@scandit.com">
+          <!-- assets/icons/close-small.svg — exact path copied from the asset file --><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 13.4L9.08325 16.325C8.89875 16.5083 8.664 16.6 8.379 16.6C8.094 16.6 7.85933 16.5083 7.675 16.325C7.49167 16.1417 7.4 15.9083 7.4 15.625C7.4 15.3417 7.49167 15.1083 7.675 14.925L10.6 12L7.675 9.10825C7.49167 8.92375 7.4 8.689 7.4 8.404C7.4 8.119 7.49167 7.88433 7.675 7.7C7.85833 7.51667 8.09167 7.425 8.375 7.425C8.65833 7.425 8.89167 7.51667 9.075 7.7L12 10.625L14.8917 7.7C15.0762 7.51667 15.311 7.425 15.596 7.425C15.881 7.425 16.1157 7.51667 16.3 7.7C16.5 7.9 16.6 8.1375 16.6 8.4125C16.6 8.6875 16.5 8.91667 16.3 9.1L13.375 12L16.3 14.9167C16.4833 15.1012 16.575 15.336 16.575 15.621C16.575 15.906 16.4833 16.1407 16.3 16.325C16.1 16.525 15.8625 16.625 15.5875 16.625C15.3125 16.625 15.0833 16.525 14.9 16.325L12 13.4Z"/></svg>
+        </button>
+      </span>
+      <span class="chip chip--input chip--selected">
+        ops-team@scandit.com
+        <button class="chip__remove" type="button" aria-label="Remove ops-team@scandit.com">
+          <!-- assets/icons/close-small.svg — exact path copied from the asset file --><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 13.4L9.08325 16.325C8.89875 16.5083 8.664 16.6 8.379 16.6C8.094 16.6 7.85933 16.5083 7.675 16.325C7.49167 16.1417 7.4 15.9083 7.4 15.625C7.4 15.3417 7.49167 15.1083 7.675 14.925L10.6 12L7.675 9.10825C7.49167 8.92375 7.4 8.689 7.4 8.404C7.4 8.119 7.49167 7.88433 7.675 7.7C7.85833 7.51667 8.09167 7.425 8.375 7.425C8.65833 7.425 8.89167 7.51667 9.075 7.7L12 10.625L14.8917 7.7C15.0762 7.51667 15.311 7.425 15.596 7.425C15.881 7.425 16.1157 7.51667 16.3 7.7C16.5 7.9 16.6 8.1375 16.6 8.4125C16.6 8.6875 16.5 8.91667 16.3 9.1L13.375 12L16.3 14.9167C16.4833 15.1012 16.575 15.336 16.575 15.621C16.575 15.906 16.4833 16.1407 16.3 16.325C16.1 16.525 15.8625 16.625 15.5875 16.625C15.3125 16.625 15.0833 16.525 14.9 16.325L12 13.4Z"/></svg>
+        </button>
+      </span>
+      <span class="chip chip--input chip--selected">
+        product-managers@scandit.com
+        <button class="chip__remove" type="button" aria-label="Remove product-managers@scandit.com">
+          <!-- assets/icons/close-small.svg — exact path copied from the asset file --><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 13.4L9.08325 16.325C8.89875 16.5083 8.664 16.6 8.379 16.6C8.094 16.6 7.85933 16.5083 7.675 16.325C7.49167 16.1417 7.4 15.9083 7.4 15.625C7.4 15.3417 7.49167 15.1083 7.675 14.925L10.6 12L7.675 9.10825C7.49167 8.92375 7.4 8.689 7.4 8.404C7.4 8.119 7.49167 7.88433 7.675 7.7C7.85833 7.51667 8.09167 7.425 8.375 7.425C8.65833 7.425 8.89167 7.51667 9.075 7.7L12 10.625L14.8917 7.7C15.0762 7.51667 15.311 7.425 15.596 7.425C15.881 7.425 16.1157 7.51667 16.3 7.7C16.5 7.9 16.6 8.1375 16.6 8.4125C16.6 8.6875 16.5 8.91667 16.3 9.1L13.375 12L16.3 14.9167C16.4833 15.1012 16.575 15.336 16.575 15.621C16.575 15.906 16.4833 16.1407 16.3 16.325C16.1 16.525 15.8625 16.625 15.5875 16.625C15.3125 16.625 15.0833 16.525 14.9 16.325L12 13.4Z"/></svg>
+        </button>
+      </span>
+    </div>
+  </div>
+
+</body>
+</html>

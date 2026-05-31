@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Checkbox test — all 12 cells (state × checked)</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* ───── Scandit semantic tokens — from references/design.md ───── */
+    :root {
+      --color-surface-default:             #FFFFFF;
+      --color-surface-hover:               #F3F5F8;
+      --color-surface-pressed:             #E1E7ED;
+      --color-surface-disabled:            #E1E7ED;
+      --color-surface-interactive:         #1047A1;
+      --color-surface-interactive-hover:   #1660D9;
+      --color-surface-interactive-pressed: #063073;
+      --color-border-primary:              #525A61;
+      --color-icon-on-color:               #FFFFFF;
+      --color-icon-disabled:               #ACB6BF;
+
+      /* Page chrome */
+      --color-background-secondary:        #F7F7F7;
+      --color-text-primary:                #16191C;
+      --color-text-secondary:              #525A61;
+      --color-border-tertiary:             #E1E7ED;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 32px; max-width: 760px; line-height: 1.5; }
+
+    .panel {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+      max-width: 760px;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: 140px repeat(4, 1fr);
+      gap: 24px 32px;
+      align-items: center;
+    }
+    .matrix-corner { /* empty top-left cell */ }
+    .matrix-col-header,
+    .matrix-row-header {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+    }
+    .matrix-col-header {
+      text-align: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+    }
+    .matrix-row-header {
+      padding: 4px 0;
+    }
+    .matrix-cell {
+      display: flex; align-items: center; justify-content: center;
+      padding: 4px 0;
+    }
+
+    /* Form group example — checkbox + label */
+    .field {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 14px;
+      color: var(--color-text-primary);
+    }
+    .field-disabled { color: var(--color-icon-disabled); }
+    .field-list {
+      display: flex; flex-direction: column; gap: 14px;
+      padding: 8px 0;
+    }
+
+    /* ═══════════════════════ CHECKBOX ═══════════════════════ */
+    .checkbox {
+      width: 20px; height: 20px; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 4px;                  /* size/cornerRadius/xs */
+      padding: 0; cursor: pointer;
+      background: var(--color-surface-default);
+      border: 2px solid var(--color-border-primary);
+      transition: background-color 120ms;
+      color: var(--color-icon-on-color);   /* glyph colour via currentColor */
+    }
+    .checkbox > svg { width: 16px; height: 16px; }
+    .checkbox:focus-visible {
+      outline: 2px solid var(--color-surface-interactive);
+      outline-offset: 2px;
+    }
+
+    /* Outlined (checked: no) — hover / pressed shift surface */
+    .checkbox[aria-checked="false"]:not(:disabled):not(.is-disabled):hover,
+    .checkbox[aria-checked="false"].is-hover    { background: var(--color-surface-hover); }
+    .checkbox[aria-checked="false"]:not(:disabled):not(.is-disabled):active,
+    .checkbox[aria-checked="false"].is-pressed  { background: var(--color-surface-pressed); }
+
+    /* Filled (checked: yes / mixed/indeterminate) */
+    .checkbox[aria-checked="true"],
+    .checkbox[aria-checked="mixed"] {
+      background: var(--color-surface-interactive);
+      border: 0;
+    }
+    .checkbox[aria-checked="true"]:not(:disabled):not(.is-disabled):hover,
+    .checkbox[aria-checked="true"].is-hover,
+    .checkbox[aria-checked="mixed"]:not(:disabled):not(.is-disabled):hover,
+    .checkbox[aria-checked="mixed"].is-hover    { background: var(--color-surface-interactive-hover); }
+    .checkbox[aria-checked="true"]:not(:disabled):not(.is-disabled):active,
+    .checkbox[aria-checked="true"].is-pressed,
+    .checkbox[aria-checked="mixed"]:not(:disabled):not(.is-disabled):active,
+    .checkbox[aria-checked="mixed"].is-pressed  { background: var(--color-surface-interactive-pressed); }
+
+    /* Disabled — surface flattens; border removed for unchecked too */
+    .checkbox:disabled,
+    .checkbox.is-disabled {
+      background: var(--color-surface-disabled);
+      border: 0;
+      color: var(--color-icon-disabled);
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>Checkbox — all 12 cells</h1>
+  <p class="lead">
+    4 interactive <strong>states</strong> across the top × 3 <strong>checked</strong> values
+    down the side = 12 visual cells. Hover and pressed are force-rendered with
+    <code>.is-hover</code> and <code>.is-pressed</code>; the leftmost (default) cell uses
+    real CSS <code>:hover</code> / <code>:active</code> — hover it to verify natural state
+    matches the forced state next to it. Disabled cells should not pick up hover effects.
+  </p>
+
+  <!-- ═════════════════ THE 12-CELL MATRIX ═════════════════ -->
+  <div class="panel">
+    <div class="matrix">
+      <div class="matrix-corner"></div>
+      <div class="matrix-col-header">default</div>
+      <div class="matrix-col-header">hover</div>
+      <div class="matrix-col-header">pressed</div>
+      <div class="matrix-col-header">disabled</div>
+
+      <!-- Row: checked=no -->
+      <div class="matrix-row-header">checked: <strong>no</strong><br/>(outlined)</div>
+      <div class="matrix-cell">
+        <button class="checkbox" type="button" role="checkbox" aria-checked="false" aria-label="Item"></button>
+      </div>
+      <div class="matrix-cell">
+        <button class="checkbox is-hover" type="button" role="checkbox" aria-checked="false" aria-label="Item"></button>
+      </div>
+      <div class="matrix-cell">
+        <button class="checkbox is-pressed" type="button" role="checkbox" aria-checked="false" aria-label="Item"></button>
+      </div>
+      <div class="matrix-cell">
+        <button class="checkbox" type="button" role="checkbox" aria-checked="false" disabled aria-label="Item"></button>
+      </div>
+
+      <!-- Row: checked=yes -->
+      <div class="matrix-row-header">checked: <strong>yes</strong><br/>(filled, check)</div>
+      <div class="matrix-cell">
+        <button class="checkbox" type="button" role="checkbox" aria-checked="true" aria-label="Item">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="matrix-cell">
+        <button class="checkbox is-hover" type="button" role="checkbox" aria-checked="true" aria-label="Item">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="matrix-cell">
+        <button class="checkbox is-pressed" type="button" role="checkbox" aria-checked="true" aria-label="Item">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="matrix-cell">
+        <button class="checkbox" type="button" role="checkbox" aria-checked="true" disabled aria-label="Item">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Row: indeterminate -->
+      <div class="matrix-row-header">checked: <strong>indeterminate</strong><br/>(filled, minus)</div>
+      <div class="matrix-cell">
+        <button class="checkbox" type="button" role="checkbox" aria-checked="mixed" aria-label="Item">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M6 13q-.425 0-.713-.288Q5 12.425 5 12q0-.425.288-.713Q5.575 11 6 11h12q.425 0 .713.288.287.287.287.712 0 .425-.287.713Q18.425 13 18 13H6Z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="matrix-cell">
+        <button class="checkbox is-hover" type="button" role="checkbox" aria-checked="mixed" aria-label="Item">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M6 13q-.425 0-.713-.288Q5 12.425 5 12q0-.425.288-.713Q5.575 11 6 11h12q.425 0 .713.288.287.287.287.712 0 .425-.287.713Q18.425 13 18 13H6Z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="matrix-cell">
+        <button class="checkbox is-pressed" type="button" role="checkbox" aria-checked="mixed" aria-label="Item">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M6 13q-.425 0-.713-.288Q5 12.425 5 12q0-.425.288-.713Q5.575 11 6 11h12q.425 0 .713.288.287.287.287.712 0 .425-.287.713Q18.425 13 18 13H6Z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="matrix-cell">
+        <button class="checkbox" type="button" role="checkbox" aria-checked="mixed" disabled aria-label="Item">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M6 13q-.425 0-.713-.288Q5 12.425 5 12q0-.425.288-.713Q5.575 11 6 11h12q.425 0 .713.288.287.287.287.712 0 .425-.287.713Q18.425 13 18 13H6Z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════ IN-CONTEXT — paired with a label ═════════════════ -->
+  <div class="panel" style="margin-top: 24px;">
+    <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 16px;">
+      In context — paired with a label
+    </div>
+    <div class="field-list">
+      <label class="field">
+        <button class="checkbox" type="button" role="checkbox" aria-checked="true">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M9.55 15.15 18.025 6.675c.2-.2.433-.3.7-.3s.5.1.7.3c.2.2.3.438.3.713 0 .274-.1.512-.3.712L10.25 17.3c-.2.2-.433.3-.7.3-.267 0-.5-.1-.7-.3L4.55 13c-.2-.2-.296-.438-.288-.713.009-.275.113-.512.313-.712s.438-.3.713-.3c.275 0 .512.1.712.3l3.55 3.575Z"/>
+          </svg>
+        </button>
+        <span>Include scans from connected mobile devices</span>
+      </label>
+      <label class="field">
+        <button class="checkbox" type="button" role="checkbox" aria-checked="false"></button>
+        <span>Include scans from API integrations</span>
+      </label>
+      <label class="field">
+        <button class="checkbox" type="button" role="checkbox" aria-checked="mixed">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M6 13q-.425 0-.713-.288Q5 12.425 5 12q0-.425.288-.713Q5.575 11 6 11h12q.425 0 .713.288.287.287.287.712 0 .425-.287.713Q18.425 13 18 13H6Z"/>
+          </svg>
+        </button>
+        <span>Select all locations <em style="color: var(--color-text-secondary);">(3 of 8 selected)</em></span>
+      </label>
+      <label class="field field-disabled">
+        <button class="checkbox" type="button" role="checkbox" aria-checked="false" disabled></button>
+        <span>Include archived projects <em>(unavailable on trial tier)</em></span>
+      </label>
+    </div>
+  </div>
+
+</body>
+</html>

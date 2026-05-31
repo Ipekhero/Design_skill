@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Badge test — with / without dot</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    /* Scandit semantic tokens — Figma variable names mirrored as CSS vars */
+    :root {
+      /* surface — soft (badge background) */
+      --color-surface-neutral-soft: #E1E7ED;
+      --color-surface-info-soft:    #D9E7FF;
+      --color-surface-success-soft: #CEF2DC;
+      --color-surface-warning-soft: #FFF1CC;
+      --color-surface-danger-soft:  #FFD9D9;
+
+      /* surface — full (badge dot) */
+      --color-surface-neutral-full: #525A61;
+      --color-surface-info-full:    #1660D9;
+      --color-surface-success-full: #0D853D;
+      --color-surface-warning-full: #F0BD30;
+      --color-surface-danger-full:  #D92121;
+
+      /* text */
+      --color-text-primary:         #16191C;
+      --color-text-secondary:       #525A61;
+      --color-text-on-color-blue:   #1047A1;
+      --color-text-on-color-green:  #05612A;
+      --color-text-on-color-yellow: #4D3800;
+      --color-text-on-color-red:    #AD1111;
+
+      /* page chrome */
+      --color-background-secondary: #F7F7F7;
+      --color-surface-default:      #FFFFFF;
+      --color-border-tertiary:      #E1E7ED;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-feature-settings: 'cv11', 'ss01', 'tnum';
+      color: var(--color-text-primary);
+      background: var(--color-background-secondary);
+      font-size: 14px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      padding: 40px;
+    }
+    h1 { font-size: 24px; font-weight: 600; margin: 0 0 6px; }
+    .sub { color: var(--color-text-secondary); font-size: 14px; margin-bottom: 32px; }
+    h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+         color: var(--color-text-secondary); margin: 24px 0 12px; }
+
+    /* ───── Badge — per references/components/badge.md ───── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;     /* spacing/inline/xs */
+      padding: 4px 8px;                                        /* spacing/padding/xs · spacing/padding/s */
+      border-radius: 6px;                                      /* size/cornerRadius/s */
+      font-size: 12px; font-weight: 500;                       /* label/small */
+      line-height: 16px; letter-spacing: 0.25px;
+      text-transform: uppercase; white-space: nowrap;
+    }
+    .badge__dot { width: 6px; height: 6px; border-radius: 9999px; }
+
+    .badge--neutral { background: var(--color-surface-neutral-soft); color: var(--color-text-secondary); }
+    .badge--neutral .badge__dot { background: var(--color-surface-neutral-full); }
+    .badge--info    { background: var(--color-surface-info-soft);    color: var(--color-text-on-color-blue); }
+    .badge--info    .badge__dot { background: var(--color-surface-info-full); }
+    .badge--success { background: var(--color-surface-success-soft); color: var(--color-text-on-color-green); }
+    .badge--success .badge__dot { background: var(--color-surface-success-full); }
+    .badge--warning { background: var(--color-surface-warning-soft); color: var(--color-text-on-color-yellow); }
+    .badge--warning .badge__dot { background: var(--color-surface-warning-full); }
+    .badge--danger  { background: var(--color-surface-danger-soft);  color: var(--color-text-on-color-red); }
+    .badge--danger  .badge__dot { background: var(--color-surface-danger-full); }
+
+    /* ───── Layout — three demos ───── */
+    section {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+      max-width: 960px;
+    }
+    .row {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+      padding: 8px 0;
+    }
+    .row + .row { border-top: 1px dashed var(--color-border-tertiary); }
+    .row-label {
+      width: 96px; flex-shrink: 0;
+      font-size: 13px; color: var(--color-text-secondary);
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      padding: 10px 16px;
+      background: var(--color-background-secondary);
+      border-bottom: 1px solid var(--color-border-tertiary);
+    }
+    tbody td {
+      padding: 12px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+      vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: 0; }
+    .swatch {
+      display: inline-block; width: 320px; padding: 12px;
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 8px;
+      background: var(--color-background-secondary);
+      margin-right: 8px; margin-bottom: 8px;
+    }
+    .pair { display: flex; align-items: center; gap: 16px; }
+    .pair > div + div { padding-left: 16px; border-left: 1px dashed var(--color-border-tertiary); }
+    code { font-family: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace; font-size: 12px;
+           background: var(--color-background-secondary); padding: 1px 6px; border-radius: 4px;
+           color: var(--color-text-primary); }
+  </style>
+</head>
+<body>
+  <h1>Badge — with and without dot</h1>
+  <div class="sub">All 5 variants from <code>references/components/badge.md</code>. Hug-content sizing, 6px corners, 12px label/small uppercase.</div>
+
+  <!-- DEMO 1: side-by-side comparison -->
+  <h2>Side-by-side</h2>
+  <section>
+    <div class="row">
+      <div class="row-label">Neutral</div>
+      <div class="pair">
+        <div><span class="badge badge--neutral"><span class="badge__dot"></span>Badge</span></div>
+        <div><span class="badge badge--neutral">Badge</span></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="row-label">Info</div>
+      <div class="pair">
+        <div><span class="badge badge--info"><span class="badge__dot"></span>Badge</span></div>
+        <div><span class="badge badge--info">Badge</span></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="row-label">Success</div>
+      <div class="pair">
+        <div><span class="badge badge--success"><span class="badge__dot"></span>Badge</span></div>
+        <div><span class="badge badge--success">Badge</span></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="row-label">Warning</div>
+      <div class="pair">
+        <div><span class="badge badge--warning"><span class="badge__dot"></span>Badge</span></div>
+        <div><span class="badge badge--warning">Badge</span></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="row-label">Danger</div>
+      <div class="pair">
+        <div><span class="badge badge--danger"><span class="badge__dot"></span>Badge</span></div>
+        <div><span class="badge badge--danger">Badge</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMO 2: realistic table context, no dots -->
+  <h2>In a table — no dots</h2>
+  <section style="padding: 0;">
+    <table>
+      <thead>
+        <tr>
+          <th>License key</th>
+          <th>Product</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AmGq·BvJp·KZ4d·R2sM</td>
+          <td>Barcode Scanner</td>
+          <td><span class="badge badge--success">Active</span></td>
+        </tr>
+        <tr>
+          <td>7fGh·QmWe·8oPz·LcRv</td>
+          <td>ID Scanner</td>
+          <td><span class="badge badge--warning">Expiring</span></td>
+        </tr>
+        <tr>
+          <td>M8eL·Tr2P·VqXc·KbNy</td>
+          <td>MatrixScan Count</td>
+          <td><span class="badge badge--danger">Expired</span></td>
+        </tr>
+        <tr>
+          <td>Q2nT·5pLk·DfXr·MgWo</td>
+          <td>Smart Parcel</td>
+          <td><span class="badge badge--neutral">Pending</span></td>
+        </tr>
+        <tr>
+          <td>ZkRm·6vBn·PoQw·E3jL</td>
+          <td>Label Capture</td>
+          <td><span class="badge badge--info">Trial</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- DEMO 3: varying label lengths to stress hug-content -->
+  <h2>Varying label lengths (hug-content test)</h2>
+  <section>
+    <div class="row">
+      <div class="row-label">Short</div>
+      <span class="badge badge--success">On</span>
+      <span class="badge badge--success"><span class="badge__dot"></span>On</span>
+    </div>
+    <div class="row">
+      <div class="row-label">Medium</div>
+      <span class="badge badge--info">In review</span>
+      <span class="badge badge--info"><span class="badge__dot"></span>In review</span>
+    </div>
+    <div class="row">
+      <div class="row-label">Long</div>
+      <span class="badge badge--warning">Awaiting activation</span>
+      <span class="badge badge--warning"><span class="badge__dot"></span>Awaiting activation</span>
+    </div>
+    <div class="row">
+      <div class="row-label">Numeric</div>
+      <span class="badge badge--danger">3 issues</span>
+      <span class="badge badge--neutral">42</span>
+    </div>
+  </section>
+</body>
+</html>

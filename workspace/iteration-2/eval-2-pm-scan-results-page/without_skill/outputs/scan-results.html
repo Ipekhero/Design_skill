@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scan Results</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <header class="bg-white border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <h1 class="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+      <nav class="flex gap-6 text-sm text-gray-600">
+        <a href="#" class="hover:text-gray-900">Overview</a>
+        <a href="#" class="text-blue-600 font-medium">Scan Results</a>
+        <a href="#" class="hover:text-gray-900">Licenses</a>
+        <a href="#" class="hover:text-gray-900">Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8">
+
+    <h2 class="text-3xl font-bold text-gray-900 mb-6">Scan results</h2>
+
+    <!-- Info callout -->
+    <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6 flex items-start gap-3">
+      <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p class="text-sm text-blue-800">Showing results from the last 24 hours.</p>
+    </div>
+
+    <!-- Table card -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+
+      <!-- Toolbar -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Recent scans</h3>
+        <div class="flex gap-2">
+          <button class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            Filter
+          </button>
+          <button class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" aria-label="Refresh">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barcode</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm text-gray-500">14:32:08</td>
+            <td class="px-6 py-4 text-sm font-mono text-gray-900">5012345678900</td>
+            <td class="px-6 py-4 text-sm text-gray-900">Acme Light Bulb</td>
+            <td class="px-6 py-4 text-sm text-gray-500">Warehouse A</td>
+            <td class="px-6 py-4"><span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Success</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm text-gray-500">14:31:55</td>
+            <td class="px-6 py-4 text-sm font-mono text-gray-900">7290017531915</td>
+            <td class="px-6 py-4 text-sm text-gray-900">Yamaha Headset</td>
+            <td class="px-6 py-4 text-sm text-gray-500">Store 042</td>
+            <td class="px-6 py-4"><span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Success</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm text-gray-500">14:31:42</td>
+            <td class="px-6 py-4 text-sm font-mono text-gray-900">4006381333931</td>
+            <td class="px-6 py-4 text-sm text-gray-900">Faber-Castell Pencils</td>
+            <td class="px-6 py-4 text-sm text-gray-500">Store 102</td>
+            <td class="px-6 py-4"><span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Warning</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm text-gray-500">14:31:21</td>
+            <td class="px-6 py-4 text-sm font-mono text-gray-900">8901058831801</td>
+            <td class="px-6 py-4 text-sm text-gray-900">Britannia Marie Gold</td>
+            <td class="px-6 py-4 text-sm text-gray-500">Warehouse C</td>
+            <td class="px-6 py-4"><span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Success</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm text-gray-500">14:31:05</td>
+            <td class="px-6 py-4 text-sm font-mono text-gray-900">— unreadable</td>
+            <td class="px-6 py-4 text-sm text-gray-500 italic">unmatched</td>
+            <td class="px-6 py-4 text-sm text-gray-500">Store 042</td>
+            <td class="px-6 py-4"><span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Failed</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm text-gray-500">14:30:58</td>
+            <td class="px-6 py-4 text-sm font-mono text-gray-900">3017620422003</td>
+            <td class="px-6 py-4 text-sm text-gray-900">Nutella (350g)</td>
+            <td class="px-6 py-4 text-sm text-gray-500">Store 011</td>
+            <td class="px-6 py-4"><span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Success</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm text-gray-500">14:30:44</td>
+            <td class="px-6 py-4 text-sm font-mono text-gray-900">5060391620732</td>
+            <td class="px-6 py-4 text-sm text-gray-900">Brewdog Punk IPA</td>
+            <td class="px-6 py-4 text-sm text-gray-500">Store 014</td>
+            <td class="px-6 py-4"><span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Pending</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm text-gray-500">14:30:32</td>
+            <td class="px-6 py-4 text-sm font-mono text-gray-900">0123456789012</td>
+            <td class="px-6 py-4 text-sm text-gray-900">Acme Light Bulb</td>
+            <td class="px-6 py-4 text-sm text-gray-500">Warehouse A</td>
+            <td class="px-6 py-4"><span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Warning</span></td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 text-sm text-gray-500">14:30:18</td>
+            <td class="px-6 py-4 text-sm font-mono text-gray-900">8806086006903</td>
+            <td class="px-6 py-4 text-sm text-gray-900">Samsung Galaxy Buds3</td>
+            <td class="px-6 py-4 text-sm text-gray-500">Store 097</td>
+            <td class="px-6 py-4"><span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Success</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</body>
+</html>

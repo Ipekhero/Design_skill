@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Radio test — 4 states × 2 selected values + radio items + realistic groups</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <style>
+    :root {
+      --color-surface-default:             #FFFFFF;
+      --color-surface-hover:               #F3F5F8;
+      --color-surface-pressed:             #E1E7ED;
+      --color-surface-disabled:            #E1E7ED;
+      --color-surface-interactive:         #1047A1;  /* BRAND BLUE — substituted for Figma's #16191C */
+      --color-surface-interactive-hover:   #1660D9;
+      --color-surface-interactive-pressed: #063073;
+
+      --color-border-primary:              #525A61;
+      --color-border-tertiary:             #E1E7ED;
+
+      --color-text-primary:                #16191C;
+      --color-text-secondary:              #525A61;
+      --color-text-disabled:               #ACB6BF;
+
+      --color-icon-on-color:               #FFFFFF;
+
+      --size-cornerradius-round:           999px;
+      --spacing-padding-s:                 8px;
+
+      --color-background-secondary-page:   #F7F7F7;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--color-background-secondary-page);
+      color: var(--color-text-primary);
+      padding: 40px;
+    }
+
+    h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .lead { color: var(--color-text-secondary); font-size: 14px; margin: 0 0 32px; max-width: 800px; line-height: 1.5; }
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 32px 0 0; padding: 12px 16px;
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px 16px 0 0;
+      border-bottom: 0;
+      text-transform: none; letter-spacing: 0;
+    }
+    h2 + .panel { border-radius: 0 0 16px 16px; border-top: 0; margin-bottom: 0; }
+    .panel {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 16px;
+      padding: 20px 24px 24px;
+      margin-bottom: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 140px repeat(4, 96px);
+      gap: 20px 32px;
+      align-items: center;
+      justify-items: start;
+    }
+    .col-header, .row-header {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+    }
+    .col-header {
+      text-align: left;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+      width: 100%;
+    }
+
+    .scenarios {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 420px));
+      gap: 32px 40px;
+      align-items: start;
+    }
+    .scenario__label {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+      margin: 0 0 12px;
+    }
+    .scenario__shell {
+      background: var(--color-surface-default);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: 12px;
+      padding: 20px 24px;
+    }
+    .scenario__group-label {
+      font-size: 14px; font-weight: 500;
+      color: var(--color-text-primary);
+      margin: 0 0 12px;
+    }
+    .scenario__caption {
+      font-size: 12px; color: var(--color-text-secondary);
+      margin: 10px 0 0; line-height: 1.5;
+    }
+
+    /* ═══════════════════════ RADIO ITEM ═══════════════════════ */
+    .radio-item {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-padding-s);
+      cursor: pointer;
+      user-select: none;
+      padding: 6px 0;     /* hit-target padding around the row */
+    }
+    .radio-item--disabled { cursor: not-allowed; }
+    .radio-item__label {
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 24px;
+      letter-spacing: 0.25px;
+      color: var(--color-text-primary);
+    }
+    .radio-item--disabled .radio-item__label { color: var(--color-text-disabled); }
+
+    .radio-item__input {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0, 0, 0, 0);
+      white-space: nowrap; border: 0;
+    }
+
+    /* ═══════════════════════ RADIO RING ═══════════════════════ */
+    .radio {
+      position: relative;
+      width: 20px; height: 20px;
+      box-sizing: border-box;
+      background: var(--color-surface-default);
+      border: 2px solid var(--color-border-primary);
+      border-radius: var(--size-cornerradius-round);
+      flex-shrink: 0;
+      transition: background-color 80ms, border-color 80ms;
+    }
+
+    /* Selected = filled blue, no border */
+    .radio--selected {
+      background: var(--color-surface-interactive);
+      border-color: var(--color-surface-interactive);
+    }
+    .radio--selected::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 10px; height: 10px;
+      transform: translate(-50%, -50%);
+      border-radius: var(--size-cornerradius-round);
+      background: var(--color-icon-on-color);
+    }
+
+    /* UNSELECTED hover/pressed — inner fill tints to surface/hover or surface/pressed, border stays constant. */
+    .radio-item:not(.radio-item--disabled):hover .radio:not(.radio--selected),
+    .radio:not(.radio--selected).is-hover {
+      background: var(--color-surface-hover);
+    }
+    .radio-item:not(.radio-item--disabled):active .radio:not(.radio--selected),
+    .radio:not(.radio--selected).is-pressed {
+      background: var(--color-surface-pressed);
+    }
+
+    /* SELECTED hover/pressed — fill recolours to brand-blue lighter/darker. */
+    .radio-item:not(.radio-item--disabled):hover .radio--selected,
+    .radio--selected.is-hover {
+      background: var(--color-surface-interactive-hover);
+      border-color: var(--color-surface-interactive-hover);
+    }
+    .radio-item:not(.radio-item--disabled):active .radio--selected,
+    .radio--selected.is-pressed {
+      background: var(--color-surface-interactive-pressed);
+      border-color: var(--color-surface-interactive-pressed);
+    }
+
+    /* Disabled — solid gray fill, no border. Dot still shows when selected. */
+    .radio--disabled {
+      background: var(--color-surface-disabled) !important;
+      border-color: var(--color-surface-disabled) !important;
+    }
+
+    /* When unselected and disabled, no inner dot */
+    .radio--disabled:not(.radio--selected)::after { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Radio — 4 states × 2 selected values</h1>
+  <p class="lead">
+    The Radio Button has two orthogonal axes: <strong>state</strong>
+    (default / hover / pressed / disabled) and <strong>selected</strong> (yes / no).
+    The first cell in each row uses real CSS <code>:hover</code> / <code>:active</code> —
+    hover it to verify the natural state matches the forced state next to it.
+    The ring is always 20×20, the inner dot is 10×10.
+    <strong>The selected fill uses brand blue (#1047A1), NOT Figma's dark #16191C</strong> —
+    same call as <a href="checkbox-test.html">checkbox</a>, per the web colour rule.
+    On UNSELECTED radios, the <strong>border stays constant</strong> across states — but the
+    <strong>inner fill tints</strong> to <code>surface/hover</code> (#F3F5F8) on hover and
+    <code>surface/pressed</code> (#E1E7ED) on press.
+  </p>
+
+  <!-- ═════════════════ STATE × SELECTED MATRIX ═════════════════ -->
+  <h2>State × Selected matrix — 4 × 2 = 8 variants</h2>
+  <div class="panel">
+    <div class="grid">
+      <div></div>
+      <div class="col-header">default</div>
+      <div class="col-header">hover</div>
+      <div class="col-header">pressed</div>
+      <div class="col-header">disabled</div>
+
+      <div class="row-header">Selected = NO</div>
+      <span class="radio" aria-hidden="true"></span>
+      <span class="radio is-hover" aria-hidden="true"></span>
+      <span class="radio is-pressed" aria-hidden="true"></span>
+      <span class="radio radio--disabled" aria-hidden="true"></span>
+
+      <div class="row-header">Selected = YES</div>
+      <span class="radio radio--selected" aria-hidden="true"></span>
+      <span class="radio radio--selected is-hover" aria-hidden="true"></span>
+      <span class="radio radio--selected is-pressed" aria-hidden="true"></span>
+      <span class="radio radio--selected radio--disabled" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <!-- ═════════════════ RADIO ITEMS (ring + label) ═════════════════ -->
+  <h2>Radio item — ring + label (clickable, with native input)</h2>
+  <div class="panel">
+    <div style="display: flex; flex-direction: column; gap: 4px; max-width: 400px;">
+
+      <label class="radio-item">
+        <input type="radio" name="demo" class="radio-item__input">
+        <span class="radio" aria-hidden="true"></span>
+        <span class="radio-item__label">Option A (try clicking)</span>
+      </label>
+
+      <label class="radio-item">
+        <input type="radio" name="demo" class="radio-item__input" checked>
+        <span class="radio radio--selected" aria-hidden="true"></span>
+        <span class="radio-item__label">Option B (selected)</span>
+      </label>
+
+      <label class="radio-item">
+        <input type="radio" name="demo" class="radio-item__input">
+        <span class="radio" aria-hidden="true"></span>
+        <span class="radio-item__label">Option C</span>
+      </label>
+
+      <label class="radio-item radio-item--disabled">
+        <input type="radio" name="demo" class="radio-item__input" disabled>
+        <span class="radio radio--disabled" aria-hidden="true"></span>
+        <span class="radio-item__label">Option D (disabled)</span>
+      </label>
+
+      <label class="radio-item radio-item--disabled">
+        <input type="radio" name="demo" class="radio-item__input" disabled checked>
+        <span class="radio radio--selected radio--disabled" aria-hidden="true"></span>
+        <span class="radio-item__label">Option E (disabled, was selected)</span>
+      </label>
+
+    </div>
+    <p class="scenario__caption" style="margin-top: 16px;">
+      All five items share <code>name="demo"</code>, so the browser enforces mutual exclusivity automatically.
+      Try clicking through them — keyboard arrow keys also navigate within the group natively.
+    </p>
+  </div>
+
+  <!-- ═════════════════ IN-CONTEXT SCENARIOS ═════════════════ -->
+  <h2>In context — four realistic radio groups</h2>
+  <div class="panel">
+    <div class="scenarios">
+
+      <div>
+        <div class="scenario__label">1 · Subscription plan (3 options)</div>
+        <div class="scenario__shell">
+          <p class="scenario__group-label">Pick a plan</p>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label class="radio-item">
+              <input type="radio" name="plan" class="radio-item__input">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="radio-item__label">Starter — $0/mo</span>
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="plan" class="radio-item__input" checked>
+              <span class="radio radio--selected" aria-hidden="true"></span>
+              <span class="radio-item__label">Pro — $29/mo</span>
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="plan" class="radio-item__input">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="radio-item__label">Enterprise — Contact us</span>
+            </label>
+          </div>
+        </div>
+        <p class="scenario__caption">3 mutually exclusive options. "Pro" is pre-selected as the recommended default. The clickable row covers the full label width for an easy hit target.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">2 · Symbology setting (4 options)</div>
+        <div class="scenario__shell">
+          <p class="scenario__group-label">Preferred barcode symbology</p>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label class="radio-item">
+              <input type="radio" name="symbology" class="radio-item__input" checked>
+              <span class="radio radio--selected" aria-hidden="true"></span>
+              <span class="radio-item__label">Code 128</span>
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="symbology" class="radio-item__input">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="radio-item__label">EAN-13</span>
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="symbology" class="radio-item__input">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="radio-item__label">QR code</span>
+            </label>
+            <label class="radio-item">
+              <input type="radio" name="symbology" class="radio-item__input">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="radio-item__label">DataMatrix</span>
+            </label>
+          </div>
+        </div>
+        <p class="scenario__caption">Settings form: pick one barcode symbology. 4 options sits comfortably in a radio group; anything beyond 5 should move to a dropdown.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">3 · Survey question — disabled state</div>
+        <div class="scenario__shell">
+          <p class="scenario__group-label">How would you rate this scan? (locked — already submitted)</p>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label class="radio-item radio-item--disabled">
+              <input type="radio" name="rating" class="radio-item__input" disabled>
+              <span class="radio radio--disabled" aria-hidden="true"></span>
+              <span class="radio-item__label">Excellent</span>
+            </label>
+            <label class="radio-item radio-item--disabled">
+              <input type="radio" name="rating" class="radio-item__input" disabled checked>
+              <span class="radio radio--selected radio--disabled" aria-hidden="true"></span>
+              <span class="radio-item__label">Good</span>
+            </label>
+            <label class="radio-item radio-item--disabled">
+              <input type="radio" name="rating" class="radio-item__input" disabled>
+              <span class="radio radio--disabled" aria-hidden="true"></span>
+              <span class="radio-item__label">Fair</span>
+            </label>
+            <label class="radio-item radio-item--disabled">
+              <input type="radio" name="rating" class="radio-item__input" disabled>
+              <span class="radio radio--disabled" aria-hidden="true"></span>
+              <span class="radio-item__label">Poor</span>
+            </label>
+          </div>
+        </div>
+        <p class="scenario__caption">Entire group disabled (already submitted). The selected radio still shows the white inner dot — the only visual signal that "Good" was previously picked. Label colours go to <code>text/disabled</code>.</p>
+      </div>
+
+      <div>
+        <div class="scenario__label">4 · Inline radio row (settings list pattern)</div>
+        <div class="scenario__shell">
+          <p class="scenario__group-label">Camera direction</p>
+          <div style="display:flex;flex-direction:column;">
+            <label class="radio-item" style="padding: 12px 0; border-bottom: 1px solid var(--color-border-tertiary);">
+              <input type="radio" name="camera" class="radio-item__input">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="radio-item__label">Back camera (default)</span>
+            </label>
+            <label class="radio-item" style="padding: 12px 0; border-bottom: 1px solid var(--color-border-tertiary);">
+              <input type="radio" name="camera" class="radio-item__input" checked>
+              <span class="radio radio--selected" aria-hidden="true"></span>
+              <span class="radio-item__label">Front camera</span>
+            </label>
+            <label class="radio-item" style="padding: 12px 0;">
+              <input type="radio" name="camera" class="radio-item__input">
+              <span class="radio" aria-hidden="true"></span>
+              <span class="radio-item__label">External USB camera</span>
+            </label>
+          </div>
+        </div>
+        <p class="scenario__caption">Radio group inside a settings list — each row separated by a 1px <code>border/tertiary</code> divider. Same pattern as a [[list]] with <code>radio</code> leading element, but the divider lives between rows here instead of below.</p>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

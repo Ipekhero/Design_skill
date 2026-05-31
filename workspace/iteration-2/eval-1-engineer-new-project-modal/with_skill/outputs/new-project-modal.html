@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>New project — Scandit</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'] },
+          colors: {
+            'bg-primary':       '#FFFFFF',
+            'bg-secondary':     '#F7F7F7',
+            'bg-brand':         '#141F2E',
+
+            'surface-default':           '#FFFFFF',
+            'surface-hover':             '#F3F5F8',
+            'surface-pressed':           '#E1E7ED',
+            'surface-selected':          '#EFF5FA',
+            'surface-disabled':          '#E1E7ED',
+            'surface-formcomp':          '#F3F5F8',
+            'surface-formcomp-error':    '#FFE8E8',
+            'surface-interactive':       '#1047A1',
+            'surface-interactive-hover': '#1660D9',
+            'surface-interactive-press': '#063073',
+            'surface-info-softer':       '#ECF3FF',
+            'surface-success-softer':    '#E6F9EE',
+
+            'text-primary':    '#16191C',
+            'text-secondary':  '#525A61',
+            'text-disabled':   '#ACB6BF',
+            'text-inverted':   '#FFFFFF',
+            'text-danger':     '#D92121',
+            'text-info':       '#1660D9',
+            'text-positive':   '#0D853D',
+            'text-warning':    '#4D3800',
+
+            'border-primary':     '#525A61',
+            'border-secondary':   '#C7CFD6',
+            'border-tertiary':    '#E1E7ED',
+            'border-interactive': '#16191C',
+            'border-danger':      '#D92121',
+            'border-info':        '#1660D9',
+
+            'icon-primary':   '#16191C',
+            'icon-secondary': '#525A61',
+            'icon-info':      '#1660D9',
+            'icon-on-color':  '#FFFFFF',
+          },
+          borderRadius: {
+            'sm':  '4px',
+            'md':  '6px',
+            'lg':  '8px',
+            '2xl': '16px',
+          },
+          boxShadow: {
+            'lg': '0 1px 2px 0 rgba(0,0,0,0.30), 0 2px 6px 2px rgba(0,0,0,0.15)',
+          },
+        },
+      },
+    };
+  </script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="font-sans bg-bg-secondary text-text-primary antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    const { useState, useId, useRef, useEffect } = React;
+
+    // ─────────────────────────────────────────────────────────────
+    // <Tooltip/> — sharp blue label with caret, tipPosition top/bottom
+    // Spec: references/components/tooltip.md
+    // ─────────────────────────────────────────────────────────────
+    function Tooltip({ children, content, position = 'top' }) {
+      const above = position === 'bottom';
+      return (
+        <span className="relative inline-flex group">
+          {children}
+          <span
+            className={`pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-100 absolute left-1/2 -translate-x-1/2 ${above ? 'bottom-full mb-0' : 'top-full mt-0'} z-50 flex flex-col items-center`}
+            style={{ transitionDelay: '500ms' }}
+            role="tooltip"
+          >
+            {above && <span className="bg-surface-interactive text-text-inverted text-xs leading-4 px-2 py-1 min-w-[120px] max-w-[320px] text-center">{content}</span>}
+            <span
+              className="w-0 h-0"
+              style={{
+                borderLeft:  '8px solid transparent',
+                borderRight: '8px solid transparent',
+                [above ? 'borderTop' : 'borderBottom']: '8px solid #1047A1',
+              }}
+            />
+            {!above && <span className="bg-surface-interactive text-text-inverted text-xs leading-4 px-2 py-1 min-w-[120px] max-w-[320px] text-center">{content}</span>}
+          </span>
+        </span>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // <Callout/> — info variant per callout.md (lightbulb icon)
+    // ─────────────────────────────────────────────────────────────
+    function Callout({ children }) {
+      return (
+        <div className="flex items-start gap-3 px-4 py-3 bg-surface-info-softer border border-border-info rounded-lg">
+          <span className="shrink-0 size-5 text-icon-info">
+            <svg viewBox="0 0 24 24" fill="none" className="size-5">
+              <path d="M10 18C9.45 18 8.97917 17.8042 8.5875 17.4125C8.19583 17.0208 8 16.55 8 16V14.75C7.05 14.1 6.3125 13.2667 5.7875 12.25C5.2625 11.2333 5 10.15 5 9C5 7.05 5.67917 5.39583 7.0375 4.0375C8.39583 2.67917 10.05 2 12 2C13.95 2 15.6042 2.67917 16.9625 4.0375C18.3208 5.39583 19 7.05 19 9C19 10.15 18.7375 11.2292 18.2125 12.2375C17.6875 13.2458 16.95 14.0833 16 14.75V16C16 16.55 15.8042 17.0208 15.4125 17.4125C15.0208 17.8042 14.55 18 14 18H10ZM10 16H14V13.7L14.85 13.1C15.5333 12.6333 16.0625 12.0375 16.4375 11.3125C16.8125 10.5875 17 9.81667 17 9C17 7.61667 16.5125 6.4375 15.5375 5.4625C14.5625 4.4875 13.3833 4 12 4C10.6167 4 9.4375 4.4875 8.4625 5.4625C7.4875 6.4375 7 7.61667 7 9C7 9.81667 7.1875 10.5875 7.5625 11.3125C7.9375 12.0375 8.46667 12.6333 9.15 13.1L10 13.7V16ZM10 22C9.71667 22 9.47917 21.9042 9.2875 21.7125C9.09583 21.5208 9 21.2833 9 21V20H15V21C15 21.2833 14.9042 21.5208 14.7125 21.7125C14.5208 21.9042 14.2833 22 14 22H10Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <div className="flex-1 text-sm leading-5 text-text-primary">{children}</div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // <Badge/> — pill, per badge.md (neutral variant for "Beta" hint)
+    // ─────────────────────────────────────────────────────────────
+    function Badge({ children, tone = 'info' }) {
+      const styles = {
+        info:    'bg-surface-info-softer text-text-info',
+        success: 'bg-surface-success-softer text-text-positive',
+      }[tone];
+      return (
+        <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium leading-4 tracking-[0.25px] rounded-full whitespace-nowrap ${styles}`}>
+          {children}
+        </span>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // <TextField/> — single-line (text-field.md, regular size)
+    // ─────────────────────────────────────────────────────────────
+    function TextField({ label, mandatory, helperText, placeholder, value, onChange, autoFocus, labelExtras }) {
+      const id = useId();
+      return (
+        <div className="flex flex-col w-full">
+          <label htmlFor={id} className="inline-flex items-center pb-1 text-sm font-medium leading-5 tracking-[0.25px] text-text-secondary">
+            <span>{label}{mandatory && <span className="ml-0.5 text-[9px] leading-5 text-text-danger">*</span>}</span>
+            {labelExtras && <span className="ml-2">{labelExtras}</span>}
+          </label>
+          <div className="flex items-center px-3 h-12 rounded-sm box-border bg-surface-formcomp border border-border-secondary focus-within:border-2 focus-within:border-border-interactive focus-within:px-[11px] transition-colors">
+            <input
+              id={id}
+              ref={el => { if (el && autoFocus) setTimeout(() => el.focus(), 0); }}
+              type="text"
+              value={value}
+              onChange={e => onChange(e.target.value)}
+              placeholder={placeholder}
+              aria-required={mandatory ? 'true' : undefined}
+              className="flex-1 min-w-0 bg-transparent border-0 outline-none text-base leading-6 tracking-[0.25px] text-text-primary placeholder:text-text-secondary"
+            />
+          </div>
+          {helperText && <p className="pt-1 text-xs leading-4 tracking-[0.25px] text-text-primary">{helperText}</p>}
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // <TextArea/> — multi-line with counter
+    // ─────────────────────────────────────────────────────────────
+    function TextArea({ label, placeholder, value, onChange, helperText, maxLength, rows = 4 }) {
+      const id = useId();
+      const overLimit = value.length > maxLength;
+      return (
+        <div className="flex flex-col w-full">
+          <label htmlFor={id} className="inline-flex items-center pb-1 text-sm font-medium leading-5 tracking-[0.25px] text-text-secondary">
+            {label}
+          </label>
+          <div className={`flex p-3 rounded-sm box-border transition-colors ${overLimit ? 'bg-surface-formcomp-error border border-border-danger focus-within:border-2 focus-within:border-border-danger focus-within:p-[11px]' : 'bg-surface-formcomp border border-border-secondary focus-within:border-2 focus-within:border-border-interactive focus-within:p-[11px]'}`}>
+            <textarea
+              id={id}
+              rows={rows}
+              value={value}
+              onChange={e => onChange(e.target.value)}
+              placeholder={placeholder}
+              className="flex-1 min-w-0 bg-transparent border-0 outline-none resize-none text-base leading-6 tracking-[0.25px] text-text-primary placeholder:text-text-secondary"
+            />
+          </div>
+          <div className="flex items-start gap-2 pt-1">
+            <p className="flex-1 text-xs leading-4 tracking-[0.25px] text-text-primary">{helperText}</p>
+            <p className={`text-xs leading-4 tracking-[0.25px] tabular-nums ${overLimit ? 'text-text-danger font-medium' : 'text-text-secondary'}`}>{value.length} / {maxLength}</p>
+          </div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // <Dropdown/> — single-select with menu, supports badge on option
+    // ─────────────────────────────────────────────────────────────
+    function Dropdown({ label, mandatory, options, value, onChange, placeholder, labelExtras }) {
+      const id = useId();
+      const [open, setOpen] = useState(false);
+      const ref = useRef(null);
+      useEffect(() => {
+        const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+      }, []);
+
+      const selectedOpt = options.find(o => o.value === value);
+
+      return (
+        <div className="flex flex-col w-full" ref={ref}>
+          <label htmlFor={id} className="inline-flex items-center pb-1 text-sm font-medium leading-5 tracking-[0.25px] text-text-secondary">
+            <span>{label}{mandatory && <span className="ml-0.5 text-[9px] leading-5 text-text-danger">*</span>}</span>
+            {labelExtras && <span className="ml-1">{labelExtras}</span>}
+          </label>
+          <button
+            id={id}
+            type="button"
+            aria-haspopup="listbox"
+            aria-expanded={open}
+            onClick={() => setOpen(o => !o)}
+            className={`flex items-center w-full px-3 h-12 rounded-sm box-border text-left transition-colors ${open ? 'bg-surface-formcomp border-2 border-border-interactive px-[11px]' : 'bg-surface-formcomp border border-border-secondary'}`}
+          >
+            <span className={`flex-1 min-w-0 flex items-center gap-2 text-base leading-6 tracking-[0.25px] truncate ${value ? 'text-text-primary' : 'text-text-secondary'}`}>
+              {selectedOpt ? (
+                <>
+                  {selectedOpt.label}
+                  {selectedOpt.badge && <Badge tone={selectedOpt.badgeTone}>{selectedOpt.badge}</Badge>}
+                </>
+              ) : placeholder}
+            </span>
+            <svg className={`shrink-0 size-5 text-icon-primary transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none">
+              <path d="M12 14.975C11.8667 14.975 11.7417 14.9542 11.625 14.9125C11.5083 14.8708 11.4 14.8 11.3 14.7L6.7 10.1C6.51667 9.91667 6.425 9.68333 6.425 9.4C6.425 9.11667 6.51667 8.88333 6.7 8.7C6.88333 8.51667 7.11667 8.425 7.4 8.425C7.68333 8.425 7.91667 8.51667 8.1 8.7L12 12.6L15.9 8.7C16.0833 8.51667 16.3167 8.425 16.6 8.425C16.8833 8.425 17.1167 8.51667 17.3 8.7C17.4833 8.88333 17.575 9.11667 17.575 9.4C17.575 9.68333 17.4833 9.91667 17.3 10.1L12.7 14.7C12.6 14.8 12.4917 14.8708 12.375 14.9125C12.2583 14.9542 12.1333 14.975 12 14.975Z" fill="currentColor"/>
+            </svg>
+          </button>
+          {open && (
+            <div className="relative">
+              <ul role="listbox" className="absolute z-50 left-0 right-0 mt-1 bg-surface-default rounded-sm shadow-lg py-2 overflow-hidden">
+                {options.map(opt => {
+                  const selected = opt.value === value;
+                  return (
+                    <li key={opt.value}>
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={selected}
+                        onClick={() => { onChange(opt.value); setOpen(false); }}
+                        className={`flex items-center justify-between w-full h-10 px-3 text-left transition-colors ${selected ? 'bg-surface-selected hover:bg-surface-hover' : 'hover:bg-surface-hover'}`}
+                      >
+                        <div className="flex flex-col items-start">
+                          <span className="text-base leading-6 tracking-[0.25px] text-text-primary">{opt.label}</span>
+                          {opt.hint && <span className="text-xs leading-4 text-text-secondary">{opt.hint}</span>}
+                        </div>
+                        {opt.badge && <Badge tone={opt.badgeTone}>{opt.badge}</Badge>}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // <Toggle/> — toggle.md (8×8 blue OFF dot, 14×14 white ON thumb)
+    // ─────────────────────────────────────────────────────────────
+    function Toggle({ label, description, checked, onChange }) {
+      return (
+        <label className="flex items-center justify-between gap-3 cursor-pointer select-none">
+          <div className="flex flex-col">
+            <span className="text-base leading-6 tracking-[0.25px] text-text-primary">{label}</span>
+            {description && <span className="text-sm leading-5 tracking-[0.25px] text-text-secondary">{description}</span>}
+          </div>
+          <span className={`relative shrink-0 w-8 h-[18px] rounded-full transition-colors box-border ${checked ? 'bg-surface-interactive border-0' : 'bg-white border border-border-primary'}`}>
+            <input type="checkbox" role="switch" checked={checked} onChange={e => onChange(e.target.checked)} className="sr-only" />
+            <span
+              aria-hidden="true"
+              className={`absolute rounded-full transition-all duration-150 ${checked ? 'bg-white size-[14px] right-[2px] top-1/2 -translate-y-1/2' : 'bg-surface-interactive size-2 left-[4px] top-[4px]'}`}
+            />
+          </span>
+        </label>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // <Checkbox/> — outlined when no, filled blue with white check when yes
+    // ─────────────────────────────────────────────────────────────
+    function Checkbox({ label, description, checked, onChange }) {
+      return (
+        <label className="flex items-start gap-2 cursor-pointer select-none">
+          <span className={`relative shrink-0 mt-0.5 size-5 rounded-sm box-border flex items-center justify-center transition-colors ${checked ? 'bg-surface-interactive border-0' : 'bg-white border-2 border-border-primary'}`}>
+            <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} className="sr-only" />
+            {checked && (
+              <svg viewBox="0 0 24 24" fill="none" className="size-4 text-icon-on-color">
+                <path d="M9.55 15.15L18.025 6.675C18.225 6.475 18.4583 6.375 18.725 6.375C18.9917 6.375 19.225 6.475 19.425 6.675C19.625 6.875 19.725 7.1125 19.725 7.3875C19.725 7.6625 19.625 7.9 19.425 8.1L10.25 17.3C10.05 17.5 9.81667 17.6 9.55 17.6C9.28333 17.6 9.05 17.5 8.85 17.3L4.55 13C4.35 12.8 4.25417 12.5625 4.2625 12.2875C4.27083 12.0125 4.375 11.775 4.575 11.575C4.775 11.375 5.0125 11.275 5.2875 11.275C5.5625 11.275 5.8 11.375 6 11.575L9.55 15.15Z" fill="currentColor"/>
+              </svg>
+            )}
+          </span>
+          <div className="flex flex-col">
+            <span className="text-base leading-6 tracking-[0.25px] text-text-primary">{label}</span>
+            {description && <span className="text-sm leading-5 tracking-[0.25px] text-text-secondary">{description}</span>}
+          </div>
+        </label>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // <Button/> — primary + ghost
+    // ─────────────────────────────────────────────────────────────
+    function Button({ variant = 'primary', children, type = 'button', ...rest }) {
+      const styles = {
+        primary: 'bg-surface-interactive text-text-inverted hover:bg-surface-interactive-hover active:bg-surface-interactive-press',
+        ghost:   'bg-transparent text-text-primary hover:bg-surface-hover active:bg-surface-pressed',
+      }[variant];
+      return (
+        <button type={type} className={`inline-flex items-center justify-center h-10 px-4 rounded-lg text-sm font-medium leading-5 tracking-[0.25px] transition-colors ${styles}`} {...rest}>
+          {children}
+        </button>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // <Dialog/> — modal shell (dialog.md): 676px wide, 16px radius, directional shadow
+    // ─────────────────────────────────────────────────────────────
+    function Dialog({ open, title, onClose, children, footer, labelledById }) {
+      useEffect(() => {
+        if (!open) return;
+        const onKey = e => { if (e.key === 'Escape') onClose(); };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+      }, [open, onClose]);
+
+      if (!open) return null;
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(20, 31, 46, 0.6)' }}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={labelledById}
+            className="relative w-full max-w-[676px] max-h-[90vh] flex flex-col bg-surface-default rounded-2xl shadow-lg"
+          >
+            <div className="flex items-start gap-4 px-8 pt-8 pb-2 shrink-0">
+              <h2 id={labelledById} className="flex-1 text-2xl font-semibold leading-none tracking-[-0.005em] text-text-primary m-0">{title}</h2>
+              <button
+                type="button"
+                aria-label="Close dialog"
+                onClick={onClose}
+                className="shrink-0 -mr-2 -mt-2 size-8 p-1 rounded-md text-icon-primary hover:bg-surface-hover active:bg-surface-pressed flex items-center justify-center transition-colors"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="size-5">
+                  <path d="M12 13.4L7.1 18.3C6.91667 18.4833 6.68333 18.575 6.4 18.575C6.11667 18.575 5.88333 18.4833 5.7 18.3C5.51667 18.1167 5.425 17.8833 5.425 17.6C5.425 17.3167 5.51667 17.0833 5.7 16.9L10.6 12L5.7 7.1C5.51667 6.91667 5.425 6.68333 5.425 6.4C5.425 6.11667 5.51667 5.88333 5.7 5.7C5.88333 5.51667 6.11667 5.425 6.4 5.425C6.68333 5.425 6.91667 5.51667 7.1 5.7L12 10.6L16.9 5.7C17.0833 5.51667 17.3167 5.425 17.6 5.425C17.8833 5.425 18.1167 5.51667 18.3 5.7C18.4833 5.88333 18.575 6.11667 18.575 6.4C18.575 6.68333 18.4833 6.91667 18.3 7.1L13.4 12L18.3 16.9C18.4833 17.0833 18.575 17.3167 18.575 17.6C18.575 17.8833 18.4833 18.1167 18.3 18.3C18.1167 18.4833 17.8833 18.575 17.6 18.575C17.3167 18.575 17.0833 18.4833 16.9 18.3L12 13.4Z" fill="currentColor"/>
+                </svg>
+              </button>
+            </div>
+            <div className="px-8 py-4 flex flex-col gap-5 overflow-y-auto">
+              {children}
+            </div>
+            <div className="flex justify-end gap-2 px-8 pt-2 pb-8 shrink-0">
+              {footer}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // <App/> — actual modal demo with all the enriched components
+    // Tab order: name → type → description → visibility → notify → cancel → create
+    // ─────────────────────────────────────────────────────────────
+    function App() {
+      const [open, setOpen] = useState(true);
+      const [name, setName] = useState('');
+      const [type, setType] = useState('');
+      const [description, setDescription] = useState('');
+      const [isPublic, setIsPublic] = useState(false);
+      const [notifyTeam, setNotifyTeam] = useState(true);
+
+      const close = () => {
+        setOpen(false);
+        setName(''); setType(''); setDescription('');
+        setIsPublic(false); setNotifyTeam(true);
+      };
+      const create = () => { close(); };
+
+      // Info icon for "what does this mean?" affordance next to labels
+      const InfoIcon = () => (
+        <Tooltip content="Inventory = scan-and-count workflows. Receiving = inbound shipments. Search = locate matching items.">
+          <button type="button" className="size-5 text-icon-secondary hover:text-icon-primary inline-flex items-center justify-center" aria-label="What's a project type?">
+            <svg viewBox="0 0 24 24" fill="none" className="size-4">
+              <path d="M12 17C12.2833 17 12.5208 16.9042 12.7125 16.7125C12.9042 16.5208 13 16.2833 13 16V12C13 11.7167 12.9042 11.4792 12.7125 11.2875C12.5208 11.0958 12.2833 11 12 11C11.7167 11 11.4792 11.0958 11.2875 11.2875C11.0958 11.4792 11 11.7167 11 12V16C11 16.2833 11.0958 16.5208 11.2875 16.7125C11.4792 16.9042 11.7167 17 12 17ZM12 9C12.2833 9 12.5208 8.90417 12.7125 8.7125C12.9042 8.52083 13 8.28333 13 8C13 7.71667 12.9042 7.47917 12.7125 7.2875C12.5208 7.09583 12.2833 7 12 7C11.7167 7 11.4792 7.09583 11.2875 7.2875C11.0958 7.47917 11 7.71667 11 8C11 8.28333 11.0958 8.52083 11.2875 8.7125C11.4792 8.90417 11.7167 9 12 9ZM12 22C10.6167 22 9.31667 21.7375 8.1 21.2125C6.88333 20.6875 5.825 19.975 4.925 19.075C4.025 18.175 3.3125 17.1167 2.7875 15.9C2.2625 14.6833 2 13.3833 2 12C2 10.6167 2.2625 9.31667 2.7875 8.1C3.3125 6.88333 4.025 5.825 4.925 4.925C5.825 4.025 6.88333 3.3125 8.1 2.7875C9.31667 2.2625 10.6167 2 12 2C13.3833 2 14.6833 2.2625 15.9 2.7875C17.1167 3.3125 18.175 4.025 19.075 4.925C19.975 5.825 20.6875 6.88333 21.2125 8.1C21.7375 9.31667 22 10.6167 22 12C22 13.3833 21.7375 14.6833 21.2125 15.9C20.6875 17.1167 19.975 18.175 19.075 19.075C18.175 19.975 17.1167 20.6875 15.9 21.2125C14.6833 21.7375 13.3833 22 12 22ZM12 20C14.2333 20 16.125 19.225 17.675 17.675C19.225 16.125 20 14.2333 20 12C20 9.76667 19.225 7.875 17.675 6.325C16.125 4.775 14.2333 4 12 4C9.76667 4 7.875 4.775 6.325 6.325C4.775 7.875 4 9.76667 4 12C4 14.2333 4.775 16.125 6.325 17.675C7.875 19.225 9.76667 20 12 20Z" fill="currentColor"/>
+            </svg>
+          </button>
+        </Tooltip>
+      );
+
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          {!open && (
+            <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center justify-center h-10 px-4 rounded-lg text-sm font-medium leading-5 bg-surface-interactive text-text-inverted hover:bg-surface-interactive-hover">
+              Open "New project" modal
+            </button>
+          )}
+          <Dialog open={open} title="New project" onClose={close} labelledById="dlg-newproj-title"
+            footer={
+              <React.Fragment>
+                <Button variant="ghost" onClick={close}>Cancel</Button>
+                <Button variant="primary" onClick={create}>Create project</Button>
+              </React.Fragment>
+            }
+          >
+            {/* Info callout — explains a side-effect the user might not expect */}
+            <Callout>
+              Creating a project will automatically invite everyone currently on your team. You can change visibility anytime in project settings.
+            </Callout>
+
+            {/* Project name — text-field */}
+            <TextField
+              label="Project name"
+              mandatory
+              autoFocus
+              placeholder="e.g. Q4 inventory audit"
+              value={name}
+              onChange={setName}
+              helperText="Visible to teammates and on the project dashboard."
+            />
+
+            {/* Project type — dropdown WITH tooltip on the label + badge inside options */}
+            <Dropdown
+              label="Project type"
+              mandatory
+              labelExtras={<InfoIcon />}
+              options={[
+                { value: 'Inventory',  label: 'Inventory',  hint: 'Count and reconcile stock' },
+                { value: 'Receiving',  label: 'Receiving',  hint: 'Inbound shipment scanning', badge: 'Beta', badgeTone: 'info' },
+                { value: 'Search',     label: 'Search',     hint: 'Locate matching items' },
+              ]}
+              value={type}
+              onChange={setType}
+              placeholder="Choose a project type"
+            />
+
+            {/* Description — textarea with counter */}
+            <TextArea
+              label="Description"
+              placeholder="What is this project for? (optional)"
+              value={description}
+              onChange={setDescription}
+              helperText="Markdown is supported."
+              maxLength={280}
+            />
+
+            {/* Section divider */}
+            <div className="h-px bg-border-tertiary -mx-8" />
+
+            <div className="text-sm font-medium text-text-secondary -mb-2">Visibility &amp; notifications</div>
+
+            {/* Toggle — public/private */}
+            <Toggle
+              label="Make this project public"
+              description={isPublic ? 'Anyone in your organisation can view it.' : 'Only invited members can view it.'}
+              checked={isPublic}
+              onChange={setIsPublic}
+            />
+
+            {/* Checkbox — notify team */}
+            <Checkbox
+              label="Notify my team when the project is created"
+              description="Sends an in-app notification to all invited members."
+              checked={notifyTeam}
+              onChange={setNotifyTeam}
+            />
+          </Dialog>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
